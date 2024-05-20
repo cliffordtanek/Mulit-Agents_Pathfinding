@@ -167,7 +167,7 @@ int main()
     bool isFullscreen = false;
     float cubeLen = 100.f;
     float distFromScreen = 1000.f;
-    float speed = 100.f;
+    float speed = 250.f;
 
     sf::Clock clock;
     sf::Font font;
