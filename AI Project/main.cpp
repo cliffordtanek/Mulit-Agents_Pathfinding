@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include "Editor.h"
 
 #define nl "\n"
 #define EPSILON 1.f
@@ -191,6 +192,8 @@ int main()
 
     // Initialize ImGui-SFML
     ImGui::SFML::Init(window);
+    Editor editor;
+    editor.addWindow<MainMenu>();
 
     while (window.isOpen())
     {
@@ -235,6 +238,8 @@ int main()
         ImGui::Begin("Hello, world!");
         ImGui::Text("This is some useful text.");
         ImGui::End();
+
+        editor.update();
 
         window.clear();
 
