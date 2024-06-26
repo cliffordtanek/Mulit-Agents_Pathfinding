@@ -2,6 +2,8 @@
 #include <array>
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "imgui.h"
+#include "imgui-SFML.h"
 
 #define nl "\n"
 #define EPSILON 1.f
@@ -185,6 +187,10 @@ int main()
     sf::Vector3f eye = { 50.f, 50.f, 300.f };
     Plane screen({ 50.f, 50.f, eye.z - distFromScreen }, { 0.f, 0.f, -1.f });
     sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
+    window.setFramerateLimit(60);
+
+    // Initialize ImGui-SFML
+    ImGui::SFML::Init(window);
 
     while (window.isOpen())
     {
@@ -193,6 +199,9 @@ int main()
 
         while (window.pollEvent(event))
         {
+            // Pass events to ImGui
+            ImGui::SFML::ProcessEvent(event);
+
             switch (event.type)
             {
             case sf::Event::Closed:
@@ -219,7 +228,18 @@ int main()
             }
         }
 
+        // Start the ImGui frame
+        ImGui::SFML::Update(window, clock.restart());
+
+        // Example ImGui window
+        ImGui::Begin("Hello, world!");
+        ImGui::Text("This is some useful text.");
+        ImGui::End();
+
         window.clear();
+
+        // Render ImGui into window
+        ImGui::SFML::Render(window);
 
         Cube proj(0.f); // 0.f is placeholder
         for (int i = 0; i < 8; ++i)
