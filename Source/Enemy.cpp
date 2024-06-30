@@ -12,5 +12,6 @@ void Enemy::onUpdate()
 
 void Enemy::onDestroy()
 {
+	std::cout << "enemy destroyed\n";
 	Entity::onDestroy();
 }

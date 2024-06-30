@@ -103,4 +103,5 @@ void Editor::createDockspace()
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
 	ImGui::PopStyleVar(3);
 	ImGui::DockSpace(ImGui::GetID("MyDockspace"), ImVec2(0.f, 0.f), ImGuiDockNodeFlags_PassthruCentralNode);
+	ImGui::End();
 }

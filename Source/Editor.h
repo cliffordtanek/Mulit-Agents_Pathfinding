@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include <iostream>
+#include "Utility.h"
 
 class Window
 {
@@ -54,8 +55,13 @@ public:
 		{
 			std::string name = typeid(T).name();
 			name = name.substr(6);
+			crashIf(windows.count(name), "Window name " + utl::quote(name) + " already exists");
+
 			windows[name] = new T(name);
 			openWindow(name);
+			return;
 		}
+
+		crashIf(true, utl::quote(typeid(T).name()) + " is not a child of the Window class");
 	}
 };

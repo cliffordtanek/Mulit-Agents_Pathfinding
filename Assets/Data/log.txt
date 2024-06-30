@@ -1,0 +1,14 @@
+[30/06/2024 14:09:52] Program crashed at line 85 in Factory.h, reason: "class Enemy" is not a child of the Entity class
+
+[30/06/2024 14:10:44] Program crashed at line 85 in Factory.h, reason: "class Enemy" is not a child of the Entity class
+
+[30/06/2024 14:58:51] Program crashed at line 87 in Factory.h, reason: Entity of type "class Enemy" does not exist
+
+[30/06/2024 15:24:44] Program crashed at line 75 in Factory.cpp, reason: Vector subscript out of range for "Enemy" entity type
+
+[30/06/2024 15:25:17] Program crashed at line 76 in Factory.cpp, reason: Vector subscript out of range for "Enemy" entity type
+
+[30/06/2024 15:26:52] Program crashed at line 76 in Factory.cpp, reason: Vector subscript out of range for "Enemy" entity type
+
+[30/06/2024 15:32:31] Program crashed at line 73 in Factory.cpp, reason: Vector subscript out of range for "Enemy" entity type
+
