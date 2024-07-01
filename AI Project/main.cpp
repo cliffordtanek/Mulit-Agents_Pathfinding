@@ -79,13 +79,20 @@ int main()
                         factory.destroyEntity<Enemy>(iter - enemies.begin());
                     break;
                 }
+
+                case sf::Event::MouseButtonPressed:
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                        for (Enemy *enemy : factory.getEntities<Enemy>())
+                            enemy->setTargetPos({ (float)event.mouseButton.x, (float)event.mouseButton.y });
+                    std::cout << "mouse clicked\n";
+                    break;
+                }
                 break;
                 }
             }
 
-
-            // Start the ImGui frame
-            ImGui::SFML::Update(window, clock.restart());
+        // Start the ImGui frame
+        ImGui::SFML::Update(window, clock.restart());
 
             // update the editor
             editor.createDockspace();

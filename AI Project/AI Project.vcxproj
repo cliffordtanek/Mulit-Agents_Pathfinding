@@ -140,6 +140,7 @@
     <ClCompile Include="..\Imgui\imgui_draw.cpp" />
     <ClCompile Include="..\Imgui\imgui_tables.cpp" />
     <ClCompile Include="..\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\Source\Ally.cpp" />
     <ClCompile Include="..\Source\Editor.cpp" />
     <ClCompile Include="..\Source\Enemy.cpp" />
     <ClCompile Include="..\Source\Factory.cpp" />

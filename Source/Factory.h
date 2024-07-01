@@ -15,21 +15,23 @@ enum Shape
 
 class Entity
 {
-public:
-
 	Shape shape;
-	Vec2 pos;
+	Vec2 pos, targetPos = Vec2();
 	Vec2 scale;
 	sf::Color color;
 	Vec2 dir;
-	float speed;
+	float speed, currSpeed = 0.f;
+
+	void move();
+
+public:
 
 	Entity(Shape _shape = NONE, 
 		Vec2 _pos = Vec2(), 
 		Vec2 _scale = Vec2(), 
 		const sf::Color &_color = sf::Color::Green,
 		Vec2 _dir = Vec2(), 
-		float _speed = 0.f)
+		float _speed = 10.f)
 
 		: shape(_shape), 
 		pos(_pos), 
@@ -40,9 +42,36 @@ public:
 
 	virtual ~Entity() { }
 
+	void setTargetPos(Vec2 _targetPos);
+
 	virtual void onCreate();
 	virtual void onUpdate();
 	virtual void onDestroy();
+};
+
+class Ally : public Entity
+{
+public:
+
+	float health;
+	float damage;
+
+	Ally(Shape _shape = NONE,
+		Vec2 _pos = Vec2(),
+		Vec2 _scale = Vec2(),
+		const sf::Color &_color = sf::Color::Red,
+		Vec2 _dir = Vec2(),
+		float _speed = 0.f,
+		float _health = 100.f,
+		float _damage = 10.f)
+
+		: Entity(_shape, _pos, _scale, _color, _dir, _speed),
+		health(_health),
+		damage(_damage) { }
+
+	void onCreate() override;
+	void onUpdate() override;
+	void onDestroy() override;
 };
 
 class Enemy : public Entity
@@ -55,7 +84,7 @@ public:
 	Enemy(Shape _shape = NONE,
 		Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
-		const sf::Color &_color = sf::Color::Green,
+		const sf::Color &_color = sf::Color::Red,
 		Vec2 _dir = Vec2(),
 		float _speed = 0.f,
 		float _health = 100.f,

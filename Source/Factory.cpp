@@ -2,6 +2,29 @@
 #include "Factory.h"
 
 extern sf::RenderWindow window;
+//extern sf::Clock clock;
+
+void Entity::move()
+{
+	if (!currSpeed)
+		return;
+
+	if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
+	{
+		currSpeed = 0.f;
+		return;
+	}
+
+	pos += dir * currSpeed;
+}
+
+void Entity::setTargetPos(Vec2 _targetPos)
+{
+	targetPos = _targetPos;
+	currSpeed = speed;
+	dir = targetPos - pos;
+	dir = dir.Normalize();
+}
 
 void Entity::onCreate()
 {
@@ -10,6 +33,8 @@ void Entity::onCreate()
 
 void Entity::onUpdate()
 {
+	move();
+
 	// draw entity
 	switch (shape)
 	{
