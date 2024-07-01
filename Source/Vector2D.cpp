@@ -124,6 +124,11 @@ bool Vector2D::Zero() const
     return false;
 }
 
+// cast operator
+Vector2D::operator sf::Vector2f()
+{
+    return sf::Vector2f{ x, y };
+}
 
 // ===================================== //
 // Vector2D's binary operator definition

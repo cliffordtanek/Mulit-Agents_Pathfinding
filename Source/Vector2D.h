@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 //! TO DISABLE WARNING FOR NAMELESS STRUCT / UNION
 #pragma warning(disable: 4201)
@@ -133,6 +134,13 @@ typedef union Vector2D
 	*************************************************************************/
 	Vector2D operator-() const; 	// Unary operators
 
+	// cast operator
+	/*!***********************************************************************
+	\brief
+
+	Enable implict conversion of Vector2D to glm::vec2 (openGL math)
+	*************************************************************************/
+	operator sf::Vector2f();
 
 	/*!***********************************************************************
 	\brief
