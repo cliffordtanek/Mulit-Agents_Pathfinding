@@ -80,36 +80,37 @@ int main()
                     break;
                 }
                 break;
+                }
             }
+
+
+            // Start the ImGui frame
+            ImGui::SFML::Update(window, clock.restart());
+
+            // update the editor
+            editor.createDockspace();
+            editor.update();
+
+            // Render ImGui into window
+            window.clear();
+            ImGui::SFML::Render(window);
+
+            // update other systems
+            factory.update();
+
+            window.display();
         }
 
+        // free systems
+        editor.free();
+        factory.free();
 
-        // Start the ImGui frame
-        ImGui::SFML::Update(window, clock.restart());
+        // Cleanup ImGui-SFML resources
+        ImGui::SFML::Shutdown();
 
-        // update the editor
-        editor.createDockspace();
-        editor.update();
+        // free resources
+        window.close();
 
-        // Render ImGui into window
-        window.clear();
-        ImGui::SFML::Render(window);
-
-        // update other systems
-        factory.update();
-
-        window.display();
+        return 0;
     }
-
-    // free systems
-    editor.free();
-    factory.free();
-
-    // Cleanup ImGui-SFML resources
-    ImGui::SFML::Shutdown();
-
-    // free resources
-    window.close();
-
-    return 0;
 }
