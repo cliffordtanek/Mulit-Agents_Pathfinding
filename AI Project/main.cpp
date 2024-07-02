@@ -18,6 +18,10 @@ sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
 Editor editor;
 Factory factory;
 
+//! temp
+bool isMousePressed{ false };
+
+
 int main()
 {
     // Enable run-time memory check for debug builds.
@@ -82,14 +86,40 @@ int main()
 
                 case sf::Event::MouseButtonPressed:
                     if (event.mouseButton.button == sf::Mouse::Left)
-                        for (Enemy *enemy : factory.getEntities<Enemy>())
+                    {
+                        isMousePressed = true;
+                        for (Enemy* enemy : factory.getEntities<Enemy>())
                             enemy->setTargetPos({ (float)event.mouseButton.x, (float)event.mouseButton.y });
+                    }
                     std::cout << "mouse clicked\n";
                     break;
+
+                case sf::Event::MouseButtonReleased:
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                        isMousePressed = false;
+                    
+                    break;
+
+
                 }
                 break;
+
+            case sf::Event::MouseMoved:
+                if (isMousePressed)
+                {
+                    // calculate grid coordinates from mouse position
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                    int col = mousePos.x / factory.grid->getCellSize();
+                    int row = mousePos.y / factory.grid->getCellSize();
+
+                    // set colour of grid upon click
+                    factory.grid->SetColour(row, col, sf::Color::Green);
                 }
+                break;
+
             }
+
+        }
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
@@ -119,5 +149,5 @@ int main()
         window.close();
 
         return 0;
-    }
+    
 }

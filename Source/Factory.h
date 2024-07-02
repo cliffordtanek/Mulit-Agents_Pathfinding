@@ -4,6 +4,8 @@
 #include "Vector2D.h"
 #include "Utility.h"
 
+#include "Grid.h"
+
 enum Shape
 {
 	NONE,
@@ -104,7 +106,12 @@ class Factory
 	std::unordered_map<std::string, std::vector<Entity *>> entities;
 	std::vector<std::pair<std::string, size_t>> toDelete;
 
+
+
 public:
+
+	//! TEMP
+	Grid* grid;
 
 	void init();
 	void update();

@@ -83,6 +83,9 @@ void Entity::onDestroy()
 void Factory::init()
 {
 	addEntityType<Enemy>();
+
+	//! Temp
+	grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
 }
 
 void Factory::update()
@@ -101,6 +104,9 @@ void Factory::update()
 	for (const auto &[type, vector] : entities)
 		for (Entity *entity : vector)
 			entity->onUpdate();
+
+	grid->render(window);
+
 }
 
 void Factory::free()
@@ -108,6 +114,8 @@ void Factory::free()
 	for (const auto &[type, vector] : entities)
 		for (Entity *entity : vector)
 			delete entity;
+
+	delete grid;
 }
 
 const std::unordered_map<std::string, std::vector<Entity *>> &Factory::getAllEntities()

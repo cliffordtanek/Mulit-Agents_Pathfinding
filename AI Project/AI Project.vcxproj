@@ -144,6 +144,7 @@
     <ClCompile Include="..\Source\Editor.cpp" />
     <ClCompile Include="..\Source\Enemy.cpp" />
     <ClCompile Include="..\Source\Factory.cpp" />
+    <ClCompile Include="..\Source\Grid.cpp" />
     <ClCompile Include="..\Source\MathLib.cpp" />
     <ClCompile Include="..\Source\Utility.cpp" />
     <ClCompile Include="..\Source\Vector2D.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="..\Imgui\imstb_truetype.h" />
     <ClInclude Include="..\Source\Editor.h" />
     <ClInclude Include="..\Source\Factory.h" />
+    <ClInclude Include="..\Source\Grid.h" />
     <ClInclude Include="..\Source\MathLib.h" />
     <ClInclude Include="..\Source\Utility.h" />
     <ClInclude Include="..\Source\Vector2D.h" />
