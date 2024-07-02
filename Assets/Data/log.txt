@@ -12,3 +12,15 @@
 
 [30/06/2024 15:32:31] Program crashed at line 73 in Factory.cpp, reason: Vector subscript out of range for "Enemy" entity type
 
+[02/07/2024 12:10:58] Program crashed at line 166 in Factory.h, reason: Entity of type "Arrow" does not exist
+
+[02/07/2024 12:11:20] Program crashed at line 140 in Factory.cpp, reason: Vector subscript out of range for "Arrow" entity type
+
+[02/07/2024 12:22:41] Program crashed at line 143 in Factory.cpp, reason: Vector subscript out of range for "Arrow" entity type
+
+[02/07/2024 12:25:14] Program crashed at line 143 in Factory.cpp, reason: Vector subscript out of range for "Arrow" entity type
+
+[02/07/2024 12:38:04] Program crashed at line 147 in Factory.cpp, reason: Entity to delete was not found
+
+[02/07/2024 12:39:47] Program crashed at line 147 in Factory.cpp, reason: Entity to delete was not found
+

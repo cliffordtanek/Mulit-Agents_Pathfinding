@@ -13,24 +13,28 @@ enum Shape
 	MAX_SHAPES
 };
 
+class Arrow;
+
 class Entity
 {
+	void move();
+
+public:
+
 	Shape shape;
 	Vec2 pos, targetPos = Vec2();
 	Vec2 scale;
 	sf::Color color;
 	Vec2 dir;
 	float speed, currSpeed = 0.f;
+	std::list<Vec2> waypoints;
+	std::list<Arrow *> wpArrows;
 
-	void move();
-
-public:
-
-	Entity(Shape _shape = NONE, 
-		Vec2 _pos = Vec2(), 
+	Entity(Vec2 _pos = Vec2(), 
 		Vec2 _scale = Vec2(), 
-		const sf::Color &_color = sf::Color::Green,
 		Vec2 _dir = Vec2(), 
+		Shape _shape = NONE,
+		const sf::Color &_color = sf::Color::Green,
 		float _speed = 10.f)
 
 		: shape(_shape), 
@@ -42,7 +46,8 @@ public:
 
 	virtual ~Entity() { }
 
-	void setTargetPos(Vec2 _targetPos);
+	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false);
+	void setWaypoints(const std::list<Vec2> &_waypoints);
 
 	virtual void onCreate();
 	virtual void onUpdate();
@@ -56,16 +61,16 @@ public:
 	float health;
 	float damage;
 
-	Ally(Shape _shape = NONE,
-		Vec2 _pos = Vec2(),
+	Ally(Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
-		const sf::Color &_color = sf::Color::Red,
 		Vec2 _dir = Vec2(),
-		float _speed = 0.f,
+		Shape _shape = TRIANGLE,
+		const sf::Color &_color = sf::Color::Red,
+		float _speed = 10.f,
 		float _health = 100.f,
 		float _damage = 10.f)
 
-		: Entity(_shape, _pos, _scale, _color, _dir, _speed),
+		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
 		health(_health),
 		damage(_damage) { }
 
@@ -81,16 +86,16 @@ public:
 	float health;
 	float damage;
 
-	Enemy(Shape _shape = NONE,
-		Vec2 _pos = Vec2(),
+	Enemy(Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
-		const sf::Color &_color = sf::Color::Red,
 		Vec2 _dir = Vec2(),
-		float _speed = 0.f,
+		Shape _shape = TRIANGLE,
+		const sf::Color &_color = sf::Color::Red,
+		float _speed = 10.f,
 		float _health = 100.f,
 		float _damage = 10.f)
 
-		: Entity(_shape, _pos, _scale, _color, _dir, _speed),
+		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
 		health(_health),
 		damage(_damage) { }
 
@@ -99,10 +104,47 @@ public:
 	void onDestroy() override;
 };
 
+class Arrow : public Entity
+{
+public:
+
+	Vec2 triScale;
+	float stroke;
+	Entity *owner;
+
+	Arrow(Entity *_owner = nullptr,
+		Vec2 _pos = Vec2(),
+		Vec2 _scale = Vec2(),
+		Vec2 _dir = Vec2(),
+		Shape _shape = NONE,
+		const sf::Color &_color = sf::Color::Cyan,
+		float _speed = 10.f,
+		Vec2 _triScale = { 10.f, 15.f },
+		float _stroke = 2.5f)
+
+		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
+		triScale(_triScale),
+		stroke(_stroke),
+		owner(_owner) { }
+
+	void onCreate() override;
+	void onUpdate() override;
+	void onDestroy() override;
+};
+
 class Factory
 {
-	std::unordered_map<std::string, std::vector<Entity *>> entities;
-	std::vector<std::pair<std::string, size_t>> toDelete;
+	std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> entities;
+	//std::vector<std::pair<std::string, Entity*>> toDelete;
+
+	template <typename T>
+	std::string checkType()
+	{
+		std::string type = typeid(T).name();
+		type = utl::trimString(type, "class ");
+		crashIf(!entities.count(type), "Entity of type " + utl::quote(type) + " does not exist");
+		return type;
+	}
 
 public:
 
@@ -110,40 +152,43 @@ public:
 	void update();
 	void free();
 
-	const std::unordered_map<std::string, std::vector<Entity *>> &getAllEntities();
-
 	template <typename T>
 	std::vector<T *> getEntities()
 	{
-		std::string type = typeid(T).name();
-		type = type.substr(6);
-		crashIf(!entities.count(type), "Entity of type " + utl::quote(type) + " does not exist");
-
+		std::string type = checkType<T>();
 		std::vector<T *> ret;
-		for (Entity *entity : entities.at(type))
-			ret.push_back(dynamic_cast<T *>(entity));
+		for (const auto &[k, v] : entities.at(type))
+			ret.push_back(dynamic_cast<T *>(v));
 		return ret;
 	}
 
 	template <typename T, typename ...Args>
 	T *createEntity(Args... args)
 	{
-		std::string type = typeid(T).name();
-		type = type.substr(6);
-		crashIf(!entities.count(type), "Entity of type " + utl::quote(type) + " does not exist");
-
-		entities.at(type).push_back(new T(std::forward<Args>(args)...));
-		return dynamic_cast<T *>(entities.at(type).back());
+		std::string type = checkType<T>();
+		T *newEntity = new T(std::forward<Args>(args)...);
+		entities.at(type)[newEntity] = newEntity;
+		return newEntity;
 	}
 
 	template <typename T>
-	void destroyEntity(size_t index)
+	void destroyEntity(Entity *entity)
 	{
-		std::string type = typeid(T).name();
-		type = type.substr(6);
-		crashIf(!entities.count(type), "Entity of type " + utl::quote(type) + " does not exist");
+		// shouldn't crash here if deleting while iterating because the vector returned is different
+		// but might crash elsewhere if you tried to access a deleted entity
+		std::string type = checkType<T>();
+		crashIf(!entities.at(type).count(entity), "Entity to delete was not found");
+		entities.at(type).at(entity)->onDestroy();
+		delete entities.at(type).at(entity);
+		entities.at(type).erase(entity);
+		//toDelete.push_back(std::make_pair(type, entity));
+	}
 
-		toDelete.push_back(std::make_pair(type, index));
+	template <typename T>
+	bool isEntityAlive(Entity *entity)
+	{
+		std::string type = checkType<T>();
+		return entities.at(type).count(entity);
 	}
 
 	template <typename T>
@@ -152,10 +197,10 @@ public:
 		if constexpr (std::is_base_of_v<Entity, std::decay_t<T>>)
 		{
 			std::string type = typeid(T).name();
-			type = type.substr(6);
+			type = utl::trimString(type, "class ");
 			crashIf(entities.count(type), "Entity type " + utl::quote(type) + " already exists");
 
-			entities[type] = std::vector<Entity *>();
+			entities[type] = std::unordered_map<Entity *, Entity *>();
 			return;
 		}
 

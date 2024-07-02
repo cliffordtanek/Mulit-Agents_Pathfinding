@@ -38,7 +38,9 @@ int main()
 
     // initialize other systems
     factory.init();
-    Enemy *enemy = factory.createEntity<Enemy>(TRIANGLE, Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+    std::list<Vec2> waypoints
+    { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
     while (window.isOpen())
     {
@@ -72,24 +74,30 @@ int main()
                     std::cout << "dt: " << dt << nl;
                     break;
 
-                case sf::Keyboard::N:
-                {
-                    auto enemies = factory.getEntities<Enemy>();
-                    for (auto iter = enemies.begin(); iter != enemies.end(); ++iter)
-                        factory.destroyEntity<Enemy>(iter - enemies.begin());
+                case sf::Keyboard::M:
+                    for (Enemy *enemy : factory.getEntities<Enemy>())
+                        factory.destroyEntity<Enemy>(enemy);
                     break;
-                }
 
-                case sf::Event::MouseButtonPressed:
-                    if (event.mouseButton.button == sf::Mouse::Left)
-                        for (Enemy *enemy : factory.getEntities<Enemy>())
-                            enemy->setTargetPos({ (float)event.mouseButton.x, (float)event.mouseButton.y });
-                    std::cout << "mouse clicked\n";
+                case sf::Keyboard::P:
+                    if (ALIVE(Enemy, enemy))
+                        enemy->setWaypoints(waypoints);
                     break;
+
+                case sf::Keyboard::N:
+                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+                    break;
+
                 }
                 break;
             }
         }
+
+        // mouse event must put outside of switch case for some reason
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left &&
+            ALIVE(Enemy, enemy))
+            enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), 
+                static_cast<float>(event.mouseButton.y) }, true);
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());

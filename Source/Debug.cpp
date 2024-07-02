@@ -1,15 +1,12 @@
-#include <ctime>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
-#include "Utility.h"
 #include "Editor.h"
 #include "Factory.h"
+#include <ctime>
+#include <fstream>
 
 extern Editor editor;
 extern Factory factory;
 
-namespace utl
+namespace dbg
 {
 	// @brief called when a crash happens to log it
 	// @param reason: cause of crash (only for user-induced)
@@ -47,36 +44,5 @@ namespace utl
 
 		std::cout << "Unable to open log.txt for appending\n";
 		exit(1);
-	}
-
-	// @brief adds quotes to the given string
-	// @param delim: specify something else to add instead of quotes at the start and end of the string
-	// @return a string concatenated with quotes
-	std::string quote(std::string const &str)
-	{
-		std::ostringstream oss;
-		oss << std::quoted(str, '"');
-		return oss.str();
-	}
-
-	bool isEqual(float lhs, float rhs)
-	{
-		return fabs(lhs - rhs) < EPSILON;
-	}
-
-	// @brief converts the given angle from radians to degrees
-	// @param radians
-	// @return degrees
-	float radToDeg(float rad)
-	{
-		return rad * 180.f / static_cast<float>(PI);
-	}
-
-	// @brief converts the given angle from degrees to radians
-	// @param degrees
-	// @param radians
-	float degToRad(float deg)
-	{
-		return deg * static_cast<float>(PI) / 180.f;
 	}
 }

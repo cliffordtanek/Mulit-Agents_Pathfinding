@@ -54,7 +54,7 @@ public:
 		if constexpr (std::is_base_of_v<Window, std::decay_t<T>>)
 		{
 			std::string name = typeid(T).name();
-			name = name.substr(6);
+			utl::trimString(name, "class ");
 			crashIf(windows.count(name), "Window name " + utl::quote(name) + " already exists");
 
 			windows[name] = new T(name);

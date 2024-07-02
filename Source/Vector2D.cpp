@@ -124,6 +124,11 @@ bool Vector2D::Zero() const
     return false;
 }
 
+Vector2D Vector2D::Midpoint(Vector2D const &rhs) const
+{
+    return { (x + rhs.x) / 2.f, (y + rhs.y) / 2.f };
+}
+
 // cast operator
 Vector2D::operator sf::Vector2f()
 {

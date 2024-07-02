@@ -262,6 +262,7 @@ typedef union Vector2D
 	*************************************************************************/
 	bool Zero() const;
 
+	Vector2D Midpoint(Vector2D const &rhs) const;
 
 } Vector2D, Vec2, point2D, pt2, vec2; // name alias
 
