@@ -128,6 +128,9 @@ void Entity::onDestroy()
 void Factory::init()
 {
 	addEntityType<Enemy>();
+
+	//! Temp
+	grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
 	addEntityType<Ally>();
 	addEntityType<Arrow>();
 }
@@ -147,6 +150,7 @@ void Factory::update()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+	grid->render(window);
 }
 
 void Factory::free()
@@ -154,4 +158,5 @@ void Factory::free()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			delete v;
+	delete grid;
 }

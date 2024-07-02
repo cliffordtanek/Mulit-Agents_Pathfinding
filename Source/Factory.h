@@ -4,6 +4,8 @@
 #include "Vector2D.h"
 #include "Utility.h"
 
+#include "Grid.h"
+
 enum Shape
 {
 	NONE,
@@ -146,7 +148,12 @@ class Factory
 		return type;
 	}
 
+
+
 public:
+
+	//! TEMP
+	Grid* grid;
 
 	void init();
 	void update();

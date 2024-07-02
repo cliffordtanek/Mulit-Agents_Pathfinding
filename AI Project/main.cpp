@@ -18,6 +18,10 @@ sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
 Editor editor;
 Factory factory;
 
+//! temp
+bool isMousePressed{ false };
+
+
 int main()
 {
     // Enable run-time memory check for debug builds.
@@ -90,7 +94,22 @@ int main()
 
                 }
                 break;
+
+            case sf::Event::MouseMoved:
+                if (isMousePressed)
+                {
+                    // calculate grid coordinates from mouse position
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                    int col = mousePos.x / factory.grid->getCellSize();
+                    int row = mousePos.y / factory.grid->getCellSize();
+
+                    // set colour of grid upon click
+                    factory.grid->SetColour(row, col, sf::Color::Green);
+                }
+                break;
+
             }
+
         }
 
         // mouse event must put outside of switch case for some reason
@@ -102,29 +121,30 @@ int main()
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
 
-        // update the editor
-        editor.createDockspace();
-        editor.update();
+            // update the editor
+            editor.createDockspace();
+            editor.update();
 
-        // Render ImGui into window
-        window.clear();
-        ImGui::SFML::Render(window);
+            // Render ImGui into window
+            window.clear();
+            ImGui::SFML::Render(window);
 
-        // update other systems
-        factory.update();
+            // update other systems
+            factory.update();
 
-        window.display();
-    }
+            window.display();
+        }
 
-    // free systems
-    editor.free();
-    factory.free();
+        // free systems
+        editor.free();
+        factory.free();
 
-    // Cleanup ImGui-SFML resources
-    ImGui::SFML::Shutdown();
+        // Cleanup ImGui-SFML resources
+        ImGui::SFML::Shutdown();
 
-    // free resources
-    window.close();
+        // free resources
+        window.close();
 
-    return 0;
+        return 0;
+    
 }
