@@ -147,16 +147,16 @@ void Factory::update()
 
 	//toDelete.clear();
 
+	grid->render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
-	grid->render(window);
 }
 
 void Factory::free()
 {
+	delete grid;
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			delete v;
-	delete grid;
 }

@@ -30,7 +30,7 @@ void Grid::render(sf::RenderWindow& window)
 
 void Grid::SetColour(unsigned int row, unsigned int col, sf::Color colour)
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)), + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
 	cells[row][col].setFillColor(colour);
 }
