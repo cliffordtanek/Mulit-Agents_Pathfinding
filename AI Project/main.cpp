@@ -95,28 +95,33 @@ int main()
                 }
                 break;
 
-            case sf::Event::MouseMoved:
-                if (isMousePressed)
-                {
-                    // calculate grid coordinates from mouse position
-                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                    int col = mousePos.x / factory.grid->getCellSize();
-                    int row = mousePos.y / factory.grid->getCellSize();
-
-                    // set colour of grid upon click
-                    factory.grid->SetColour(row, col, sf::Color::Green);
-                }
-                break;
-
             }
 
         }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left &&
-            ALIVE(Enemy, enemy))
-            enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), 
-                static_cast<float>(event.mouseButton.y) }, true);
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
+        {
+            isMousePressed = true;
+            enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
+
+        }
+
+        if (event.type == sf::Event::MouseMoved && isMousePressed)
+        {
+            // calculate grid coordinates from mouse position
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            int row = mousePos.x / factory.grid->getCellSize();
+            int col = mousePos.y / factory.grid->getCellSize();
+
+            // set colour of grid upon click
+            factory.grid->SetColour(row, col, sf::Color::Green);
+        }
+
+        if (event.type == sf::Event::MouseButtonReleased)
+            isMousePressed = false;
+        
+
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());

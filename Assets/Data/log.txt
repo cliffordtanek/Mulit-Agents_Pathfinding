@@ -24,3 +24,11 @@
 
 [02/07/2024 12:39:47] Program crashed at line 147 in Factory.cpp, reason: Entity to delete was not found
 
+[02/07/2024 13:43:51] Program crashed at line 33 in Grid.cpp, reason: Row: "56"
+
+[02/07/2024 13:45:28] Program crashed at line 33 in Grid.cpp, reason: Row: "50" Col: "17" is out of bound
+
+[02/07/2024 14:58:12] Program crashed at line 33 in Grid.cpp, reason: Row: "51" Col: "12" is out of bound
+
+[02/07/2024 15:02:05] Program crashed at line 33 in Grid.cpp, reason: Row: "50" Col: "19" is out of bound
+
