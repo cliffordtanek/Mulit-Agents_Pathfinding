@@ -36,6 +36,5 @@ void Arrow::onUpdate()
 
 void Arrow::onDestroy()
 {
-	std::cout << "arrow destroyed\n";
 	Entity::onDestroy();
 }

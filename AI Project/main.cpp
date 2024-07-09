@@ -8,6 +8,7 @@
 #include "Utility.h"
 #include "Vector2D.h"
 #include "Factory.h"
+#include "Loader.h"
 
 Vec2 winSize = { 1600.f, 900.f };
 std::string winTitle = "sfml";
@@ -17,6 +18,8 @@ sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
 
 Editor editor;
 Factory factory;
+Grid grid(50, 50, 20.f);
+Loader loader;
 
 //! temp
 bool isMousePressed{ false };
@@ -92,6 +95,17 @@ int main()
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
                     break;
 
+                case sf::Keyboard::Num1:
+                    loader.saveMap("test");
+                    break;
+
+                case sf::Keyboard::Num2:
+                    grid.changeMap("test");
+                    break;
+
+                case sf::Keyboard::Num3:
+                    grid.clearMap();
+                    break;
                 }
                 break;
 
@@ -111,11 +125,11 @@ int main()
         {
             // calculate grid coordinates from mouse position
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-            int row = mousePos.x / factory.grid->getCellSize();
-            int col = mousePos.y / factory.grid->getCellSize();
+            int row = mousePos.x / grid.getCellSize();
+            int col = mousePos.y / grid.getCellSize();
 
             // set colour of grid upon click
-            factory.grid->SetColour(row, col, sf::Color::Green);
+            grid.SetColour(row, col, colors[WALL_FILL]);
         }
 
         if (event.type == sf::Event::MouseButtonReleased)

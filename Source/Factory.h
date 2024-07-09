@@ -150,7 +150,7 @@ class Factory
 public:
 
 	//! TEMP
-	Grid* grid;
+	//Grid* grid;
 
 	void init();
 	void update();

@@ -3,6 +3,7 @@
 
 extern sf::RenderWindow window;
 extern Factory factory;
+extern Grid grid;
 
 void Entity::move()
 {
@@ -45,6 +46,11 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 
 void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 {
+	// clear arrows if any
+	for (Arrow *arrow : wpArrows)
+		factory.destroyEntity<Arrow>(arrow);
+	wpArrows.clear();
+
 	waypoints = _waypoints;
 	if (waypoints.empty())
 		return;
@@ -119,7 +125,6 @@ void Entity::onUpdate()
 
 void Entity::onDestroy()
 {
-	std::cout << "entity destroyed\n";
 	for (Arrow *arrow : wpArrows)
 		factory.destroyEntity<Arrow>(arrow);
 	wpArrows.clear();
@@ -128,7 +133,7 @@ void Entity::onDestroy()
 void Factory::init()
 {
 	//! Temp
-	grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
+	//grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
 
 	addEntityType<Enemy>();
 	addEntityType<Ally>();
@@ -147,7 +152,7 @@ void Factory::update()
 
 	//toDelete.clear();
 
-	grid->render(window);
+	grid.render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
@@ -155,8 +160,11 @@ void Factory::update()
 
 void Factory::free()
 {
-	delete grid;
+	//delete grid;
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
+		{
+			v->onDestroy();
 			delete v;
+		}
 }

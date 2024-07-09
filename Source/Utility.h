@@ -8,6 +8,14 @@
 
 using namespace std::string_literals;
 
+enum Color
+{
+	FLOOR_FILL,
+	FLOOR_OUT,
+	WALL_FILL,
+	MAX_COLORS
+};
+
 // constants
 #define EPSILON 0.000001f
 #define PI 3.14159f
@@ -26,8 +34,8 @@ using namespace std::string_literals;
 #define PRINT(...) utl::print(#__VA_ARGS__, __VA_ARGS__)
 
 // misc
-#define UNREFERENCED(param) param
 #define WHITESPACE " \n\t\r\v\f"
+#define UNREFERENCED(param) param
 #define crashIf(condition, reason) do { if (condition) dbg::log(reason, __FILE__, __LINE__); } while(0)
 #define ALIVE(type, entity) factory.isEntityAlive<type>(entity)
 
@@ -174,8 +182,9 @@ namespace utl
 
 	// Function to print each variable with its name and value
 	template<typename T, typename... Args>
-	void printVariables(const std::vector<std::string> &names, size_t index, const T &value,
-		const Args&... args) {
+	void printVariables(const std::vector<std::string> &names, size_t index, 
+		const T &value, const Args&... args) 
+	{
 		if (index < names.size())
 		{
 			utl::printVariable(names[index], value);

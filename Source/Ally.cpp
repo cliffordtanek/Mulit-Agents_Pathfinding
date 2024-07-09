@@ -12,6 +12,5 @@ void Ally::onUpdate()
 
 void Ally::onDestroy()
 {
-	std::cout << "ally destroyed\n";
 	Entity::onDestroy();
 }

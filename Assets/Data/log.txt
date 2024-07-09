@@ -32,3 +32,19 @@
 
 [02/07/2024 15:02:05] Program crashed at line 33 in Grid.cpp, reason: Row: "50" Col: "19" is out of bound
 
+[09/07/2024 17:15:05] Program crashed at line 56 in Loader.cpp, reason: Color for a cell has not been registered
+
+[09/07/2024 17:23:38] Program crashed at line 36 in Grid.cpp, reason: Row: "51" Col: "26" is out of bound
+
+[09/07/2024 17:54:32] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "22" is out of bound
+
+[09/07/2024 17:56:09] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "15" is out of bound
+
+[09/07/2024 17:57:52] Program crashed at line 36 in Grid.cpp, reason: Row: "53" Col: "22" is out of bound
+
+[09/07/2024 17:59:47] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "15" is out of bound
+
+[09/07/2024 18:02:48] Program crashed at line 36 in Grid.cpp, reason: Row: "52" Col: "24" is out of bound
+
+[09/07/2024 18:05:59] Program crashed at line 41 in Grid.cpp, reason: Row: "51" Col: "30" is out of bound
+
