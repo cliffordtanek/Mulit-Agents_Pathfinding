@@ -53,7 +53,7 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 	for (std::list<Vec2>::iterator iter = waypoints.begin(); iter != waypoints.end(); ++iter)
 	{
 		if (prev != waypoints.end())
-			wpArrows.push_back(factory.createEntity<Arrow>(this, prev->Midpoint(*iter), 
+			wpArrows.push_back(factory.createEntity<Arrow>(prev->Midpoint(*iter), 
 				Vec2{ (*iter - *prev).Length(), 0.f}, (*iter - *prev).Normalize()));
 		prev = iter;
 	}
@@ -127,10 +127,10 @@ void Entity::onDestroy()
 
 void Factory::init()
 {
-	addEntityType<Enemy>();
-
 	//! Temp
 	grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
+
+	addEntityType<Enemy>();
 	addEntityType<Ally>();
 	addEntityType<Arrow>();
 }
@@ -147,16 +147,16 @@ void Factory::update()
 
 	//toDelete.clear();
 
+	grid->render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
-	grid->render(window);
 }
 
 void Factory::free()
 {
+	delete grid;
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			delete v;
-	delete grid;
 }

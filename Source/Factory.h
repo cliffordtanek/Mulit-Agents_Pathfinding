@@ -112,22 +112,19 @@ public:
 
 	Vec2 triScale;
 	float stroke;
-	Entity *owner;
 
-	Arrow(Entity *_owner = nullptr,
-		Vec2 _pos = Vec2(),
+	Arrow(Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
 		Vec2 _dir = Vec2(),
 		Shape _shape = NONE,
-		const sf::Color &_color = sf::Color::Cyan,
+		const sf::Color &_color = sf::Color::Blue,
 		float _speed = 10.f,
 		Vec2 _triScale = { 10.f, 15.f },
 		float _stroke = 2.5f)
 
 		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
 		triScale(_triScale),
-		stroke(_stroke),
-		owner(_owner) { }
+		stroke(_stroke) { }
 
 	void onCreate() override;
 	void onUpdate() override;
