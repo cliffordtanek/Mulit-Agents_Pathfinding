@@ -9,8 +9,10 @@ void Entity::move()
 	if (!currSpeed)
 		return;
 
-	if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
+	//if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
+	if(pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
 	{
+		std::cout << "Target found\n";
 		currSpeed = 0.f;
 
 		if (waypoints.size())
@@ -22,7 +24,20 @@ void Entity::move()
 		}
 
 		return;
+
 	}
+
+	auto [row, col] = factory.grid->getGridPos(pos);
+	
+	dir = factory.grid->getFlowFieldDir(row, col);
+
+
+	if (dir == Vec2{ 0.f, 0.f })
+	{
+		dir = targetPos - pos;
+	}
+
+	dir = dir.Normalize();
 
 	pos += dir * currSpeed;
 }
@@ -37,10 +52,13 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 		wpArrows.clear();
 	}
 
+	targetPos.x += factory.grid->getCellSize() * 0.5f;
+	targetPos.y += factory.grid->getCellSize() * 0.5f;
+
 	targetPos = _targetPos;
 	currSpeed = speed;
-	dir = targetPos - pos;
-	dir = dir.Normalize();
+
+	//dir = dir.Normalize();
 }
 
 void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
@@ -130,7 +148,7 @@ void Factory::init()
 	addEntityType<Enemy>();
 
 	//! Temp
-	grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
+	grid = new Grid(50, 50, 40.f);	// temp 20 x 20 grid map
 	addEntityType<Ally>();
 	addEntityType<Arrow>();
 }
@@ -147,10 +165,21 @@ void Factory::update()
 
 	//toDelete.clear();
 
+	//! FOG TEST
+#if 1
+	std::vector<Vec2> entityPosition;
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			entityPosition.emplace_back(v->pos);
+
+	grid->updateVisibility(entityPosition, 150.f);
+#endif
+
 	grid->render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+	
 }
 
 void Factory::free()
