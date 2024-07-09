@@ -5,8 +5,6 @@
 
 extern sf::Font font;
 
-//! TEMP
-
 
 bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
     int x0 = static_cast<int>(start.x / cellSize);
@@ -75,7 +73,7 @@ bool line_intersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P
 }
 
 
-void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 15.f, float headLength = 7.f)
+void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
 	// Normalize the direction vector
 	Vec2 normalizedDirection = direction.Normalize();
@@ -247,9 +245,6 @@ void Grid::render(sf::RenderWindow& window)
 
 void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 {
-	// TEST
-	//return;
-
 	// set all cells that are explored to FOG
 	for (int row{}; row < height; ++row)
 		for (int col{}; col < width; ++col)

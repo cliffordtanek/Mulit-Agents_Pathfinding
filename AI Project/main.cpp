@@ -96,7 +96,6 @@ int main()
                     break;
 
                 case sf::Keyboard::D:
-                    std::cout << "D pressed\n";
                     factory.grid->debugDrawRadius = !factory.grid->debugDrawRadius;
 
                 }

@@ -52,8 +52,8 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 		wpArrows.clear();
 	}
 
-	targetPos.x += factory.grid->getCellSize() * 0.5f;
-	targetPos.y += factory.grid->getCellSize() * 0.5f;
+	/*targetPos.x += factory.grid->getCellSize() * 0.5f;
+	targetPos.y += factory.grid->getCellSize() * 0.5f;*/
 
 	targetPos = _targetPos;
 	currSpeed = speed;
@@ -148,7 +148,7 @@ void Factory::init()
 	addEntityType<Enemy>();
 
 	//! Temp
-	grid = new Grid(50, 50, 40.f);	// temp 20 x 20 grid map
+	grid = new Grid(50, 50, 100.f);	// temp 20 x 20 grid map
 	addEntityType<Ally>();
 	addEntityType<Arrow>();
 }
