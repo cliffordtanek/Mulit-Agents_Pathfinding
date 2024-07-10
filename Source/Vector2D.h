@@ -134,6 +134,29 @@ typedef union Vector2D
 	*************************************************************************/
 	Vector2D operator-() const; 	// Unary operators
 
+
+
+	/*!***********************************************************************
+	\brief
+
+		Returns a boolean value to indicate if rhs is not equal to *this.
+
+	\return
+		Vector2D with the negated variables of left operand Vetor.
+	*************************************************************************/
+	bool operator!=(Vector2D const& rhs) const; 
+
+
+	/*!***********************************************************************
+	\brief
+
+		Returns a boolean value to indicate if rhs is equal to *this.
+
+	\return
+		Vector2D with the negated variables of left operand Vetor.
+	*************************************************************************/
+	bool operator==(Vector2D const& rhs) const;
+
 	// cast operator
 	/*!***********************************************************************
 	\brief

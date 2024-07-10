@@ -13,8 +13,10 @@ void Entity::move()
 	if (!currSpeed)
 		return;
 
-	if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed * dt)).SquareLength())
+	//if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
+	if(pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
 	{
+		std::cout << "Target found\n";
 		currSpeed = 0.f;
 
 		if (waypoints.size())
@@ -26,9 +28,22 @@ void Entity::move()
 		}
 
 		return;
+
 	}
 
-	pos += dir * currSpeed * dt;
+	auto [row, col] = factory.grid->getGridPos(pos);
+	
+	dir = factory.grid->getFlowFieldDir(row, col);
+
+
+	if (dir == Vec2{ 0.f, 0.f })
+	{
+		dir = targetPos - pos;
+	}
+
+	dir = dir.Normalize();
+
+	pos += dir * currSpeed;
 }
 
 void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCameraOffset)
@@ -41,10 +56,14 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCa
 		wpArrows.clear();
 	}
 
+	/*targetPos.x += factory.grid->getCellSize() * 0.5f;
+	targetPos.y += factory.grid->getCellSize() * 0.5f;*/
+
+	targetPos = _targetPos;
 	targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	currSpeed = speed;
-	dir = targetPos - pos;
-	dir = dir.Normalize();
+
+	//dir = dir.Normalize();
 }
 
 void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
@@ -156,10 +175,21 @@ void Factory::update()
 
 	//toDelete.clear();
 
-	grid.render(window);
+	//! FOG TEST
+#if 1
+	std::vector<Vec2> entityPosition;
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			entityPosition.emplace_back(v->pos);
+
+	grid->updateVisibility(entityPosition, 150.f);
+#endif
+
+	grid->render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+	
 }
 
 void Factory::free()

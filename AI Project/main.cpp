@@ -10,6 +10,7 @@
 #include "Factory.h"
 #include "Loader.h"
 #include "Camera.h"
+#include "Grid.h"
 
 Vec2 winSize = { 1600.f, 900.f };
 std::string winTitle = "sfml";
@@ -44,7 +45,7 @@ int main()
     // initialize systems
     editor.init();
     factory.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 50.f, 50.f }, Vec2{ 50.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
@@ -94,6 +95,11 @@ int main()
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
                     break;
 
+                case sf::Keyboard::D:
+                    factory.grid->debugDrawRadius = !factory.grid->debugDrawRadius;
+
+                }
+                break;
                 case sf::Keyboard::Num1:
                     loader.saveMap("test");
                     break;
@@ -110,36 +116,43 @@ int main()
 
             }
 
-            // mouse event must put outside of switch case for some reason
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
-            {
-                isMousePressed = true;
-                //enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
+        // mouse event must put outside of switch case for some reason
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
+        {
+            isMousePressed = true;
+           
+            Vec2 target = { static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) };
 
+            if (!factory.grid->isWall(factory.grid->getGridPos(target)));
+            {
+                factory.grid->updateHeatMap(target);
+                factory.grid->generateFlowField();
+
+                enemy->setTargetPos(target, true);
             }
 
-            // mouse event must put outside of switch case for some reason
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
-            {
-                //isMousePressed = true;
-                enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
+            // factory.grid->computePath(*enemy, target);
+        }
 
-            }
+        if (event.type == sf::Event::MouseMoved && isMousePressed)
+        {
+            // calculate grid coordinates from mouse position
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            
+            Grid::GridPos pos = factory.grid->getGridPos((float)mousePos.x, (float)mousePos.y);
 
-            if (event.type == sf::Event::MouseMoved && isMousePressed)
-            {
-                // calculate grid coordinates from mouse position
-                //Vec2 offset = camera.getOffset();
-                //sf::Vector2i mousePos = sf::Mouse::getPosition(window) - sf::Vector2i{ static_cast<int>(offset.x), static_cast<int>(offset.y) };
-                //int row = mousePos.x / grid.getCellSize();
-                //int col = mousePos.y / grid.getCellSize();
+            // set colour of grid upon click
+            factory.grid->SetColour(pos.row, pos.col, sf::Color::Green);
+        }
 
-                //// set colour of grid upon click
-                //grid.SetColour(row, col, colors[WALL_FILL]);
-                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                grid.setColor({ static_cast<float>(mousePos.x), static_cast<float>(mousePos.y) }, 
-                    colors.at("Wall_Fill"));
-            }
+        // FOG TEST (Mouse cursor)
+#if 1
+        if (event.type == sf::Event::MouseMoved)
+        {
+           // factory.grid->updateHeatMap({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) });
+        }
+#endif
+
 
             if (event.type == sf::Event::MouseButtonReleased)
                 isMousePressed = false;

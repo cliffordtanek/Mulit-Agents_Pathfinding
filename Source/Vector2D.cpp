@@ -1,4 +1,5 @@
 #include "MathLib.h"
+#include "Utility.h"
 
 // ===================================== //
 // Vector2D's constructor definition
@@ -49,6 +50,17 @@ Vector2D Vector2D::operator-() const
 {
     Vector2D vector{ -x, -y };
     return vector;
+}
+
+bool Vector2D::operator!=(Vector2D const& rhs) const
+{
+    return !(*this == rhs);
+}
+
+
+bool Vector2D::operator==(Vector2D const& rhs) const
+{
+    return utl::isEqual(x, rhs.x) && utl::isEqual(y, rhs.y);
 }
 
 
@@ -128,6 +140,8 @@ Vector2D Vector2D::Midpoint(Vector2D const &rhs) const
 {
     return { (x + rhs.x) / 2.f, (y + rhs.y) / 2.f };
 }
+
+
 
 // cast operator
 Vector2D::operator sf::Vector2f()

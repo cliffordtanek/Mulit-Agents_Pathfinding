@@ -1,3 +1,8 @@
+
+#ifndef FACTORY_H
+#define FACTORY_H
+
+
 #include <unordered_map>
 #include <SFML/Graphics.hpp>
 #include <iterator>
@@ -92,7 +97,7 @@ public:
 		Vec2 _scale = Vec2(),
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
-		const sf::Color &_color = sf::Color::Red,
+		const sf::Color &_color = sf::Color::Blue,
 		float _speed = 500.f,
 		float _health = 100.f,
 		float _damage = 10.f)
@@ -212,3 +217,4 @@ public:
 	}
 };
 
+#endif
