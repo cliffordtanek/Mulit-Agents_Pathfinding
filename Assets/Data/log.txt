@@ -48,3 +48,25 @@
 
 [09/07/2024 18:05:59] Program crashed at line 41 in Grid.cpp, reason: Row: "51" Col: "30" is out of bound
 
+[09/07/2024 18:09:54] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "21" is out of bound
+
+[09/07/2024 18:10:05] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "17" is out of bound
+
+[09/07/2024 18:12:59] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "24" is out of bound
+
+[09/07/2024 18:13:16] Program crashed at line 36 in Grid.cpp, reason: Row: "50" Col: "19" is out of bound
+
+[09/07/2024 23:52:49] Program crashed at line 47 in Grid.cpp, reason: Row: "78" Col: "0" is out of bound
+
+[09/07/2024 23:57:55] Program crashed at line 49 in Grid.cpp, reason: Row: "56" Col: "11" is out of bound
+
+[09/07/2024 23:58:42] Program crashed at line 49 in Grid.cpp, reason: Row: "56" Col: "9" is out of bound
+
+[10/07/2024 00:15:34] Program crashed at line 54 in Grid.cpp, reason: Row: "75" Col: "20" is out of bound
+
+[10/07/2024 00:37:05] Program crashed at line 54 in Grid.cpp, reason: Row: "75" Col: "78" is out of bound
+
+[10/07/2024 00:54:38] Program crashed at line 54 in Grid.cpp, reason: Row: "-2" Col: "-3" is out of bound
+
+[10/07/2024 00:56:01] Program crashed at line 56 in Grid.cpp, reason: Row: "-5" Col: "0" is out of bound
+

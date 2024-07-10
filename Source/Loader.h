@@ -20,8 +20,8 @@ class Loader
 		}
 	};
 
-	std::unordered_map<sf::Color, size_t, ColorHash, ColorEqual> colorIndices;
-	std::unordered_map<std::string, std::vector<std::vector<size_t>>> maps;
+	std::unordered_map<sf::Color, std::string, ColorHash, ColorEqual> colorNames;
+	std::unordered_map<std::string, std::vector<std::vector<std::string>>> maps;
 
 public:
 
@@ -29,5 +29,5 @@ public:
 
 	void loadMaps();
 	void saveMap(const std::string &mapName);
-	const std::vector<std::vector<size_t>> &getMap(const std::string &mapName);
+	const std::vector<std::vector<std::string>> &getMap(const std::string &mapName);
 };

@@ -22,6 +22,7 @@ public:
 
 	void open();
 	void close();
+	bool isWindowOpen();
 };
 
 class MainMenu : public Window
@@ -29,6 +30,17 @@ class MainMenu : public Window
 public:
 
 	MainMenu(const std::string windowName = "") : Window(windowName) { }
+
+	void onEnter() override;
+	void onUpdate() override;
+	void onExit() override;
+};
+
+class Inspector : public Window
+{
+public:
+
+	Inspector(const std::string windowName = "") : Window(windowName) { }
 
 	void onEnter() override;
 	void onUpdate() override;
@@ -46,7 +58,10 @@ public:
 	void free();
 	void openWindow(const std::string &windowName);
 	void closeWindow(const std::string &windowName);
+	void toggleWindow(const std::string &windowName);
 	void createDockspace();
+	const std::unordered_map<std::string, Window *> &getWindows();
+	void addSpace(int spaceCount);
 
 	template <typename T>
 	void addWindow()

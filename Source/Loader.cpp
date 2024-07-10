@@ -9,8 +9,11 @@ Loader::Loader()
 {
 	// register colours
 	loadMaps();
-	for (size_t i = 0; i < colors.size(); ++i)
-		colorIndices[colors[i]] = i;
+	//for (size_t i = 0; i < colors.size(); ++i)
+		//colorIndices[colors[i]] = i;
+
+	for (const auto &[str, color] : colors)
+		colorNames[color] = str;
 }
 
 void Loader::loadMaps()
@@ -26,13 +29,13 @@ void Loader::loadMaps()
 		std::string temp;
 		std::getline(ifs, temp); // get nl
 
-		size_t input;
-		maps[mapName] = std::vector<std::vector<size_t>>();
-		std::vector<std::vector<size_t>> &currMap = maps.at(mapName);
+		std::string input;
+		maps[mapName] = std::vector<std::vector<std::string>>();
+		std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
 		
 		for (size_t i = 0; i < rows; ++i)
 		{
-			currMap.push_back(std::vector<size_t>());
+			currMap.push_back(std::vector<std::string>());
 
 			for (size_t j = 0; j < cols; ++j)
 			{
@@ -48,30 +51,33 @@ void Loader::loadMaps()
 void Loader::saveMap(const std::string &mapName)
 {
 	const std::vector<std::vector<sf::RectangleShape>> &cells = grid.getCells();
-	maps[mapName] = std::vector<std::vector<size_t>>();
-	std::vector<std::vector<size_t>> &currMap = maps.at(mapName);
+	maps[mapName] = std::vector<std::vector<std::string>>();
+	std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
 	std::ofstream ofs("../Assets/Data/Maps/" + mapName + ".txt");
-
 	crashIf(!ofs, "Unable to open " + mapName + ".txt for overwriting");
-	ofs << cells.size() << ' ' << (cells.size() ? cells[0].size() : 0) << nl;
+
+	size_t newHeight = cells.size() ? cells[0].size() : 0;
+	for (const std::vector<sf::RectangleShape> &row : cells)
+		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
+	ofs << cells.size() << ' ' << newHeight << nl;
 
 	for (const std::vector<sf::RectangleShape> &row : cells)
 	{
-		currMap.push_back(std::vector<size_t>());
+		currMap.push_back(std::vector<std::string>());
 
 		for (const sf::RectangleShape &cell : row)
 		{
-			crashIf(!colorIndices.count(cell.getFillColor()), "Color for a cell has not been registered");
-			const size_t colorIndex = colorIndices.at(cell.getFillColor());
-			ofs << colorIndex << ' ';
-			currMap.back().push_back(colorIndex);
+			crashIf(!colorNames.count(cell.getFillColor()), "Color for a cell has not been registered");
+			const std::string colorName = colorNames.at(cell.getFillColor());
+			ofs << colorName << ' ';
+			currMap.back().push_back(colorName);
 		}
 
 		ofs << nl;
 	}
 }
 
-const std::vector<std::vector<size_t>> &Loader::getMap(const std::string &mapName)
+const std::vector<std::vector<std::string>> &Loader::getMap(const std::string &mapName)
 {
 	crashIf(!maps.count(mapName), "Map " + utl::quote(mapName) + " does not exist");
 	return maps.at(mapName);

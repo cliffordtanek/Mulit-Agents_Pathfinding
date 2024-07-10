@@ -3,17 +3,25 @@
 #ifndef GRID_H
 #define GRID_H
 
+#include "Vector2D.h"
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <array>
 #include <unordered_map>
 
 // colour corresponds to line number in utility.h
-const std::vector<sf::Color> colors // for some reason array doesn't work
+//const std::vector<sf::Color> colors // for some reason array doesn't work
+//{
+//	sf::Color::White,
+//	sf::Color::Blue,
+//	sf::Color::Black
+//};
+
+const std::unordered_map<std::string, sf::Color> colors
 {
-	sf::Color::White,
-	sf::Color::Blue,
-	sf::Color::Black
+	{ "Floor_Fill", sf::Color::White },
+	{ "Floor_Outline", sf::Color::Blue },
+	{ "Wall_Fill", sf::Color::Black }
 };
 
 class Grid
@@ -23,7 +31,9 @@ public:
 
 	void render(sf::RenderWindow& window);
 
-	void SetColour(unsigned int row, unsigned int col, sf::Color colour);
+	void setColor(unsigned int row, unsigned int col, const sf::Color &color);
+
+	void setColor(Vec2 pos, const sf::Color &color);
 
 	void changeMap(const std::string &mapName);
 

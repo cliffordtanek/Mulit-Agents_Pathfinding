@@ -1,16 +1,19 @@
 #include <SFML/Graphics.hpp>
 #include "Factory.h"
+#include "Camera.h"
 
 extern sf::RenderWindow window;
 extern Factory factory;
 extern Grid grid;
+extern Camera camera;
+extern float dt;
 
 void Entity::move()
 {
 	if (!currSpeed)
 		return;
 
-	if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
+	if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed * dt)).SquareLength())
 	{
 		currSpeed = 0.f;
 
@@ -18,17 +21,17 @@ void Entity::move()
 		{
 			factory.destroyEntity<Arrow>(wpArrows.front());
 			wpArrows.pop_front();
-			setTargetPos(waypoints.front());
+			setTargetPos(waypoints.front(), false, false);
 			waypoints.pop_front();
 		}
 
 		return;
 	}
 
-	pos += dir * currSpeed;
+	pos += dir * currSpeed * dt;
 }
 
-void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
+void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCameraOffset)
 {
 	if (canClearWaypoints)
 	{
@@ -38,7 +41,7 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 		wpArrows.clear();
 	}
 
-	targetPos = _targetPos;
+	targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	currSpeed = speed;
 	dir = targetPos - pos;
 	dir = dir.Normalize();
@@ -64,7 +67,7 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 		prev = iter;
 	}
 
-	setTargetPos(waypoints.front());
+	setTargetPos(waypoints.front(), false, false);
 	waypoints.pop_front();
 }
 
@@ -77,6 +80,7 @@ void Entity::onUpdate()
 {
 	move();
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
+	Vec2 newPos = pos + camera.getOffset();
 
 	// draw entity
 	switch (shape)
@@ -84,8 +88,8 @@ void Entity::onUpdate()
 	case CIRCLE:
 	{
 		sf::CircleShape circle;
-		circle.setRadius(scale.x);
-		circle.setPosition(pos.x, pos.y);
+		circle.setRadius(scale.x / 2.f);
+		circle.setPosition(newPos - Vec2{ scale.x / 2.f, scale.x / 2.f });
 		circle.setFillColor(color);
 		window.draw(circle);
 		break;
@@ -95,12 +99,12 @@ void Entity::onUpdate()
 	{
 		sf::ConvexShape triangle;
 		triangle.setPointCount(3);
-		triangle.setPoint(0, sf::Vector2f(pos.x - scale.x / 2.f, pos.y + scale.y / 2.f));
-		triangle.setPoint(1, sf::Vector2f(pos.x + scale.x / 2.f, pos.y + scale.y / 2.f));
-		triangle.setPoint(2, sf::Vector2f(pos.x, pos.y - scale.y / 2.f));
-		triangle.setOrigin(pos);
+		triangle.setPoint(0, sf::Vector2f(newPos.x - scale.x / 2.f, newPos.y + scale.y / 2.f));
+		triangle.setPoint(1, sf::Vector2f(newPos.x + scale.x / 2.f, newPos.y + scale.y / 2.f));
+		triangle.setPoint(2, sf::Vector2f(newPos.x, newPos.y - scale.y / 2.f));
+		triangle.setOrigin(newPos);
 		triangle.setRotation(rot); 
-		triangle.setPosition(pos);
+		triangle.setPosition(newPos);
 		triangle.setFillColor(color);
 		window.draw(triangle);
 		break;
@@ -112,7 +116,7 @@ void Entity::onUpdate()
 		rectangle.setSize(sf::Vector2f(scale.x, scale.y));
 		rectangle.setOrigin(scale.x / 2.f, scale.y / 2.f);
 		rectangle.setRotation(rot);
-		rectangle.setPosition(pos);
+		rectangle.setPosition(newPos);
 		rectangle.setFillColor(color);
 		window.draw(rectangle);
 		break;
@@ -167,4 +171,9 @@ void Factory::free()
 			v->onDestroy();
 			delete v;
 		}
+}
+
+const std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> &Factory::getAllEntities()
+{
+	return entities;
 }

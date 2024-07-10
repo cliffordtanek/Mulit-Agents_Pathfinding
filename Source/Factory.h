@@ -37,7 +37,7 @@ public:
 		Vec2 _dir = Vec2(), 
 		Shape _shape = NONE,
 		const sf::Color &_color = sf::Color::Green,
-		float _speed = 10.f)
+		float _speed = 500.f)
 
 		: shape(_shape), 
 		pos(_pos), 
@@ -48,7 +48,7 @@ public:
 
 	virtual ~Entity() { }
 
-	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false);
+	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false, bool canUseCameraOffset = true);
 	void setWaypoints(const std::list<Vec2> &_waypoints);
 
 	virtual void onCreate();
@@ -68,7 +68,7 @@ public:
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Red,
-		float _speed = 10.f,
+		float _speed = 500.f,
 		float _health = 100.f,
 		float _damage = 10.f)
 
@@ -93,7 +93,7 @@ public:
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Red,
-		float _speed = 10.f,
+		float _speed = 500.f,
 		float _health = 100.f,
 		float _damage = 10.f)
 
@@ -118,7 +118,7 @@ public:
 		Vec2 _dir = Vec2(),
 		Shape _shape = NONE,
 		const sf::Color &_color = sf::Color::Blue,
-		float _speed = 10.f,
+		float _speed = 500.f,
 		Vec2 _triScale = { 10.f, 15.f },
 		float _stroke = 2.5f)
 
@@ -145,8 +145,6 @@ class Factory
 		return type;
 	}
 
-
-
 public:
 
 	//! TEMP
@@ -155,6 +153,8 @@ public:
 	void init();
 	void update();
 	void free();
+
+	const std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> &getAllEntities();
 
 	template <typename T>
 	std::vector<T *> getEntities()
@@ -211,3 +211,4 @@ public:
 		crashIf(true, utl::quote(typeid(T).name()) + " is not a child of the Entity class");
 	}
 };
+

@@ -9,21 +9,25 @@
 #include "Vector2D.h"
 #include "Factory.h"
 #include "Loader.h"
+#include "Camera.h"
 
 Vec2 winSize = { 1600.f, 900.f };
 std::string winTitle = "sfml";
 bool isFullscreen = false;
+float dt = 0.f;
 
 sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
+sf::Font font;
 
 Editor editor;
 Factory factory;
-Grid grid(50, 50, 20.f);
+Grid grid(75, 75, 50.f);
 Loader loader;
+Camera camera;
 
 //! temp
 bool isMousePressed{ false };
-
+bool canExit = false;
 
 int main()
 {
@@ -33,25 +37,20 @@ int main()
 #endif
 
     sf::Clock clock;
-    sf::Font font;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");
     window.setFramerateLimit(60);
 
-    // Initialize ImGui-SFML
-    ImGui::SFML::Init(window);
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+    // initialize systems
     editor.init();
-
-    // initialize other systems
     factory.init();
     Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
-    while (window.isOpen())
+    while (window.isOpen() && !canExit)
     {
-        float dt = clock.restart().asSeconds();
+        dt = clock.restart().asSeconds();
         sf::Event event;
 
         while (window.pollEvent(event))
@@ -111,59 +110,80 @@ int main()
 
             }
 
+            // mouse event must put outside of switch case for some reason
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
+            {
+                isMousePressed = true;
+                //enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
+
+            }
+
+            // mouse event must put outside of switch case for some reason
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
+            {
+                //isMousePressed = true;
+                enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
+
+            }
+
+            if (event.type == sf::Event::MouseMoved && isMousePressed)
+            {
+                // calculate grid coordinates from mouse position
+                //Vec2 offset = camera.getOffset();
+                //sf::Vector2i mousePos = sf::Mouse::getPosition(window) - sf::Vector2i{ static_cast<int>(offset.x), static_cast<int>(offset.y) };
+                //int row = mousePos.x / grid.getCellSize();
+                //int col = mousePos.y / grid.getCellSize();
+
+                //// set colour of grid upon click
+                //grid.SetColour(row, col, colors[WALL_FILL]);
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                grid.setColor({ static_cast<float>(mousePos.x), static_cast<float>(mousePos.y) }, 
+                    colors.at("Wall_Fill"));
+            }
+
+            if (event.type == sf::Event::MouseButtonReleased)
+                isMousePressed = false;
+
         }
 
-        // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
-        {
-            isMousePressed = true;
-            enemy->setTargetPos({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) }, true);
-
-        }
-
-        if (event.type == sf::Event::MouseMoved && isMousePressed)
-        {
-            // calculate grid coordinates from mouse position
-            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-            int row = mousePos.x / grid.getCellSize();
-            int col = mousePos.y / grid.getCellSize();
-
-            // set colour of grid upon click
-            grid.SetColour(row, col, colors[WALL_FILL]);
-        }
-
-        if (event.type == sf::Event::MouseButtonReleased)
-            isMousePressed = false;
-        
-
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            camera.move({ 0.f, -1.f });
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            camera.move({ -1.f, 0.f });
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            camera.move({ 0.f, 1.f });
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            camera.move({ 1.f, 0.f });
+        camera.calcOffset();
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
 
-            // update the editor
-            editor.createDockspace();
-            editor.update();
+        // update the editor
+        editor.createDockspace();
+        editor.update();
 
-            // Render ImGui into window
-            window.clear();
-            ImGui::SFML::Render(window);
+        // Render ImGui into window
+        window.clear();
+        ImGui::SFML::Render(window);
 
-            // update other systems
-            factory.update();
+        // update other systems
+        factory.update();
 
-            window.display();
-        }
+        window.display();
+        camera.update();
+    }
 
-        // free systems
-        editor.free();
-        factory.free();
+    // free systems
+    editor.free();
+    factory.free();
 
-        // Cleanup ImGui-SFML resources
-        ImGui::SFML::Shutdown();
+    // Cleanup ImGui-SFML resources
+    ImGui::SFML::Shutdown();
 
-        // free resources
-        window.close();
+    // free resources
+    window.close();
 
-        return 0;
+    return 0;
     
 }

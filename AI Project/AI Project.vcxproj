@@ -142,6 +142,7 @@
     <ClCompile Include="..\Imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Source\Ally.cpp" />
     <ClCompile Include="..\Source\Arrow.cpp" />
+    <ClCompile Include="..\Source\Camera.cpp" />
     <ClCompile Include="..\Source\Debug.cpp" />
     <ClCompile Include="..\Source\Editor.cpp" />
     <ClCompile Include="..\Source\Enemy.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\Imgui\imstb_rectpack.h" />
     <ClInclude Include="..\Imgui\imstb_textedit.h" />
     <ClInclude Include="..\Imgui\imstb_truetype.h" />
+    <ClInclude Include="..\Source\Camera.h" />
     <ClInclude Include="..\Source\Debug.h" />
     <ClInclude Include="..\Source\Editor.h" />
     <ClInclude Include="..\Source\Factory.h" />

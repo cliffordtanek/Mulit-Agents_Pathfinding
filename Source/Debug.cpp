@@ -1,10 +1,19 @@
 #include "Editor.h"
 #include "Factory.h"
+#include "Loader.h"
+#include "Camera.h"
+#include "imgui-SFML.h"
 #include <ctime>
 #include <fstream>
 
 extern Editor editor;
 extern Factory factory;
+extern Grid grid;
+extern Loader loader;
+extern Camera camera;
+
+extern sf::RenderWindow window;
+extern bool canExit;
 
 namespace dbg
 {
@@ -31,18 +40,13 @@ namespace dbg
 		// open log file for logging
 		std::ofstream ofs("../Assets/Data/log.txt", std::ios_base::app);
 		std::cout << toLog;
-
-		// free systems
-		editor.free();
-		factory.free();
+		canExit = true;
 
 		if (ofs)
-		{
 			ofs << toLog;
-			exit(1);
-		}
+		else
+			std::cout << "Unable to open log.txt for appending\n";
 
-		std::cout << "Unable to open log.txt for appending\n";
-		exit(1);
+		exit(0);
 	}
 }

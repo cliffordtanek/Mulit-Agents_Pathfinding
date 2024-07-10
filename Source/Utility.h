@@ -8,13 +8,13 @@
 
 using namespace std::string_literals;
 
-enum Color
-{
-	FLOOR_FILL,
-	FLOOR_OUT,
-	WALL_FILL,
-	MAX_COLORS
-};
+//enum Color
+//{
+//	FLOOR_FILL,
+//	FLOOR_OUT,
+//	WALL_FILL,
+//	MAX_COLORS
+//};
 
 // constants
 #define EPSILON 0.000001f
@@ -144,6 +144,14 @@ namespace utl
 		else
 			toTrim = toTrim.substr(0, toTrim.rfind(toFind));
 		return toTrim;
+	}
+
+	template <typename T>
+	std::string ptrToStr(T *ptr)
+	{
+		std::stringstream ss;
+		ss << static_cast<const void *>(ptr);
+		return ss.str();
 	}
 
 	/*! ------------ Printing ------------ */
