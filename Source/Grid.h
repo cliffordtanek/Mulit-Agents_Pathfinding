@@ -1,4 +1,4 @@
-/******************************************************************************/
+//
 /*!
 \file		Grid.h
 \project		CS380/CS580 Group Project
@@ -10,7 +10,7 @@ Copyright (C) 2024 DigiPen Institute of Technology.
 Reproduction or disclosure of this file or its contents without the prior
 written consent of DigiPen Institute of Technology is prohibited.
 */
-/******************************************************************************/
+//
 
 #ifndef GRID_H
 #define GRID_H
@@ -29,20 +29,35 @@ written consent of DigiPen Institute of Technology is prohibited.
 //	sf::Color::Blue,
 //	sf::Color::Black
 //};
+enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
 const std::unordered_map<std::string, sf::Color> colors
 {
+	{ "Debug_Radius_Fill", sf::Color::Transparent },
+	{ "Debug_Radius_Outline", sf::Color::Red },
 	{ "Floor_Fill", sf::Color::White },
-	{ "Floor_Outline", sf::Color::Blue },
-	{ "Wall_Fill", sf::Color::Black }
+	{ "Floor_Outline", sf::Color(20, 20, 20) },
+	{ "Wall_Fill", sf::Color::Black },
+	{ "Unexplored_Fill", sf::Color(30, 30, 30) },
+	{ "Unexplored_Outline", sf::Color(20, 20, 20) },
+	{ "Fog_Fill", sf::Color(95, 95, 95) },
+	{ "Fog_Outline", sf::Color(110, 110, 110) },
+	{ "Visible_Fill", sf::Color(140, 140, 140) },
+	{ "Visible_Outline", sf::Color(160, 160, 160) }
 };
+
+struct Cell
+{
+	sf::RectangleShape rect{};				// rectangle tile 
+	Visibility visibility{ UNEXPLORED };	// visibility enum
+
+	Cell() = default;
+	Cell(Vec2 pos);
+};
+
 
 class Grid
 {
-private:
-	enum Visibility { UNEXPLORED, FOG, VISIBLE };
-
-
 public:
 
 	// constructor
@@ -67,18 +82,18 @@ public:
 	void updateVisibility(std::vector<Vec2> const& pos, float radius);
 
 	//! update heat map based on target position
-	void updateHeatMap(Vec2 target);
+	void updateHeatMap(Vec2 target, bool canUseCameraOffset = false);
 
 	void resetHeatMap();
 
 	void generateFlowField();
 
 	//void computePath(Entity& entity, Vec2 target) const;
-	void setColor(unsigned int row, unsigned int col, const sf::Color &color);
+	void setColor(unsigned int row, unsigned int col, const sf::Color& color);
 
-	void setColor(Vec2 pos, const sf::Color &color);
+	void setColor(Vec2 pos, const sf::Color& color);
 
-	void changeMap(const std::string &mapName);
+	void changeMap(const std::string& mapName);
 
 	void clearMap();
 
@@ -101,7 +116,7 @@ public:
 
 	float distOfTwoCells(GridPos lhs, GridPos rhs)const;
 
-	const std::vector<std::vector<sf::RectangleShape>> &getCells() const; // for serialiser only
+	const std::vector<std::vector<Cell>>& getCells() const; // for serialiser only
 
 	Vec2 getFlowFieldDir(int row, int col) const;
 	Vec2 getFlowFieldDir(GridPos pos) const;
@@ -122,7 +137,7 @@ public:
 	// ========
 	// Checkers
 	// ========
-	bool isWall(int row, int col) const;
+	bool isWall(unsigned int row, unsigned int col) const;
 	bool isWall(GridPos pos) const;
 
 	bool isOutOfBound(int row, int col) const;
@@ -134,13 +149,6 @@ public:
 	bool hasLineOfSight(Vec2 const& start, Vec2 const& end) const;
 
 private:
-
-	struct Cell
-	{
-		sf::RectangleShape rect{};				// rectangle tile 
-		Visibility visibility{ UNEXPLORED };	// visibility enum
-	};
-
 
 	struct flowFieldCell
 	{

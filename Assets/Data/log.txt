@@ -70,3 +70,9 @@
 
 [10/07/2024 00:56:01] Program crashed at line 56 in Grid.cpp, reason: Row: "-5" Col: "0" is out of bound
 
+[11/07/2024 22:41:21] Program crashed at line 622 in Grid.cpp, reason: Row: "4294967295" Col: "18" is out of bound
+
+[11/07/2024 22:42:00] Program crashed at line 622 in Grid.cpp, reason: Row: "4294967295" Col: "48" is out of bound
+
+[11/07/2024 22:47:01] Program crashed at line 622 in Grid.cpp, reason: Row: "67" Col: "4294967294" is out of bound
+

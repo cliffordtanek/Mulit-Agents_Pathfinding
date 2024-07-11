@@ -6,35 +6,36 @@
 #include "Camera.h"
 
 extern sf::Font font;
-
+extern Loader loader;
+extern Camera camera;
 
 bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
-    int x0 = static_cast<int>(start.x / cellSize);
-    int y0 = static_cast<int>(start.y / cellSize);
-    int x1 = static_cast<int>(end.x / cellSize);
-    int y1 = static_cast<int>(end.y / cellSize);
+	int x0 = static_cast<int>(start.x / cellSize);
+	int y0 = static_cast<int>(start.y / cellSize);
+	int x1 = static_cast<int>(end.x / cellSize);
+	int y1 = static_cast<int>(end.y / cellSize);
 
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
-    int sx = x0 < x1 ? 1 : -1;
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx - dy;
+	int dx = abs(x1 - x0);
+	int dy = abs(y1 - y0);
+	int sx = x0 < x1 ? 1 : -1;
+	int sy = y0 < y1 ? 1 : -1;
+	int err = dx - dy;
 
-    while (true) {
-        if (isWall(y0, x0)) return false; // If there's a wall, return false
+	while (true) {
+		if (isWall(y0, x0)) return false; // If there's a wall, return false
 
-        if (x0 == x1 && y0 == y1) return true; // If we've reached the end, return true
+		if (x0 == x1 && y0 == y1) return true; // If we've reached the end, return true
 
-        int e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y0 += sy;
-        }
-    }
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dx) {
+			err += dx;
+			y0 += sy;
+		}
+	}
 }
 
 bool line_intersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1)
@@ -74,18 +75,18 @@ bool line_intersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P
 	}
 }
 
-
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
 	// Normalize the direction vector
 	Vec2 normalizedDirection = direction.Normalize();
 
 	// Calculate the end point of the arrow
-	Vec2 end = start + normalizedDirection * length;
+	Vec2 newStart = start + camera.getOffset();
+	Vec2 end = newStart + normalizedDirection * length;
 
 	// Create the main line of the arrow
 	sf::VertexArray arrow(sf::LinesStrip, 3);
-	arrow[0].position = sf::Vector2f(start.x, start.y);
+	arrow[0].position = sf::Vector2f(newStart.x, newStart.y);
 	arrow[1].position = sf::Vector2f(end.x, end.y);
 
 	// Calculate the head of the arrow
@@ -100,15 +101,12 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 	window.draw(arrow);
 }
 
-
+//Grid::Grid(int _width, int _height, float _cellSize)
+//	: width(_width), height(_height), cellSize(_cellSize), cells(height, std::vector<Cell>(width)),
+//	flowField(height, std::vector<flowFieldCell>(width))
 
 Grid::Grid(int _width, int _height, float _cellSize)
-	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells(height, std::vector<Cell>(width)), flowField(height, std::vector<flowFieldCell>(width))
-extern Loader loader;
-extern Camera camera;
-
-Grid::Grid(unsigned int _width, unsigned int _height, float _cellSize)
-	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ height, std::vector<sf::RectangleShape>{height} }
+	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
 {
 	for (int row{}; row < height; ++row)
 	{
@@ -116,36 +114,35 @@ Grid::Grid(unsigned int _width, unsigned int _height, float _cellSize)
 		{
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
 			cells[row][col].rect.setPosition(row * cellSize, col * cellSize);
-			cells[row][col].rect.setFillColor(sf::Color::White);
-			cells[row][col].rect.setOutlineColor(sf::Color(20, 20, 20));
+			cells[row][col].rect.setFillColor(colors.at("Floor_Fill"));
+			cells[row][col].rect.setOutlineColor(colors.at("Floor_Outline"));
 			cells[row][col].rect.setOutlineThickness(4.f);
-
 
 			flowField[row][col].position = { row, col };
 		}
 	}
 
 	// initialize debug pov
-	debugRadius.setFillColor(sf::Color::Transparent);
-	debugRadius.setOutlineColor(sf::Color::Red);
+	debugRadius.setFillColor(colors.at("Debug_Radius_Fill"));
+	debugRadius.setOutlineColor(colors.at("Debug_Radius_Outline"));
 	debugRadius.setOutlineThickness(5.f);
 
 
-	 //TEMP GRID MAKING
-	// Left vertical part of U
+	//TEMP GRID MAKING
+   // Left vertical part of U
 	for (int row = 10; row < 10 + 10; ++row)
-		cells[row][10].rect.setFillColor(sf::Color::Black);
-	
+		cells[row][10].rect.setFillColor(colors.at("Wall_Fill"));
+
 
 	// Bottom horizontal part of U
-	for (int col = 10; col < 10 + 10; ++col) 
-		cells[19][col].rect.setFillColor(sf::Color::Black);
-	
+	for (int col = 10; col < 10 + 10; ++col)
+		cells[19][col].rect.setFillColor(colors.at("Wall_Fill"));
+
 
 	// Right vertical part of U
-	for (int row = 10; row < 10 + 10; ++row) 
-		cells[row][19].rect.setFillColor(sf::Color::Black);
-	
+	for (int row = 10; row < 10 + 10; ++row)
+		cells[row][19].rect.setFillColor(colors.at("Wall_Fill"));
+
 
 }
 
@@ -154,6 +151,8 @@ Grid::Grid(unsigned int _width, unsigned int _height, float _cellSize)
 // ======
 void Grid::render(sf::RenderWindow& window)
 {
+	sf::Vector2f offset = camera.getOffset();
+
 	for (int row{}; row < height; ++row)
 	{
 		for (int col{}; col < width; ++col)
@@ -161,7 +160,10 @@ void Grid::render(sf::RenderWindow& window)
 			// draw and skip walls
 			if (isWall(row, col))
 			{
+				sf::Vector2f oldPos = cells[row][col].rect.getPosition();
+				cells[row][col].rect.setPosition(oldPos + offset);
 				window.draw(cells[row][col].rect);
+				cells[row][col].rect.setPosition(oldPos);
 				continue;
 			}
 
@@ -169,29 +171,36 @@ void Grid::render(sf::RenderWindow& window)
 			{
 			case UNEXPLORED:
 				// Black colour as unexplored colour
-				cells[row][col].rect.setFillColor(sf::Color(30, 30, 30));
-				cells[row][col].rect.setOutlineColor(sf::Color(20, 20, 20));
+				cells[row][col].rect.setFillColor(colors.at("Unexplored_Fill"));
+				cells[row][col].rect.setOutlineColor(colors.at("Unexplored_Outline"));
 				break;
 
 			case FOG:
 				// Grey colour as fog colour
-				cells[row][col].rect.setFillColor(sf::Color(95, 95, 95));
-				cells[row][col].rect.setOutlineColor(sf::Color(110, 110, 110));
+				cells[row][col].rect.setFillColor(colors.at("Fog_Fill"));
+				cells[row][col].rect.setOutlineColor(colors.at("Fog_Outline"));
 				break;
 
 			case VISIBLE:
 				// white colour as visible
-				cells[row][col].rect.setFillColor(sf::Color(140, 140, 140));
-				cells[row][col].rect.setOutlineColor(sf::Color(160, 160, 160));
+				cells[row][col].rect.setFillColor(colors.at("Visible_Fill"));
+				cells[row][col].rect.setOutlineColor(colors.at("Visible_Outline"));
 				break;
 			}
 
+			sf::Vector2f oldPos = cells[row][col].rect.getPosition();
+			cells[row][col].rect.setPosition(oldPos + offset);
 			window.draw(cells[row][col].rect);
-
+			cells[row][col].rect.setPosition(oldPos);
 
 
 			if (debugDrawRadius)
+			{
+				sf::Vector2f oldPos = debugRadius.getPosition();
+				debugRadius.setPosition(oldPos + offset);
 				window.draw(debugRadius);
+				debugRadius.setPosition(oldPos);
+			}
 
 
 #if 0
@@ -213,7 +222,7 @@ void Grid::render(sf::RenderWindow& window)
 
 #endif
 
-			if (!isWall(row, col) && !(!flowField[row][col].direction.x  && !flowField[row][col].direction.y))
+			if (!isWall(row, col) && !(!flowField[row][col].direction.x && !flowField[row][col].direction.y))
 			{
 				Vec2 cellCenter = getWorldPos(row, col) + Vec2(cellSize / 2.0f, cellSize / 2.0f);
 				drawArrow(window, cellCenter, flowField[row][col].direction * (cellSize / 2.0f));
@@ -223,7 +232,7 @@ void Grid::render(sf::RenderWindow& window)
 			//sf::Text text;
 			//text.setFont(font);
 			//text.setCharacterSize(16);
-			//text.setFillColor(sf::Color::White);
+			//text.setFillColor(colors.at("Floor_Fill"));
 
 			//std::ostringstream ss;
 
@@ -244,7 +253,7 @@ void Grid::render(sf::RenderWindow& window)
 
 
 
-			if(debugDrawRadius)
+			if (debugDrawRadius)
 				window.draw(debugRadius);
 		}
 	}
@@ -270,32 +279,32 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		GridPos gridpos = getGridPos(p);
 
 		int startRow = std::max(0, gridpos.row - static_cast<int>(radius / cellSize));
-		int endRow   = std::min(height - 1, gridpos.row + static_cast<int>(radius / cellSize));
+		int endRow = std::min(height - 1, gridpos.row + static_cast<int>(radius / cellSize));
 
 		int startCol = std::max(0, gridpos.col - static_cast<int>(radius / cellSize));
-		int endCol   = std::min(width - 1, gridpos.col + static_cast<int>(radius / cellSize));
+		int endCol = std::min(width - 1, gridpos.col + static_cast<int>(radius / cellSize));
 
 
-		for (int r = startRow ;r <= endRow; ++r)
+		for (int r = startRow; r <= endRow; ++r)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
 				if (isWall(r, c))
 					break;
-				
+
 				// get distance of pos to cell (startRow, startCol)
 				float distance = p.Distance(getWorldPos(r, c));
 
 				if (distance <= radius && hasLineOfSight(p, getWorldPos(r, c)))
 				{
 					cells[r][c].visibility = VISIBLE;
-					cells[r][c].rect.setFillColor(sf::Color(140, 140, 140));
-					cells[r][c].rect.setOutlineColor(sf::Color(160, 160, 160));
+					cells[r][c].rect.setFillColor(colors.at("Visible_Fill"));
+					cells[r][c].rect.setOutlineColor(colors.at("Visible_Outline"));
 				}
 			}
 		}
-		
-		
+
+
 		debugRadius.setRadius(radius);
 		debugRadius.setOrigin(radius, radius);
 		debugRadius.setPosition(sf::Vector2(p.x, p.y));
@@ -307,10 +316,10 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 
 
 
-void Grid::updateHeatMap(Vec2 target)
+void Grid::updateHeatMap(Vec2 target, bool canUseCameraOffset)
 {
 	// get target pos in gridPos
-	GridPos targetPos = getGridPos(target);
+	GridPos targetPos = getGridPos(target - camera.getOffset() * canUseCameraOffset);
 
 	// skip out of bound target
 	if (isOutOfBound(targetPos))
@@ -323,7 +332,7 @@ void Grid::updateHeatMap(Vec2 target)
 	// initialize target cell
 	flowField[targetPos.row][targetPos.col].distance = 0.f;
 	flowField[targetPos.row][targetPos.col].visited = true;
-	
+
 	// push target node into openlist
 	openList.push(&flowField[targetPos.row][targetPos.col]);
 
@@ -357,12 +366,12 @@ void Grid::updateHeatMap(Vec2 target)
 				float newDistance = currCell.distance + distOfTwoCells(targetPos, neighbourPos);
 
 				// If neighbor is visited and the new distance is shorter, update it
-				if (currNeighbour.visited) 
+				if (currNeighbour.visited)
 				{
 					if (newDistance < currNeighbour.distance)
 						currNeighbour.distance = newDistance;
 				}
-				else 
+				else
 				{
 					// If neighbor is not visited, set the distance and mark as visited
 					currNeighbour.distance = newDistance;
@@ -402,7 +411,7 @@ void Grid::generateFlowField()
 				continue;
 
 			// Skip walls
-			if (isWall(row, col)) 
+			if (isWall(row, col))
 			{
 				//currCell.direction = Vec2(0, 0);
 				continue;
@@ -421,7 +430,7 @@ void Grid::generateFlowField()
 						continue;
 
 					flowFieldCell& neighbourCell = flowField[neighbourRow][neighbourCol];
-					
+
 					if (utl::isEqual(neighbourCell.distance, 0.f))
 					{
 						currCell.direction += Vec2(i, j);
@@ -435,11 +444,11 @@ void Grid::generateFlowField()
 			}
 
 			//! test to get closest int
-			
+
 			//currCell.direction = currCell.direction.Normalize();
 
-			
-			
+
+
 			// Round the direction components to the nearest integer
 			//currCell.direction.x = std::round(currCell.direction.x);
 			//currCell.direction.y = std::round(currCell.direction.y);
@@ -447,17 +456,20 @@ void Grid::generateFlowField()
 			// Ensure the direction components are clamped to valid values (-1, 0, 1)
 			//currCell.direction.x = std::max(-1.f, std::min(currCell.direction.x, 1.f));
 			//currCell.direction.y = std::max(-1.f, std::min(currCell.direction.y, 1.f));
+		}
+	}
+}
 
-void Grid::setColor(unsigned int row, unsigned int col, const sf::Color &color)
+void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
 {
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 	if (isOutOfBound(row, col))
 		return;
 
-	cells[row][col].setFillColor(color);
+	cells[row][col].rect.setFillColor(color);
 }
 
-void Grid::setColor(Vec2 pos, const sf::Color &color)
+void Grid::setColor(Vec2 pos, const sf::Color& color)
 {
 	pos -= camera.getOffset();
 	int row = pos.x / cellSize;
@@ -466,28 +478,28 @@ void Grid::setColor(Vec2 pos, const sf::Color &color)
 		return;
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
-	cells[row][col].setFillColor(color);
+	cells[row][col].rect.setFillColor(color);
 }
 
-void Grid::changeMap(const std::string &mapName)
+void Grid::changeMap(const std::string& mapName)
 {
-	const std::vector<std::vector<std::string>> &indexCells = loader.getMap(mapName);
+	const std::vector<std::vector<std::string>>& indexCells = loader.getMap(mapName);
 	size_t newHeight = indexCells.size() ? indexCells[0].size() : 0;
-	for (const std::vector<std::string> &row : indexCells)
+	for (const std::vector<std::string>& row : indexCells)
 		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
 	width = indexCells.size();
 	height = newHeight;
-	cells = std::vector<std::vector<sf::RectangleShape>>();
+	cells = std::vector<std::vector<Cell>>();
 
 	for (unsigned i = 0; i < width; ++i)
 	{
-		cells.push_back(std::vector<sf::RectangleShape>());
+		cells.push_back(std::vector<Cell>());
 
 		for (unsigned j = 0; j < height; ++j)
 		{
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
-			sf::RectangleShape &currCell = cells.back().back();
+			sf::RectangleShape& currCell = cells.back().back().rect;
 
 			currCell.setPosition(i * cellSize, j * cellSize);
 			currCell.setFillColor(colors.at(indexCells[i][j])); // guaranteed to not crash
@@ -497,13 +509,11 @@ void Grid::changeMap(const std::string &mapName)
 	}
 }
 
-		}
-	}
 void Grid::clearMap()
 {
-	for (std::vector<sf::RectangleShape> &row : cells)
-		for (sf::RectangleShape &cell : row)
-			cell.setFillColor(colors.at("Floor_Fill"));
+	for (std::vector<Cell>& row : cells)
+		for (Cell& cell : row)
+			cell.rect.setFillColor(colors.at("Floor_Fill"));
 }
 
 //void Grid::computePath(Entity& entity, vec2 target) const
@@ -605,8 +615,7 @@ void Grid::SetColour(GridPos pos, sf::Color colour) { return SetColour(pos.row, 
 // CHECKERS
 // ========
 
-bool Grid::isWall(int row, int col) const
-const std::vector<std::vector<sf::RectangleShape>> &Grid::getCells() const
+const std::vector<std::vector<Cell>>& Grid::getCells() const
 {
 	return cells;
 }
@@ -616,7 +625,7 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
 	// assuming wall colour is black
-	return cells[row][col].rect.getFillColor() == sf::Color::Black;
+	return cells[row][col].rect.getFillColor() == colors.at("Wall_Fill");
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }
@@ -681,3 +690,5 @@ bool Grid::isClearPath(GridPos lhs, GridPos rhs) const
 {
 	return isClearPath(lhs.row, lhs.col, rhs.row, rhs.col);
 }
+
+Cell::Cell(Vec2 pos) : rect(pos) { }
