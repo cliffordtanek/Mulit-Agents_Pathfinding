@@ -53,7 +53,7 @@ public:
 
 	virtual ~Entity() { }
 
-	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false, bool canUseCameraOffset = true);
+	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false, bool canUseCameraOffset = false);
 	void setWaypoints(const std::list<Vec2> &_waypoints);
 
 	virtual void onCreate();

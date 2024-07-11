@@ -9,9 +9,6 @@ Loader::Loader()
 {
 	// register colours
 	loadMaps();
-	//for (size_t i = 0; i < colors.size(); ++i)
-		//colorIndices[colors[i]] = i;
-
 	for (const auto &[str, color] : colors)
 		colorNames[color] = str;
 }
@@ -50,25 +47,25 @@ void Loader::loadMaps()
 
 void Loader::saveMap(const std::string &mapName)
 {
-	const std::vector<std::vector<sf::RectangleShape>> &cells = grid.getCells();
+	const std::vector<std::vector<Cell>> &cells = grid.getCells();
 	maps[mapName] = std::vector<std::vector<std::string>>();
 	std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
 	std::ofstream ofs("../Assets/Data/Maps/" + mapName + ".txt");
 	crashIf(!ofs, "Unable to open " + mapName + ".txt for overwriting");
 
 	size_t newHeight = cells.size() ? cells[0].size() : 0;
-	for (const std::vector<sf::RectangleShape> &row : cells)
+	for (const std::vector<Cell> &row : cells)
 		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 	ofs << cells.size() << ' ' << newHeight << nl;
 
-	for (const std::vector<sf::RectangleShape> &row : cells)
+	for (const std::vector<Cell> &row : cells)
 	{
 		currMap.push_back(std::vector<std::string>());
 
-		for (const sf::RectangleShape &cell : row)
+		for (const Cell &cell : row)
 		{
-			crashIf(!colorNames.count(cell.getFillColor()), "Color for a cell has not been registered");
-			const std::string colorName = colorNames.at(cell.getFillColor());
+			crashIf(!colorNames.count(cell.rect.getFillColor()), "Color for a cell has not been registered");
+			const std::string colorName = colorNames.at(cell.rect.getFillColor());
 			ofs << colorName << ' ';
 			currMap.back().push_back(colorName);
 		}

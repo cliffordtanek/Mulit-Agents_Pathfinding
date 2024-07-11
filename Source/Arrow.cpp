@@ -2,6 +2,7 @@
 #include "Camera.h"
 
 extern sf::RenderWindow window;
+//extern sf::RenderTexture renderer;
 extern Camera camera;
 
 void Arrow::onCreate()

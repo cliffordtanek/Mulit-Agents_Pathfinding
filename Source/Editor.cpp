@@ -8,6 +8,8 @@ extern Editor editor;
 extern Factory factory;
 extern Grid grid;
 extern sf::RenderWindow window;
+//extern sf::RenderTexture renderer;
+extern float dt;
 
 Window::~Window()
 {
@@ -61,6 +63,9 @@ void MainMenu::onUpdate()
 	Window::onUpdate();
 
 	ImGui::Begin(name.c_str(), &isOpen);
+
+	ImGui::Text("FPS: %.2f", 1.f / dt);
+	editor.addSpace(3);
 
 	for (const auto &[name, window] : editor.getWindows())
 		if (name != "MainMenu" && ImGui::Button(("Toggle "s + name).c_str()))
@@ -151,6 +156,32 @@ void Inspector::onUpdate()
 	ImGui::End();
 }
 
+void Game::onEnter()
+{
+	Window::onEnter();
+}
+
+void Game::onUpdate()
+{
+	if (!isOpen)
+		return;
+	Window::onUpdate();
+
+	ImGui::Begin(name.c_str(), &isOpen);
+
+	//sf::Vector2u textureSize = renderer.getSize();
+	//sf::Texture texture = renderer.getTexture();
+	//ImVec2 size = ImVec2(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y));
+	//ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture.getNativeHandle())), size);
+
+	ImGui::End();
+}
+
+void Game::onExit()
+{
+	Window::onExit();
+}
+
 void Inspector::onExit() 
 {
 	Window::onExit();
@@ -169,6 +200,7 @@ void Editor::init()
 
 	addWindow<MainMenu>();
 	addWindow<Inspector>();
+	addWindow<Game>();
 }
 
 void Editor::update()
@@ -211,15 +243,22 @@ void Editor::createDockspace()
 	ImGui::SetNextWindowSize(viewport->Size);
 	ImGui::SetNextWindowViewport(viewport->ID);
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+	// Set window background color to be transparent
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
 	ImGui::Begin("DockSpace Demo", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
+
 	ImGui::PopStyleVar(3);
-	ImGui::DockSpace(ImGui::GetID("MyDockspace"), ImVec2(0.f, 0.f), ImGuiDockNodeFlags_PassthruCentralNode);
+	ImGui::PopStyleColor();  // Pop the color style
+
+	ImGui::DockSpace(ImGui::GetID("MyDockspace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+
 	ImGui::End();
 }
 

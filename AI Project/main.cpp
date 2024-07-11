@@ -17,12 +17,13 @@ std::string winTitle = "sfml";
 bool isFullscreen = false;
 float dt = 0.f;
 
-sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle);
+sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
+//sf::RenderTexture renderer;
 sf::Font font;
 
 Editor editor;
 Factory factory;
-Grid grid(75, 75, 50.f);
+Grid grid(50, 50, 100.f);
 Loader loader;
 Camera camera;
 
@@ -36,6 +37,9 @@ int main()
 #if defined(DEBUG) | defined(_DEBUG)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+    //crashIf(!renderer.create(static_cast<unsigned>(winSize.x), static_cast<unsigned>(winSize.y)),
+        //"Renderer failed to be initialised");
 
     sf::Clock clock;
 
@@ -71,14 +75,11 @@ int main()
                 case sf::Keyboard::F11:
                     window.close();
                     if (isFullscreen)
-                        window.create(sf::VideoMode(winSize.x, winSize.y), winTitle);
+                        window.create(sf::VideoMode(winSize.x, winSize.y), winTitle, 
+                            sf::Style::Titlebar | sf::Style::Close);
                     else
                         window.create(sf::VideoMode::getDesktopMode(), winTitle, sf::Style::Fullscreen);
                     isFullscreen = !isFullscreen;
-                    break;
-
-                case sf::Keyboard::T:
-                    std::cout << "dt: " << dt << nl;
                     break;
 
                 case sf::Keyboard::M:
@@ -95,11 +96,10 @@ int main()
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
                     break;
 
-                case sf::Keyboard::D:
-                    factory.grid->debugDrawRadius = !factory.grid->debugDrawRadius;
+                case sf::Keyboard::L:
+                    grid.debugDrawRadius = !grid.debugDrawRadius;
+                    break;
 
-                }
-                break;
                 case sf::Keyboard::Num1:
                     loader.saveMap("test");
                     break;
@@ -113,43 +113,44 @@ int main()
                     break;
                 }
                 break;
-
             }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
         {
-            isMousePressed = true;
-           
             Vec2 target = { static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) };
 
-            if (!factory.grid->isWall(factory.grid->getGridPos(target)));
+            if (!grid.isWall(grid.getGridPos(target)));
             {
-                factory.grid->updateHeatMap(target);
-                factory.grid->generateFlowField();
+                grid.updateHeatMap(target, true);
+                grid.generateFlowField();
 
-                enemy->setTargetPos(target, true);
+                enemy->setTargetPos(target, true, true);
             }
 
-            // factory.grid->computePath(*enemy, target);
+             //grid.computePath(*enemy, target);
         }
+
+        // mouse event must put outside of switch case for some reason
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
+            isMousePressed = true;
 
         if (event.type == sf::Event::MouseMoved && isMousePressed)
         {
             // calculate grid coordinates from mouse position
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
             
-            Grid::GridPos pos = factory.grid->getGridPos((float)mousePos.x, (float)mousePos.y);
+            Grid::GridPos pos = grid.getGridPos((float)mousePos.x, (float)mousePos.y, true);
 
             // set colour of grid upon click
-            factory.grid->SetColour(pos.row, pos.col, sf::Color::Green);
+            grid.SetColour(pos.row, pos.col, colors.at("Wall_Fill"));
         }
 
         // FOG TEST (Mouse cursor)
 #if 1
         if (event.type == sf::Event::MouseMoved)
         {
-           // factory.grid->updateHeatMap({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) });
+           // grid.updateHeatMap({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) });
         }
 #endif
 
@@ -169,21 +170,52 @@ int main()
             camera.move({ 1.f, 0.f });
         camera.calcOffset();
 
+#if 0
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
+        //renderer.clear();
+
+        // update systems
+        factory.update();
+
+        // test
+        //Vec2 scale{ 50.f, 50.f };
+        //Vec2 newPos{ 100.f, 100.f };
+        //sf::Color color = sf::Color::Red;
+        //sf::CircleShape circle;
+        //circle.setRadius(scale.x / 2.f);
+        //circle.setPosition(newPos - Vec2{ scale.x / 2.f, scale.x / 2.f });
+        //circle.setFillColor(color);
+        //renderer.draw(circle);
 
         // update the editor
-        editor.createDockspace();
+        //renderer.display();
         editor.update();
+        editor.createDockspace();
 
         // Render ImGui into window
         window.clear();
         ImGui::SFML::Render(window);
+        window.display();
 
         // update other systems
+        camera.update();
+#endif
+
+        // Start the ImGui frame
+        ImGui::SFML::Update(window, clock.restart());
+        window.clear();
+        editor.createDockspace();
+
+        // update other systems
+        editor.update();
         factory.update();
 
+        // render imgui onto the window
+        ImGui::SFML::Render(window);
         window.display();
+
+        // update other systems
         camera.update();
     }
 

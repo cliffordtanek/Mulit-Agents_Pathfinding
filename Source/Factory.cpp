@@ -3,6 +3,7 @@
 #include "Camera.h"
 
 extern sf::RenderWindow window;
+//extern sf::RenderTexture renderer;
 extern Factory factory;
 extern Grid grid;
 extern Camera camera;
@@ -23,7 +24,7 @@ void Entity::move()
 		{
 			factory.destroyEntity<Arrow>(wpArrows.front());
 			wpArrows.pop_front();
-			setTargetPos(waypoints.front(), false, false);
+			setTargetPos(waypoints.front(), false);
 			waypoints.pop_front();
 		}
 
@@ -31,9 +32,9 @@ void Entity::move()
 
 	}
 
-	auto [row, col] = factory.grid->getGridPos(pos);
+	auto [row, col] = grid.getGridPos(pos);
 	
-	dir = factory.grid->getFlowFieldDir(row, col);
+	dir = grid.getFlowFieldDir(row, col);
 
 
 	if (dir == Vec2{ 0.f, 0.f })
@@ -43,7 +44,7 @@ void Entity::move()
 
 	dir = dir.Normalize();
 
-	pos += dir * currSpeed;
+	pos += dir * currSpeed * dt;
 }
 
 void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCameraOffset)
@@ -56,10 +57,9 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCa
 		wpArrows.clear();
 	}
 
-	/*targetPos.x += factory.grid->getCellSize() * 0.5f;
-	targetPos.y += factory.grid->getCellSize() * 0.5f;*/
+	/*targetPos.x += grid.getCellSize() * 0.5f;
+	targetPos.y += grid.getCellSize() * 0.5f;*/
 
-	targetPos = _targetPos;
 	targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	currSpeed = speed;
 
@@ -86,7 +86,7 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 		prev = iter;
 	}
 
-	setTargetPos(waypoints.front(), false, false);
+	setTargetPos(waypoints.front(), false);
 	waypoints.pop_front();
 }
 
@@ -182,10 +182,10 @@ void Factory::update()
 		for (const auto& [k, v] : map)
 			entityPosition.emplace_back(v->pos);
 
-	grid->updateVisibility(entityPosition, 150.f);
+	grid.updateVisibility(entityPosition, 150.f);
 #endif
 
-	grid->render(window);
+	grid.render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();

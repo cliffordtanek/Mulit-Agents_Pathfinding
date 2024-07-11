@@ -47,6 +47,17 @@ public:
 	void onExit() override;
 };
 
+class Game : public Window
+{
+public:
+
+	Game(const std::string windowName = "") : Window(windowName) { }
+
+	void onEnter() override;
+	void onUpdate() override;
+	void onExit() override;
+};
+
 class Editor
 {
 	std::unordered_map<std::string, Window *> windows;
