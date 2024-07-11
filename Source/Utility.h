@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include <sstream>
 #include <iomanip>
+#include "MathLib.h"
 
 using namespace std::string_literals;
 
@@ -17,8 +18,8 @@ using namespace std::string_literals;
 //};
 
 // constants
-#define EPSILON 0.000001f
-#define PI 3.14159f
+//#define EPSILON 0.000001f
+//#define PI 3.14159f
 #define EULER 2.718282f
 #define SQRT2 1.414214f
 

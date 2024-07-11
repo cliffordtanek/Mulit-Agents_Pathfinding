@@ -10,32 +10,32 @@ extern Loader loader;
 extern Camera camera;
 
 bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
-    int x0 = static_cast<int>(start.x / cellSize);
-    int y0 = static_cast<int>(start.y / cellSize);
-    int x1 = static_cast<int>(end.x / cellSize);
-    int y1 = static_cast<int>(end.y / cellSize);
+	int x0 = static_cast<int>(start.x / cellSize);
+	int y0 = static_cast<int>(start.y / cellSize);
+	int x1 = static_cast<int>(end.x / cellSize);
+	int y1 = static_cast<int>(end.y / cellSize);
 
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
-    int sx = x0 < x1 ? 1 : -1;
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx - dy;
+	int dx = abs(x1 - x0);
+	int dy = abs(y1 - y0);
+	int sx = x0 < x1 ? 1 : -1;
+	int sy = y0 < y1 ? 1 : -1;
+	int err = dx - dy;
 
-    while (true) {
-        if (isWall(y0, x0)) return false; // If there's a wall, return false
+	while (true) {
+		if (isWall(y0, x0)) return false; // If there's a wall, return false
 
-        if (x0 == x1 && y0 == y1) return true; // If we've reached the end, return true
+		if (x0 == x1 && y0 == y1) return true; // If we've reached the end, return true
 
-        int e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y0 += sy;
-        }
-    }
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dx) {
+			err += dx;
+			y0 += sy;
+		}
+	}
 }
 
 bool line_intersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1)
@@ -128,8 +128,8 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	debugRadius.setOutlineThickness(5.f);
 
 
-	 //TEMP GRID MAKING
-	// Left vertical part of U
+	//TEMP GRID MAKING
+   // Left vertical part of U
 	for (int row = 10; row < 10 + 10; ++row)
 		cells[row][10].rect.setFillColor(colors.at("Wall_Fill"));
 	
@@ -222,7 +222,7 @@ void Grid::render(sf::RenderWindow& window)
 
 #endif
 
-			if (!isWall(row, col) && !(!flowField[row][col].direction.x  && !flowField[row][col].direction.y))
+			if (!isWall(row, col) && !(!flowField[row][col].direction.x && !flowField[row][col].direction.y))
 			{
 				Vec2 cellCenter = getWorldPos(row, col) + Vec2(cellSize / 2.0f, cellSize / 2.0f);
 				drawArrow(window, cellCenter, flowField[row][col].direction * (cellSize / 2.0f));
@@ -253,7 +253,7 @@ void Grid::render(sf::RenderWindow& window)
 
 
 
-			if(debugDrawRadius)
+			if (debugDrawRadius)
 				window.draw(debugRadius);
 		}
 	}
@@ -279,19 +279,19 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		GridPos gridpos = getGridPos(p);
 
 		int startRow = std::max(0, gridpos.row - static_cast<int>(radius / cellSize));
-		int endRow   = std::min(height - 1, gridpos.row + static_cast<int>(radius / cellSize));
+		int endRow = std::min(height - 1, gridpos.row + static_cast<int>(radius / cellSize));
 
 		int startCol = std::max(0, gridpos.col - static_cast<int>(radius / cellSize));
-		int endCol   = std::min(width - 1, gridpos.col + static_cast<int>(radius / cellSize));
+		int endCol = std::min(width - 1, gridpos.col + static_cast<int>(radius / cellSize));
 
 
-		for (int r = startRow ;r <= endRow; ++r)
+		for (int r = startRow; r <= endRow; ++r)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
 				if (isWall(r, c))
 					break;
-				
+
 				// get distance of pos to cell (startRow, startCol)
 				float distance = p.Distance(getWorldPos(r, c));
 
@@ -303,8 +303,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 				}
 			}
 		}
-		
-		
+
+
 		debugRadius.setRadius(radius);
 		debugRadius.setOrigin(radius, radius);
 		debugRadius.setPosition(sf::Vector2(p.x, p.y));
@@ -332,7 +332,7 @@ void Grid::updateHeatMap(Vec2 target, bool canUseCameraOffset)
 	// initialize target cell
 	flowField[targetPos.row][targetPos.col].distance = 0.f;
 	flowField[targetPos.row][targetPos.col].visited = true;
-	
+
 	// push target node into openlist
 	openList.push(&flowField[targetPos.row][targetPos.col]);
 
@@ -366,12 +366,12 @@ void Grid::updateHeatMap(Vec2 target, bool canUseCameraOffset)
 				float newDistance = currCell.distance + distOfTwoCells(targetPos, neighbourPos);
 
 				// If neighbor is visited and the new distance is shorter, update it
-				if (currNeighbour.visited) 
+				if (currNeighbour.visited)
 				{
 					if (newDistance < currNeighbour.distance)
 						currNeighbour.distance = newDistance;
 				}
-				else 
+				else
 				{
 					// If neighbor is not visited, set the distance and mark as visited
 					currNeighbour.distance = newDistance;
@@ -433,13 +433,13 @@ void Grid::generateFlowField()
 
 					if (utl::isEqual(neighbourCell.distance, 0.f))
 					{
-						currCell.direction += Vec2(i, j);
+						currCell.direction += Vec2((float)i, (float)j);
 						continue;
 					}
 
 
 					// get final directional vector
-					currCell.direction += (1.f / neighbourCell.distance) * Vec2(i, j);
+					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)i, (float)j);
 				}
 			}
 
@@ -460,7 +460,7 @@ void Grid::generateFlowField()
 	}
 }
 
-void Grid::setColor(unsigned int row, unsigned int col, const sf::Color &color)
+void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
 {
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 	if (isOutOfBound(row, col))
@@ -469,11 +469,11 @@ void Grid::setColor(unsigned int row, unsigned int col, const sf::Color &color)
 	cells[row][col].rect.setFillColor(color);
 }
 
-void Grid::setColor(Vec2 pos, const sf::Color &color)
+void Grid::setColor(Vec2 pos, const sf::Color& color)
 {
 	pos -= camera.getOffset();
-	int row = pos.x / cellSize;
-	int col = pos.y / cellSize;
+	int row = (int)(pos.x / cellSize);
+	int col = (int)(pos.y / cellSize);
 	if (isOutOfBound(row, col))
 		return;
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
@@ -481,22 +481,22 @@ void Grid::setColor(Vec2 pos, const sf::Color &color)
 	cells[row][col].rect.setFillColor(color);
 }
 
-void Grid::changeMap(const std::string &mapName)
+void Grid::changeMap(const std::string& mapName)
 {
-	const std::vector<std::vector<std::string>> &indexCells = loader.getMap(mapName);
+	const std::vector<std::vector<std::string>>& indexCells = loader.getMap(mapName);
 	size_t newHeight = indexCells.size() ? indexCells[0].size() : 0;
-	for (const std::vector<std::string> &row : indexCells)
+	for (const std::vector<std::string>& row : indexCells)
 		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
-	width = indexCells.size();
-	height = newHeight;
+	width = (int)indexCells.size();
+	height = (int)newHeight;
 	cells = std::vector<std::vector<Cell>>();
 
-	for (unsigned i = 0; i < width; ++i)
+	for (unsigned i = 0; i < (unsigned)width; ++i)
 	{
 		cells.push_back(std::vector<Cell>());
 
-		for (unsigned j = 0; j < height; ++j)
+		for (unsigned j = 0; j < (unsigned)height; ++j)
 		{
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
 			sf::RectangleShape &currCell = cells.back().back().rect;
@@ -580,8 +580,8 @@ Vec2 Grid::getWorldPos(GridPos pos) const { return getWorldPos(pos.row, pos.col)
 float Grid::distOfTwoCells(GridPos lhs, GridPos rhs) const
 {
 	// Calculate the Euclidean distance
-	float dx = lhs.row - rhs.row;
-	float dy = lhs.col - rhs.col;
+	float dx = (float)lhs.row - rhs.row;
+	float dy = (float)lhs.col - rhs.col;
 
 	return std::sqrt(dx * dx + dy * dy);
 }

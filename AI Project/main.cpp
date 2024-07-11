@@ -17,7 +17,7 @@ std::string winTitle = "sfml";
 bool isFullscreen = false;
 float dt = 0.f;
 
-sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
+sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
 sf::Font font;
 
@@ -75,7 +75,7 @@ int main()
                 case sf::Keyboard::F11:
                     window.close();
                     if (isFullscreen)
-                        window.create(sf::VideoMode(winSize.x, winSize.y), winTitle, 
+                        window.create(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, 
                             sf::Style::Titlebar | sf::Style::Close);
                     else
                         window.create(sf::VideoMode::getDesktopMode(), winTitle, sf::Style::Fullscreen);
@@ -120,7 +120,7 @@ int main()
         {
             Vec2 target = { static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) };
 
-            if (!grid.isWall(grid.getGridPos(target)));
+            if (!grid.isWall(grid.getGridPos(target)))
             {
                 grid.updateHeatMap(target, true);
                 grid.generateFlowField();

@@ -7,7 +7,7 @@
 #define PI			3.14159265f
 #define DEG2RAD		0.01745329f
 #define RAD2DEG		57.2957795f
-#define EPSILON		0.00001
+#define EPSILON		0.00001f
 
 
 /*!***********************************************************************
