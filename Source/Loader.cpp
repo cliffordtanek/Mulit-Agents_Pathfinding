@@ -15,37 +15,37 @@ Loader::Loader()
 
 void Loader::loadMaps()
 {
-	for (const auto &entry : std::filesystem::directory_iterator("../Assets/Data/Maps"))
-	{
-		const std::string mapName = entry.path().stem().string();
-		std::ifstream ifs(entry.path());
-		crashIf(!ifs, "Unable to open " + mapName + ".txt for reading");
+	//for (const auto &entry : std::filesystem::directory_iterator("../Assets/Data/Maps"))
+	//{
+	//	const std::string mapName = entry.path().stem().string();
+	//	std::ifstream ifs(entry.path());
+	//	crashIf(!ifs, "Unable to open " + mapName + ".txt for reading");
 
-		size_t rows, cols;
-		ifs >> rows >> cols;
-		std::string temp;
-		std::getline(ifs, temp); // get nl
+	//	size_t rows, cols;
+	//	ifs >> rows >> cols;
+	//	std::string temp;
+	//	std::getline(ifs, temp); // get nl
 
-		std::string input;
-		maps[mapName] = std::vector<std::vector<std::string>>();
-		std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
-		
-		for (size_t i = 0; i < rows; ++i)
-		{
-			currMap.push_back(std::vector<std::string>());
+	//	std::string input;
+	//	maps[mapName] = std::vector<std::vector<std::string>>();
+	//	std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
+	//	
+	//	for (size_t i = 0; i < rows; ++i)
+	//	{
+	//		currMap.push_back(std::vector<std::string>());
 
-			for (size_t j = 0; j < cols; ++j)
-			{
-				ifs >> input;
-				currMap.back().push_back(input);
-			}
+	//		for (size_t j = 0; j < cols; ++j)
+	//		{
+	//			ifs >> input;
+	//			currMap.back().push_back(input);
+	//		}
 
-			std::getline(ifs, temp); // get nl
-		}
-	}
+	//		std::getline(ifs, temp); // get nl
+	//	}
+	//}
 }
 
-void Loader::saveMap(const std::string &mapName)
+void Loader::saveMap(const std::string& mapName)
 {
 	const std::vector<std::vector<Cell>> &cells = grid.getCells();
 	maps[mapName] = std::vector<std::vector<std::string>>();
@@ -70,11 +70,11 @@ void Loader::saveMap(const std::string &mapName)
 			currMap.back().push_back(colorName);
 		}
 
-		ofs << nl;
-	}
+	//	ofs << nl;
+	//}
 }
 
-const std::vector<std::vector<std::string>> &Loader::getMap(const std::string &mapName)
+const std::vector<std::vector<std::string>>& Loader::getMap(const std::string& mapName)
 {
 	crashIf(!maps.count(mapName), "Map " + utl::quote(mapName) + " does not exist");
 	return maps.at(mapName);

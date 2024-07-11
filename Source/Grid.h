@@ -1,4 +1,4 @@
-/******************************************************************************/
+//
 /*!
 \file		Grid.h
 \project		CS380/CS580 Group Project
@@ -10,7 +10,7 @@ Copyright (C) 2024 DigiPen Institute of Technology.
 Reproduction or disclosure of this file or its contents without the prior
 written consent of DigiPen Institute of Technology is prohibited.
 */
-/******************************************************************************/
+//
 
 #ifndef GRID_H
 #define GRID_H
@@ -89,11 +89,11 @@ public:
 	void generateFlowField();
 
 	//void computePath(Entity& entity, Vec2 target) const;
-	void setColor(unsigned int row, unsigned int col, const sf::Color &color);
+	void setColor(unsigned int row, unsigned int col, const sf::Color& color);
 
-	void setColor(Vec2 pos, const sf::Color &color);
+	void setColor(Vec2 pos, const sf::Color& color);
 
-	void changeMap(const std::string &mapName);
+	void changeMap(const std::string& mapName);
 
 	void clearMap();
 

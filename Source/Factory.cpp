@@ -15,7 +15,7 @@ void Entity::move()
 		return;
 
 	//if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
-	if(pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
+	if (pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
 	{
 		std::cout << "Target found\n";
 		currSpeed = 0.f;
@@ -33,7 +33,7 @@ void Entity::move()
 	}
 
 	auto [row, col] = grid.getGridPos(pos);
-	
+
 	dir = grid.getFlowFieldDir(row, col);
 
 
@@ -52,7 +52,7 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCa
 	if (canClearWaypoints)
 	{
 		waypoints.clear();
-		for (Arrow *arrow : wpArrows)
+		for (Arrow* arrow : wpArrows)
 			factory.destroyEntity<Arrow>(arrow);
 		wpArrows.clear();
 	}
@@ -66,10 +66,10 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCa
 	//dir = dir.Normalize();
 }
 
-void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
+void Entity::setWaypoints(const std::list<Vec2>& _waypoints)
 {
 	// clear arrows if any
-	for (Arrow *arrow : wpArrows)
+	for (Arrow* arrow : wpArrows)
 		factory.destroyEntity<Arrow>(arrow);
 	wpArrows.clear();
 
@@ -81,8 +81,8 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 	for (std::list<Vec2>::iterator iter = waypoints.begin(); iter != waypoints.end(); ++iter)
 	{
 		if (prev != waypoints.end())
-			wpArrows.push_back(factory.createEntity<Arrow>(prev->Midpoint(*iter), 
-				Vec2{ (*iter - *prev).Length(), 0.f}, (*iter - *prev).Normalize()));
+			wpArrows.push_back(factory.createEntity<Arrow>(prev->Midpoint(*iter),
+				Vec2{ (*iter - *prev).Length(), 0.f }, (*iter - *prev).Normalize()));
 		prev = iter;
 	}
 
@@ -92,7 +92,7 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 
 void Entity::onCreate()
 {
-	
+
 }
 
 void Entity::onUpdate()
@@ -122,7 +122,7 @@ void Entity::onUpdate()
 		triangle.setPoint(1, sf::Vector2f(newPos.x + scale.x / 2.f, newPos.y + scale.y / 2.f));
 		triangle.setPoint(2, sf::Vector2f(newPos.x, newPos.y - scale.y / 2.f));
 		triangle.setOrigin(newPos);
-		triangle.setRotation(rot); 
+		triangle.setRotation(rot);
 		triangle.setPosition(newPos);
 		triangle.setFillColor(color);
 		window.draw(triangle);
@@ -148,7 +148,7 @@ void Entity::onUpdate()
 
 void Entity::onDestroy()
 {
-	for (Arrow *arrow : wpArrows)
+	for (Arrow* arrow : wpArrows)
 		factory.destroyEntity<Arrow>(arrow);
 	wpArrows.clear();
 }
@@ -189,21 +189,21 @@ void Factory::update()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
-	
+
 }
 
 void Factory::free()
 {
 	//delete grid;
-	for (const auto &[type, map] : entities)
-		for (const auto &[k, v] : map)
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
 		{
 			v->onDestroy();
 			delete v;
 		}
 }
 
-const std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> &Factory::getAllEntities()
+const std::unordered_map<std::string, std::unordered_map<Entity*, Entity*>>& Factory::getAllEntities()
 {
 	return entities;
 }
