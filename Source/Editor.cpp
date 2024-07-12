@@ -120,10 +120,10 @@ void Inspector::onUpdate()
 				float color[4] = { entity->color.r / 256.f, entity->color.g / 256.f, entity->color.b / 256.f,
 				entity->color.a / 256.f };
 				ImGui::ColorEdit4("Color", color);
-				entity->color.r = color[0] * 256.f;
-				entity->color.g = color[1] * 256.f;
-				entity->color.b = color[2] * 256.f;
-				entity->color.a = color[3] * 256.f;
+				entity->color.r = (sf::Uint8)(color[0] * 256.f);
+				entity->color.g = (sf::Uint8)(color[1] * 256.f);
+				entity->color.b = (sf::Uint8)(color[2] * 256.f);
+				entity->color.a = (sf::Uint8)(color[3] * 256.f);
 
 				// scale
 				ImGui::SliderFloat("X Scale", &entity->scale.x, 0.f, mapSize.x);

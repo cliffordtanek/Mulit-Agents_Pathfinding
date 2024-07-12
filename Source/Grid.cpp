@@ -434,13 +434,13 @@ void Grid::generateFlowField()
 
 					if (utl::isEqual(neighbourCell.distance, 0.f))
 					{
-						currCell.direction += Vec2(i, j);
+						currCell.direction += Vec2((float)i, (float)j);
 						continue;
 					}
 
 
 					// get final directional vector
-					currCell.direction += (1.f / neighbourCell.distance) * Vec2(i, j);
+					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)i, (float)j);
 				}
 			}
 
@@ -473,8 +473,8 @@ void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
 void Grid::setColor(Vec2 pos, const sf::Color& color)
 {
 	//pos -= camera.getOffset();
-	int row = pos.x / cellSize;
-	int col = pos.y / cellSize;
+	int row = static_cast<int>(pos.x / cellSize);
+	int col = static_cast<int>(pos.y / cellSize);
 	if (isOutOfBound(row, col))
 		return;
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
@@ -489,15 +489,15 @@ void Grid::changeMap(const std::string& mapName)
 	for (const std::vector<std::string>& row : indexCells)
 		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
-	width = indexCells.size();
-	height = newHeight;
+	width = (int)indexCells.size();
+	height = (int)newHeight;
 	cells = std::vector<std::vector<Cell>>();
 
-	for (unsigned i = 0; i < width; ++i)
+	for (unsigned i = 0; i < (unsigned)width; ++i)
 	{
 		cells.push_back(std::vector<Cell>());
 
-		for (unsigned j = 0; j < height; ++j)
+		for (unsigned j = 0; j < (unsigned)height; ++j)
 		{
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
 			sf::RectangleShape &currCell = cells.back().back().rect;
@@ -581,8 +581,8 @@ Vec2 Grid::getWorldPos(GridPos pos) const { return getWorldPos(pos.row, pos.col)
 float Grid::distOfTwoCells(GridPos lhs, GridPos rhs) const
 {
 	// Calculate the Euclidean distance
-	float dx = lhs.row - rhs.row;
-	float dy = lhs.col - rhs.col;
+	float dx = (float)lhs.row - rhs.row;
+	float dy = (float)lhs.col - rhs.col;
 
 	return std::sqrt(dx * dx + dy * dy);
 }
