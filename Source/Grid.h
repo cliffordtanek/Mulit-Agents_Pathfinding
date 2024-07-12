@@ -82,7 +82,7 @@ public:
 	void updateVisibility(std::vector<Vec2> const& pos, float radius);
 
 	//! update heat map based on target position
-	void updateHeatMap(Vec2 target, bool canUseCameraOffset = false);
+	void updateHeatMap(Vec2 target);
 
 	void resetHeatMap();
 
@@ -107,8 +107,8 @@ public:
 
 	int getHeight() const;
 
-	GridPos getGridPos(float x, float y, bool canUseCameraOffset = false) const;
-	GridPos getGridPos(Vec2 const& pos, bool canUseCameraOffset = false) const;
+	GridPos getGridPos(float x, float y) const;
+	GridPos getGridPos(Vec2 const& pos) const;
 
 
 	Vec2 getWorldPos(int row, int col) const;

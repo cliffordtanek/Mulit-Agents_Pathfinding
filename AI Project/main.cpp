@@ -20,12 +20,13 @@ float dt = 0.f;
 sf::RenderWindow window(sf::VideoMode(winSize.x, winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
 sf::Font font;
+sf::View view({ winSize.x / 2.f, winSize.y / 2.f }, winSize);
 
 Editor editor;
 Factory factory;
 Grid grid(50, 50, 100.f);
 Loader loader;
-Camera camera;
+//Camera camera;
 
 //! temp
 bool isMousePressed{ false };
@@ -118,14 +119,14 @@ int main()
         // mouse event must put outside of switch case for some reason
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
         {
-            Vec2 target = { static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) };
+            Vec2 target = window.mapPixelToCoords({ event.mouseButton.x, event.mouseButton.y });
 
             if (!grid.isWall(grid.getGridPos(target)));
             {
-                grid.updateHeatMap(target, true);
+                grid.updateHeatMap(target);
                 grid.generateFlowField();
 
-                enemy->setTargetPos(target, true, true);
+                enemy->setTargetPos(target, true);
             }
 
              //grid.computePath(*enemy, target);
@@ -138,9 +139,9 @@ int main()
         if (event.type == sf::Event::MouseMoved && isMousePressed)
         {
             // calculate grid coordinates from mouse position
-            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             
-            Grid::GridPos pos = grid.getGridPos((float)mousePos.x, (float)mousePos.y, true);
+            Grid::GridPos pos = grid.getGridPos(mousePos);
 
             // set colour of grid upon click
             grid.SetColour(pos.row, pos.col, colors.at("Wall_Fill"));
@@ -161,14 +162,18 @@ int main()
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-            camera.move({ 0.f, -1.f });
+            view.move({ 0.f, -1.f * CAM_MOVE });
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-            camera.move({ -1.f, 0.f });
+            view.move({ -1.f * CAM_MOVE, 0.f });
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-            camera.move({ 0.f, 1.f });
+            view.move({ 0.f, 1.f * CAM_MOVE });
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-            camera.move({ 1.f, 0.f });
-        camera.calcOffset();
+            view.move({ 1.f * CAM_MOVE, 0.f });
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
+            view.zoom(1.f - CAM_ZOOM);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::O))
+            view.zoom(1.f + CAM_ZOOM);
+        //camera.calcOffset();
 
 #if 0
         // Start the ImGui frame
@@ -208,6 +213,7 @@ int main()
         editor.createDockspace();
 
         // update other systems
+        window.setView(view);
         editor.update();
         factory.update();
 
@@ -216,7 +222,7 @@ int main()
         window.display();
 
         // update other systems
-        camera.update();
+        //camera.update();
     }
 
     // free systems

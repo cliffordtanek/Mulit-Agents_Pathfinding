@@ -72,3 +72,7 @@
 
 [11/07/2024 23:33:09] Program crashed at line 613 in Grid.cpp, reason: Row: "-1" Col: "3" is out of bound
 
+[12/07/2024 18:39:52] Program crashed at line 79 in Loader.cpp, reason: Map "test" does not exist
+
+[12/07/2024 18:51:00] Program crashed at line 79 in Loader.cpp, reason: Map "test" does not exist
+

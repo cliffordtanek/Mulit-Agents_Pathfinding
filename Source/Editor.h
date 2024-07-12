@@ -47,11 +47,11 @@ public:
 	void onExit() override;
 };
 
-class Game : public Window
+class MapEditor : public Window
 {
 public:
 
-	Game(const std::string windowName = "") : Window(windowName) { }
+	MapEditor(const std::string windowName = "") : Window(windowName) { }
 
 	void onEnter() override;
 	void onUpdate() override;

@@ -7,7 +7,7 @@
 
 extern sf::Font font;
 extern Loader loader;
-extern Camera camera;
+//extern Camera camera;
 
 bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
 	int x0 = static_cast<int>(start.x / cellSize);
@@ -81,12 +81,12 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 	Vec2 normalizedDirection = direction.Normalize();
 
 	// Calculate the end point of the arrow
-	Vec2 newStart = start + camera.getOffset();
-	Vec2 end = newStart + normalizedDirection * length;
+	//Vec2 start = start + camera.getOffset();
+	Vec2 end = start + normalizedDirection * length;
 
 	// Create the main line of the arrow
 	sf::VertexArray arrow(sf::LinesStrip, 3);
-	arrow[0].position = sf::Vector2f(newStart.x, newStart.y);
+	arrow[0].position = sf::Vector2f(start.x, start.y);
 	arrow[1].position = sf::Vector2f(end.x, end.y);
 
 	// Calculate the head of the arrow
@@ -151,7 +151,7 @@ Grid::Grid(int _width, int _height, float _cellSize)
 // ======
 void Grid::render(sf::RenderWindow& window)
 {
-	sf::Vector2f offset = camera.getOffset();
+	//sf::Vector2f offset = camera.getOffset();
 
 	for (int row{}; row < height; ++row)
 	{
@@ -160,10 +160,10 @@ void Grid::render(sf::RenderWindow& window)
 			// draw and skip walls
 			if (isWall(row, col))
 			{
-				sf::Vector2f oldPos = cells[row][col].rect.getPosition();
-				cells[row][col].rect.setPosition(oldPos + offset);
+				//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
+				//cells[row][col].rect.setPosition(oldPos + offset);
 				window.draw(cells[row][col].rect);
-				cells[row][col].rect.setPosition(oldPos);
+				//cells[row][col].rect.setPosition(oldPos);
 				continue;
 			}
 
@@ -188,18 +188,18 @@ void Grid::render(sf::RenderWindow& window)
 				break;
 			}
 
-			sf::Vector2f oldPos = cells[row][col].rect.getPosition();
-			cells[row][col].rect.setPosition(oldPos + offset);
+			//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
+			//cells[row][col].rect.setPosition(oldPos + offset);
 			window.draw(cells[row][col].rect);
-			cells[row][col].rect.setPosition(oldPos);
+			//cells[row][col].rect.setPosition(oldPos);
 
 
 			if (debugDrawRadius)
 			{
-				sf::Vector2f oldPos = debugRadius.getPosition();
-				debugRadius.setPosition(oldPos + offset);
+				//sf::Vector2f oldPos = debugRadius.getPosition();
+				//debugRadius.setPosition(oldPos + offset);
 				window.draw(debugRadius);
-				debugRadius.setPosition(oldPos);
+				//debugRadius.setPosition(oldPos);
 			}
 
 
@@ -316,10 +316,11 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 
 
 
-void Grid::updateHeatMap(Vec2 target, bool canUseCameraOffset)
+void Grid::updateHeatMap(Vec2 target)
 {
 	// get target pos in gridPos
-	GridPos targetPos = getGridPos(target - camera.getOffset() * canUseCameraOffset);
+	//GridPos targetPos = getGridPos(target - camera.getOffset() * canUseCameraOffset);
+	GridPos targetPos = getGridPos(target);
 
 	// skip out of bound target
 	if (isOutOfBound(targetPos))
@@ -471,7 +472,7 @@ void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
 
 void Grid::setColor(Vec2 pos, const sf::Color& color)
 {
-	pos -= camera.getOffset();
+	//pos -= camera.getOffset();
 	int row = pos.x / cellSize;
 	int col = pos.y / cellSize;
 	if (isOutOfBound(row, col))
@@ -550,20 +551,20 @@ int Grid::getHeight() const
 	return height;
 }
 
-Grid::GridPos Grid::getGridPos(float x, float y, bool canUseCameraOffset) const
+Grid::GridPos Grid::getGridPos(float x, float y) const
 {
-	x -= camera.getOffset().x * canUseCameraOffset;
-	y -= camera.getOffset().y * canUseCameraOffset;
+	//x -= camera.getOffset().x * canUseCameraOffset;
+	//y -= camera.getOffset().y * canUseCameraOffset;
 	int row = static_cast<int>(x / cellSize);
 	int col = static_cast<int>(y / cellSize);
 
 	return { row, col };
 }
 
-Grid::GridPos Grid::getGridPos(Vec2 const& pos, bool canUseCameraOffset) const 
+Grid::GridPos Grid::getGridPos(Vec2 const& pos) const 
 { 
-	Vec2 newPos = pos - camera.getOffset() * canUseCameraOffset;
-	return getGridPos(newPos.x, newPos.y); 
+	//Vec2 pos = pos - camera.getOffset() * canUseCameraOffset;
+	return getGridPos(pos.x, pos.y); 
 }
 
 

@@ -21,6 +21,8 @@ using namespace std::string_literals;
 #define PI 3.14159f
 #define EULER 2.718282f
 #define SQRT2 1.414214f
+#define CAM_MOVE 750.f * dt
+#define CAM_ZOOM 1.f * dt
 
 // sizes
 #define LEN 16 // maximum length of some string (for printing to look neat)

@@ -8,7 +8,9 @@
 // Constructors definitions
 Vector2D::Vector2D() : x{ 0.f }, y{ 0.f } {}			         // default ctor
 
-Vector2D::Vector2D(float _x, float _y) : x{ _x }, y{ _y } {}	// arguments ctor
+Vector2D::Vector2D(sf::Vector2f vec) : x{ vec.x }, y{ vec.y } {} // SACC
+
+Vector2D::Vector2D(float _x, float _y) : x{ _x }, y{ _y } {}	 // arguments ctor
 
 
 // ===================================== //

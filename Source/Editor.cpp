@@ -156,12 +156,12 @@ void Inspector::onUpdate()
 	ImGui::End();
 }
 
-void Game::onEnter()
+void MapEditor::onEnter()
 {
 	Window::onEnter();
 }
 
-void Game::onUpdate()
+void MapEditor::onUpdate()
 {
 	if (!isOpen)
 		return;
@@ -177,7 +177,7 @@ void Game::onUpdate()
 	ImGui::End();
 }
 
-void Game::onExit()
+void MapEditor::onExit()
 {
 	Window::onExit();
 }
@@ -200,7 +200,7 @@ void Editor::init()
 
 	addWindow<MainMenu>();
 	addWindow<Inspector>();
-	addWindow<Game>();
+	addWindow<MapEditor>();
 }
 
 void Editor::update()

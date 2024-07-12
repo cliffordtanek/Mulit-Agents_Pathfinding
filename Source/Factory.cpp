@@ -6,7 +6,7 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern Factory factory;
 extern Grid grid;
-extern Camera camera;
+//extern Camera camera;
 extern float dt;
 
 void Entity::move()
@@ -47,7 +47,7 @@ void Entity::move()
 	pos += dir * currSpeed * dt;
 }
 
-void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCameraOffset)
+void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 {
 	if (canClearWaypoints)
 	{
@@ -60,7 +60,8 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints, bool canUseCa
 	/*targetPos.x += grid.getCellSize() * 0.5f;
 	targetPos.y += grid.getCellSize() * 0.5f;*/
 
-	targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
+	//targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
+	targetPos = _targetPos;
 	currSpeed = speed;
 
 	//dir = dir.Normalize();
@@ -99,7 +100,7 @@ void Entity::onUpdate()
 {
 	move();
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
-	Vec2 newPos = pos + camera.getOffset();
+	//Vec2 pos = pos + camera.getOffset();
 
 	// draw entity
 	switch (shape)
@@ -108,7 +109,7 @@ void Entity::onUpdate()
 	{
 		sf::CircleShape circle;
 		circle.setRadius(scale.x / 2.f);
-		circle.setPosition(newPos - Vec2{ scale.x / 2.f, scale.x / 2.f });
+		circle.setPosition(pos - Vec2{ scale.x / 2.f, scale.x / 2.f });
 		circle.setFillColor(color);
 		window.draw(circle);
 		break;
@@ -118,12 +119,12 @@ void Entity::onUpdate()
 	{
 		sf::ConvexShape triangle;
 		triangle.setPointCount(3);
-		triangle.setPoint(0, sf::Vector2f(newPos.x - scale.x / 2.f, newPos.y + scale.y / 2.f));
-		triangle.setPoint(1, sf::Vector2f(newPos.x + scale.x / 2.f, newPos.y + scale.y / 2.f));
-		triangle.setPoint(2, sf::Vector2f(newPos.x, newPos.y - scale.y / 2.f));
-		triangle.setOrigin(newPos);
+		triangle.setPoint(0, sf::Vector2f(pos.x - scale.x / 2.f, pos.y + scale.y / 2.f));
+		triangle.setPoint(1, sf::Vector2f(pos.x + scale.x / 2.f, pos.y + scale.y / 2.f));
+		triangle.setPoint(2, sf::Vector2f(pos.x, pos.y - scale.y / 2.f));
+		triangle.setOrigin(pos);
 		triangle.setRotation(rot);
-		triangle.setPosition(newPos);
+		triangle.setPosition(pos);
 		triangle.setFillColor(color);
 		window.draw(triangle);
 		break;
@@ -135,7 +136,7 @@ void Entity::onUpdate()
 		rectangle.setSize(sf::Vector2f(scale.x, scale.y));
 		rectangle.setOrigin(scale.x / 2.f, scale.y / 2.f);
 		rectangle.setRotation(rot);
-		rectangle.setPosition(newPos);
+		rectangle.setPosition(pos);
 		rectangle.setFillColor(color);
 		window.draw(rectangle);
 		break;
