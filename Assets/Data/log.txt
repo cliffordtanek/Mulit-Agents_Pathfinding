@@ -76,3 +76,5 @@
 
 [12/07/2024 18:51:00] Program crashed at line 79 in Loader.cpp, reason: Map "test" does not exist
 
+[12/07/2024 19:46:07] Program crashed at line 337 in Editor.cpp, reason: Could not find window with name "SaveMapAsPopup"
+

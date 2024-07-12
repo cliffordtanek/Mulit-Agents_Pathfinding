@@ -70,6 +70,14 @@ int main()
                 window.close();
                 break;
 
+            case sf::Event::MouseWheelScrolled:
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                    if (event.mouseWheelScroll.delta > 0.f)
+                        view.zoom(1.f - CAM_ZOOM);
+                    else
+                        view.zoom(1.f + CAM_ZOOM);
+                break;
+
             case sf::Event::KeyPressed:
                 switch (event.key.code)
                 {
@@ -101,17 +109,6 @@ int main()
                     grid.debugDrawRadius = !grid.debugDrawRadius;
                     break;
 
-                case sf::Keyboard::Num1:
-                    loader.saveMap("test");
-                    break;
-
-                case sf::Keyboard::Num2:
-                    grid.changeMap("test");
-                    break;
-
-                case sf::Keyboard::Num3:
-                    grid.clearMap();
-                    break;
                 }
                 break;
             }
@@ -144,7 +141,7 @@ int main()
             Grid::GridPos pos = grid.getGridPos(mousePos);
 
             // set colour of grid upon click
-            grid.SetColour(pos.row, pos.col, colors.at("Wall_Fill"));
+            grid.SetColour(pos.row, pos.col);
         }
 
         // FOG TEST (Mouse cursor)
@@ -169,10 +166,6 @@ int main()
             view.move({ 0.f, 1.f * CAM_MOVE });
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             view.move({ 1.f * CAM_MOVE, 0.f });
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
-            view.zoom(1.f - CAM_ZOOM);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::O))
-            view.zoom(1.f + CAM_ZOOM);
         //camera.calcOffset();
 
 #if 0

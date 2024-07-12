@@ -2,11 +2,13 @@
 #include "imgui.h"
 #include "Utility.h"
 #include "Factory.h"
+#include "Loader.h"
 #include "imgui-SFML.h"
 
 extern Editor editor;
 extern Factory factory;
 extern Grid grid;
+extern Loader loader;
 extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
@@ -51,6 +53,11 @@ bool Window::isWindowOpen()
 	return isOpen;
 }
 
+bool Window::canWindowBeOpened()
+{
+	return canBeOpened;
+}
+
 void MainMenu::onEnter()
 {
 	Window::onEnter();
@@ -68,7 +75,7 @@ void MainMenu::onUpdate()
 	editor.addSpace(3);
 
 	for (const auto &[name, window] : editor.getWindows())
-		if (name != "MainMenu" && ImGui::Button(("Toggle "s + name).c_str()))
+		if (window->canWindowBeOpened() && ImGui::Button(("Toggle "s + name).c_str()))
 			editor.toggleWindow(name);
 
 	ImGui::End();
@@ -134,12 +141,12 @@ void Inspector::onUpdate()
 				{
 					for (int i = 0; i < IM_ARRAYSIZE(shapes); ++i)
 					{
-						const bool is_selected = shapeIndex == i;
-						if (ImGui::Selectable(shapes[i], is_selected))
+						const bool isSelected = shapeIndex == i;
+						if (ImGui::Selectable(shapes[i], isSelected))
 							shapeIndex = i;
 
 						// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-						if (is_selected)
+						if (isSelected)
 							ImGui::SetItemDefaultFocus();
 					}
 
@@ -154,6 +161,11 @@ void Inspector::onUpdate()
 	}
 
 	ImGui::End();
+}
+
+void Inspector::onExit()
+{
+	Window::onExit();
 }
 
 void MapEditor::onEnter()
@@ -174,6 +186,90 @@ void MapEditor::onUpdate()
 	//ImVec2 size = ImVec2(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y));
 	//ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture.getNativeHandle())), size);
 
+	static int mapIndex = INVALID;
+	std::vector<const char *> mapNames;
+	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &maps = loader.getMaps();
+	std::transform(maps.begin(), maps.end(), std::back_inserter(mapNames), [](const auto &elem) 
+		{ return elem.first.c_str(); });
+	mapIndex = mapNames.size() ? mapIndex : INVALID;
+	const char *mapPreview = mapIndex == INVALID ? "" : mapNames[mapIndex];
+
+	if (ImGui::BeginCombo("Select Map", mapPreview))
+	{
+		for (int i = 0; i < mapNames.size(); ++i)
+		{
+			const bool isSelected = mapIndex == i;
+			if (ImGui::Selectable(mapNames[i], isSelected))
+				mapIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	editor.addSpace(5);
+
+	if (ImGui::Button("Save Map As"))
+		editor.openWindow("SaveAsMapPopup");
+
+	if (mapIndex != INVALID)
+	{
+		if (ImGui::Button("Save Selected Map"))
+			loader.saveMap(mapNames[mapIndex]);
+
+		if (ImGui::Button("Load Selected Map"))
+			grid.changeMap(mapNames[mapIndex]);
+
+		if (ImGui::Button("Delete Selected Map"))
+		{
+			loader.deleteMap(mapNames[mapIndex]);
+			mapIndex = 0;
+		}
+
+		if (ImGui::Button("Rename Selected Map"))
+		{
+			editor.getWindow<SaveAsMapPopup>()->initMode(false, mapNames[mapIndex]);
+			editor.openWindow("SaveAsMapPopup");
+		}
+	}
+	else
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::Text("No map selected");
+		ImGui::PopStyleColor();
+	}
+
+	editor.addSpace(5);
+
+	static int colorIndex = INVALID;
+	std::vector<const char *> colorNames;
+	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
+		{ return elem.first.c_str(); });
+	const char *colorPreview = colorIndex == INVALID ? "" : colorNames[colorIndex];
+	int oldColorIndex = colorIndex;
+
+	if (ImGui::BeginCombo("Select Pen Colour", colorPreview))
+	{
+		for (int i = 0; i < colorNames.size(); ++i)
+		{
+			const bool isSelected = colorIndex == i;
+			if (ImGui::Selectable(colorNames[i], isSelected))
+				colorIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (oldColorIndex != colorIndex)
+		grid.setPenColour(colorNames[colorIndex]);
+
 	ImGui::End();
 }
 
@@ -182,9 +278,53 @@ void MapEditor::onExit()
 	Window::onExit();
 }
 
-void Inspector::onExit() 
+void SaveAsMapPopup::onEnter()
+{
+	Window::onEnter();
+}
+
+void SaveAsMapPopup::onUpdate()
+{
+	if (!isOpen)
+		return;
+	Window::onUpdate();
+
+	ImGui::Begin(name.c_str(), &isOpen);
+
+	static char buffer[SMALL];
+	ImGui::InputText("Map Name", buffer, SMALL, ImGuiInputTextFlags_CallbackCharFilter, utl::filterAlphanum);
+
+	if (loader.doesMapExist(buffer))
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::Text("File already exists");
+		ImGui::PopStyleColor();
+	}
+	else if (ImGui::Button("Save##SAMP"))
+	{
+		if (isSaveAsMode)
+			loader.saveMap(buffer);
+		else
+		{
+			crashIf(!oldName, "Original name of map to be renamed has not been initialised");
+			loader.renameMap(oldName, buffer); // knn see above line leh i check liao sia
+		}
+
+		editor.closeWindow("SaveAsMapPopup");
+	}
+
+	ImGui::End();
+}
+
+void SaveAsMapPopup::onExit()
 {
 	Window::onExit();
+}
+
+void SaveAsMapPopup::initMode(bool _isSaveAsMode, const char *_oldName)
+{
+	isSaveAsMode = _isSaveAsMode;
+	oldName = _oldName;
 }
 
 void Editor::init()
@@ -198,9 +338,10 @@ void Editor::init()
 	io.Fonts->AddFontFromFileTTF("../Assets/Fonts/PoorStoryRegular.ttf", 24.f);
 	ImGui::SFML::UpdateFontTexture();
 
-	addWindow<MainMenu>();
-	addWindow<Inspector>();
-	addWindow<MapEditor>();
+	addWindow<MainMenu>(true, false);
+	addWindow<Inspector>(true, true);
+	addWindow<MapEditor>(true, true);
+	addWindow<SaveAsMapPopup>(false, false);
 }
 
 void Editor::update()

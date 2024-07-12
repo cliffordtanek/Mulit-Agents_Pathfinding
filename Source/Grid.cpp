@@ -616,7 +616,23 @@ void Grid::SetColour(int row, int col, sf::Color colour)
 	cells[row][col].rect.setFillColor(colour);
 }
 
-void Grid::SetColour(GridPos pos, sf::Color colour) { return SetColour(pos.row, pos.col, colour); }
+void Grid::SetColour(GridPos pos, sf::Color colour) { SetColour(pos.row, pos.col, colour); }
+
+void Grid::SetColour(int row, int col)
+{
+	if (!colors.count(penColour))
+		return;
+	SetColour(row, col, colors.at(penColour));
+}
+
+void Grid::SetColour(GridPos pos) 
+{  
+	if (!colors.count(penColour))
+		return;
+	SetColour(pos, colors.at(penColour));
+}
+
+void Grid::setPenColour(const std::string &colourName) { penColour = colourName; }
 
 // ========
 // CHECKERS

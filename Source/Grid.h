@@ -133,6 +133,9 @@ public:
 
 	void SetColour(int row, int col, sf::Color colour);
 	void SetColour(GridPos pos, sf::Color colour);
+	void SetColour(int row, int col);
+	void SetColour(GridPos pos);
+	void setPenColour(const std::string &colourName);
 
 	// ========
 	// Checkers
@@ -161,6 +164,7 @@ private:
 
 	int width, height;	// width and height of the grid
 	float cellSize;		// single cell width/ height
+	std::string penColour = "";
 
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container

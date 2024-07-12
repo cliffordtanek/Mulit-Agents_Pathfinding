@@ -8,21 +8,14 @@
 
 using namespace std::string_literals;
 
-//enum Color
-//{
-//	FLOOR_FILL,
-//	FLOOR_OUT,
-//	WALL_FILL,
-//	MAX_COLORS
-//};
-
 // constants
 #define EPSILON 0.000001f
 #define PI 3.14159f
 #define EULER 2.718282f
 #define SQRT2 1.414214f
 #define CAM_MOVE 750.f * dt
-#define CAM_ZOOM 1.f * dt
+#define CAM_ZOOM 5.f * dt
+#define INVALID -1
 
 // sizes
 #define LEN 16 // maximum length of some string (for printing to look neat)
@@ -40,6 +33,33 @@ using namespace std::string_literals;
 #define UNREFERENCED(param) param
 #define crashIf(condition, reason) do { if (condition) dbg::log(reason, __FILE__, __LINE__); } while(0)
 #define ALIVE(type, entity) factory.isEntityAlive<type>(entity)
+
+/*! ------------ ImGui Colors ------------ */
+
+#define BLACK IM_COL32(0, 0, 0, 255)
+#define WHITE IM_COL32(255, 255, 255, 255)
+#define RED IM_COL32(130, 11, 11, 255)
+#define GREEN IM_COL32(9, 188, 14, 255)
+#define BLUE IM_COL32(26, 128, 204, 255)
+#define OLIVE IM_COL32(150, 200, 100, 255)
+#define ORANGE IM_COL32(230, 153, 102, 255)
+
+#define LIGHT_ROSE IM_COL32(0xFF, 0x99, 0xC8, 255)
+#define LIGHT_YELLOW IM_COL32(0xFC, 0xF6, 0xBD, 255)
+#define LIGHT_GREEN IM_COL32(0xD0, 0xF4, 0xDE, 255)
+#define LIGHT_BLUE IM_COL32(0xA9, 0xDE, 0xF9, 255)
+#define LIGHT_PURPLE IM_COL32(0xE4, 0xC1, 0xF9, 255)
+
+#define MED_GREEN IM_COL32(19, 150, 12, 255)
+
+#define DARK_GREEN IM_COL32(33, 103, 7, 255)
+#define DARK_BLUE IM_COL32(21, 34, 56, 255)
+
+#define TRANS IM_COL32(0, 0, 0, 0)
+#define TRANS_BLACK IM_COL32(0, 0, 0, 128)
+#define TRANS_WHITE IM_COL32(255, 255, 255, 128)
+#define FADE_WHITE IM_COL32(255, 255, 255, 32)
+#define TRANS_OLIVE IM_COL32(150, 200, 100, 128)
 
 namespace utl
 {
@@ -298,10 +318,11 @@ namespace utl
 	// @return true if the user types a character that is not allowed, false otherwise
 	inline int filterAlphanum(ImGuiInputTextCallbackData *data)
 	{
-		// Allow only alphanumeric characters, underscores, and spaces
+		// Allow only alphanumeric characters, underscores, and spaces (does not work with special chars like backspace)
 		if (isalnum(data->EventChar) || data->EventChar == '_' || data->EventChar == ' ')
-			return false; // Accept the character
-		return true; // Reject the character
+			return 0; // Accept the character
+
+		return 1; // Reject the character
 	}
 }
 

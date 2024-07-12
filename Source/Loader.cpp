@@ -13,6 +13,22 @@ Loader::Loader()
 		colorNames[color] = str;
 }
 
+const std::vector<std::vector<std::string>> &Loader::getMap(const std::string &mapName)
+{
+	crashIf(!maps.count(mapName), "Map " + utl::quote(mapName) + " does not exist");
+	return maps.at(mapName);
+}
+
+const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &Loader::getMaps()
+{
+	return maps;
+}
+
+bool Loader::doesMapExist(const std::string &mapName)
+{
+	return maps.count(mapName);
+}
+
 void Loader::loadMaps()
 {
 	for (const auto &entry : std::filesystem::directory_iterator("../Assets/Data/Maps"))
@@ -74,8 +90,29 @@ void Loader::saveMap(const std::string& mapName)
 	}
 }
 
-const std::vector<std::vector<std::string>>& Loader::getMap(const std::string& mapName)
+void Loader::deleteMap(const std::string &mapName)
 {
 	crashIf(!maps.count(mapName), "Map " + utl::quote(mapName) + " does not exist");
-	return maps.at(mapName);
+	std::filesystem::remove("../Assets/Data/Maps/" + mapName + ".txt");
+	maps.erase(mapName);
+}
+
+void Loader::renameMap(const std::string &oldName, const std::string &newName)
+{
+	crashIf(!maps.count(oldName), "Map " + utl::quote(oldName) + " does not exist");
+	const std::vector<std::vector<std::string>> map = getMap(oldName); // not a reference
+
+	try
+	{
+		std::filesystem::copy("../Assets/Data/Maps/" + oldName + ".txt", "../Assets/Data/Maps/" +
+			newName + ".txt");
+	}
+	catch (const std::exception &e)
+	{
+		crashIf(true, "There was an error ("s + e.what() + ") renaming map " + utl::quote(oldName) +
+			" to " + utl::quote(newName));
+	}
+
+	deleteMap(oldName);
+	maps[newName] = map;
 }

@@ -27,7 +27,12 @@ public:
 
 	Loader();
 
+	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &getMaps();
+	const std::vector<std::vector<std::string>> &getMap(const std::string &mapName);
+	bool doesMapExist(const std::string &mapName);
+
 	void loadMaps();
 	void saveMap(const std::string &mapName);
-	const std::vector<std::vector<std::string>> &getMap(const std::string &mapName);
+	void deleteMap(const std::string &mapName);
+	void renameMap(const std::string &oldName, const std::string &newName);
 };
