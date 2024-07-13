@@ -621,10 +621,6 @@ void Grid::SetColour(int row, int col)
 		return;
 	SetColour(row, col, colors.at(penColour).first);
 	SetOutlineColour(row, col, colors.at(penColour).second);
-
-	std::cout << "DRAWING " << penColour.c_str() << '\n';
-	//! TEMP
-	cells[row][col].isWall = true;
 }
 
 void Grid::SetColour(GridPos pos) 
