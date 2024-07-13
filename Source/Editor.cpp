@@ -76,7 +76,7 @@ void MainMenu::onUpdate()
 		return;
 	Window::onUpdate();
 
-	ImGui::Begin(name.c_str(), &isOpen);
+	ImGui::Begin(name.c_str());
 
 	ImGui::Text("FPS: %.2f", 1.f / dt);
 	editor.addSpace(3);
@@ -197,7 +197,7 @@ void MapEditor::onUpdate()
 
 	static int mapIndex = INVALID;
 	std::vector<const char *> mapNames;
-	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &maps = loader.getMaps();
+	const std::unordered_map<std::string, std::vector<std::vector<bool>>> &maps = loader.getMaps();
 	std::transform(maps.begin(), maps.end(), std::back_inserter(mapNames), [](const auto &elem) 
 		{ return elem.first.c_str(); });
 
@@ -302,6 +302,7 @@ void MapEditor::onUpdate()
 		ImGui::PopStyleColor();
 	}
 
+	editor.addSpace(5);
 	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
 

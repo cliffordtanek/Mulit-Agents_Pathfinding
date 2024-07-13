@@ -33,14 +33,14 @@ class Loader
 	};
 
 	std::unordered_map<std::pair<sf::Color, sf::Color>, std::string, PairColorHash, PairColorEqual> colorNames;
-	std::unordered_map<std::string, std::vector<std::vector<std::string>>> maps;
+	std::unordered_map<std::string, std::vector<std::vector<bool>>> maps;
 
 public:
 
 	Loader();
 
-	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &getMaps();
-	const std::vector<std::vector<std::string>> &getMap(const std::string &mapName);
+	const std::unordered_map<std::string, std::vector<std::vector<bool>>> &getMaps();
+	const std::vector<std::vector<bool>> &getMap(const std::string &mapName);
 	bool doesMapExist(const std::string &mapName);
 
 	void loadMaps();
