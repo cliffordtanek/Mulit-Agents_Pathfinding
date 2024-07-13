@@ -248,8 +248,9 @@ int main()
         rectangle.setOutlineColor(sf::Color::White);
         window.draw(rectangle);
 
-        rectangle.setSize(winSize);
-        rectangle.setPosition(view.getCenter() - winSize / 2.f + minimapOffset);
+        rectangle.setSize(view.getSize());
+        rectangle.setPosition(view.getCenter() - winSize / 2.f + minimapOffset + 
+            (winSize - view.getSize()) / 2.f);
         rectangle.setFillColor(colors.at("Translucent"));
         rectangle.setOutlineThickness(0.f);
         window.draw(rectangle);

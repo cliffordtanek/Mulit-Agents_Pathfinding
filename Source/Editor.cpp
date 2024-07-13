@@ -14,6 +14,11 @@ extern sf::RenderWindow window;
 extern float dt;
 extern bool canZoom;
 
+// local globals for constant dropdown lists
+static std::vector<const char *> colorNames;
+static std::vector<std::string> rowNums; // rows or cols
+static std::vector<const char *>rowNames;
+
 Window::~Window()
 {
 
@@ -254,14 +259,10 @@ void MapEditor::onUpdate()
 	editor.addSpace(5);
 
 	static int colorIndex = INVALID;
-	std::vector<const char *> colorNames;
-	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
-		{ return elem.first.c_str(); });
-
 	const char *colorPreview = colorIndex == INVALID ? "" : colorNames[colorIndex];
 	int oldColorIndex = colorIndex;
 
-	if (ImGui::BeginCombo("Select Pen Colour", colorPreview))
+	if (ImGui::BeginCombo("Pen", colorPreview))
 	{
 		canZoom = false;
 
@@ -281,6 +282,50 @@ void MapEditor::onUpdate()
 
 	if (oldColorIndex != colorIndex)
 		grid.setPenColour(colorNames[colorIndex]);
+
+	static int rowIndex = grid.getWidth() - 1, colIndex = grid.getHeight() - 1;
+	int oldRowIndex = rowIndex, oldColIndex = colIndex;
+
+	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))
+	{
+		canZoom = false;
+
+		for (int i = 0; i < rowNames.size(); ++i)
+		{
+			const bool isSelected = rowIndex == i;
+			if (ImGui::Selectable(rowNames[i], isSelected))
+				rowIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (ImGui::BeginCombo("Columns", std::to_string(colIndex + 1).c_str()))
+	{
+		canZoom = false;
+
+		for (int i = 0; i < rowNames.size(); ++i)
+		{
+			const bool isSelected = colIndex == i;
+			if (ImGui::Selectable(rowNames[i], isSelected))
+				colIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (rowIndex != oldRowIndex)
+		grid.setWidth(rowIndex + 1);
+	if (colIndex != oldColIndex)
+		grid.setHeight(colIndex + 1);
 
 	ImGui::End();
 }
@@ -354,6 +399,12 @@ void Editor::init()
 	addWindow<Inspector>(true, true);
 	addWindow<MapEditor>(true, true);
 	addWindow<SaveAsMapPopup>(false, false);
+
+	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
+		{ return elem.first.c_str(); });
+	std::generate_n(std::back_inserter(rowNums), 100, [n = 0]() mutable { return std::to_string(++n); });
+	std::transform(rowNums.begin(), rowNums.end(), std::back_inserter(rowNames),
+		[](const auto &elem) { return elem.c_str(); });
 }
 
 void Editor::update()

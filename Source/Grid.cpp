@@ -225,11 +225,13 @@ void Grid::render(sf::RenderWindow& window)
 
 #endif
 
+#if 0
 			if (!isWall(row, col) && !(!flowField[row][col].direction.x && !flowField[row][col].direction.y))
 			{
 				Vec2 cellCenter = getWorldPos(row, col) + Vec2(cellSize / 2.0f, cellSize / 2.0f);
 				drawArrow(window, cellCenter, flowField[row][col].direction * (cellSize / 2.0f));
 			}
+#endif
 
 			//// Format the distance text to 2 decimal places
 			//sf::Text text;
@@ -638,6 +640,57 @@ void Grid::SetColour(GridPos pos)
 }
 
 void Grid::setPenColour(const std::string &colourName) { penColour = colourName; }
+
+void Grid::setWidth(int newWidth)
+{
+	if (width == newWidth)
+		return;
+	bool isSmaller = newWidth < width;
+
+	for (int i = 0; i < height; ++i)
+		if (isSmaller)
+			cells[i].erase(cells[i].begin() + newWidth, cells[i].end());
+		else
+			for (int j = width; j < newWidth; ++j)
+			{
+				Cell cell;
+				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
+				cell.rect.setPosition(i * cellSize, j * cellSize);
+				cell.rect.setFillColor(colors.at("Floor_Fill"));
+				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
+				cell.rect.setOutlineThickness(4.f);
+				cells[i].push_back(cell);
+			}
+
+	width = newWidth;
+}
+
+void Grid::setHeight(int newHeight)
+{
+	if (height == newHeight)
+		return;
+	bool isSmaller = newHeight < height;
+
+	if (isSmaller)
+		cells.erase(cells.begin() + newHeight, cells.end());
+	else
+		for (int i = height; i < newHeight; ++i)
+		{
+			cells.push_back(std::vector<Cell>());
+			for (int j = 0; j < width; ++j)
+			{
+				Cell cell;
+				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
+				cell.rect.setPosition(i * cellSize, j * cellSize);
+				cell.rect.setFillColor(colors.at("Floor_Fill"));
+				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
+				cell.rect.setOutlineThickness(4.f);
+				cells.back().push_back(cell);
+			}
+		}
+
+	height = newHeight;
+} 
 
 // ========
 // CHECKERS

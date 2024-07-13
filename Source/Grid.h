@@ -45,7 +45,7 @@ const std::unordered_map<std::string, sf::Color> colors
 	{ "Visible_Fill", sf::Color(140, 140, 140) },
 	{ "Visible_Outline", sf::Color(160, 160, 160) },
 	{ "Translucent", sf::Color(128, 128, 128, 128) },
-	{ "Background", sf::Color(0, 30, 60) }
+	{ "Background", sf::Color(0, 60, 80) }
 };
 
 struct Cell
@@ -138,6 +138,10 @@ public:
 	void SetColour(int row, int col);
 	void SetColour(GridPos pos);
 	void setPenColour(const std::string &colourName);
+
+	void setWidth(int newWidth); // which is actually height
+
+	void setHeight(int newHeight); // which is actually width
 
 	// ========
 	// Checkers

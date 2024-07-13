@@ -96,3 +96,9 @@
 
 [13/07/2024 13:09:51] Program crashed at line 653 in Grid.cpp, reason: Row: "25" Col: "6" is out of bound
 
+[13/07/2024 15:48:40] Program crashed at line 688 in Grid.cpp, reason: Row: "1" Col: "2" is out of bound
+
+[13/07/2024 15:52:01] Program crashed at line 688 in Grid.cpp, reason: Row: "0" Col: "1" is out of bound
+
+[13/07/2024 16:06:29] Program crashed at line 704 in Grid.cpp, reason: Row: "0" Col: "1" is out of bound
+
