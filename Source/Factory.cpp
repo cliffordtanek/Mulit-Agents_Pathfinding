@@ -61,10 +61,18 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 	/*targetPos.x += grid.getCellSize() * 0.5f;
 	targetPos.y += grid.getCellSize() * 0.5f;*/
 
+
+	auto [row, col] = grid.getGridPos(pos);
+
+	if (grid.getFlowFieldDir(row, col) == Vec2{ 0.f, 0.f })
+		return;
+
+
 	//targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	targetPos = _targetPos;
 	currSpeed = speed;
 
+	
 	//dir = dir.Normalize();
 }
 
