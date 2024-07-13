@@ -8,7 +8,7 @@
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
-
+extern bool isDrawMode;
 
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
@@ -41,8 +41,6 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 Grid::Grid(int _height, int _width, float _cellSize)
 	: height{ _height }, width{ _width }, cellSize { _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
 {
-	PRINT(height, width);
-	PRINT(cells.size(), cells[0].size());
 
 	for (int row{}; row < height; ++row)
 	{
@@ -96,12 +94,12 @@ void Grid::render(sf::RenderWindow& window)
 			Cell& currCell = cells[row][col];
 
 			// if cell is a wall but it has been explored before
-			if (isWall(row, col) && currCell.visibility != UNEXPLORED)
+			if (isWall(row, col) && (currCell.visibility != UNEXPLORED || isDrawMode))
 			{
-				camera.addCell(cells[row][col].rect);
 				
 				currCell.rect.setFillColor(colors.at("Wall").first);
 				currCell.rect.setOutlineColor(colors.at("Wall").second);
+				camera.addCell(cells[row][col].rect);
 
 				continue;
 			}
@@ -231,8 +229,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
-				if (isWall(r, c))
-					continue;
+				//if (isWall(r, c))
+					//continue;
 
 				// get distance of pos to cell (startRow, startCol)
 
@@ -472,10 +470,8 @@ void Grid::changeMap(const std::string& mapName)
 	for (const std::vector<std::string>& row : indexCells)
 		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
-	PRINT(indexCells.size(), newWidth);
 	height = (int)indexCells.size();
 	width = (int)newWidth;
-	PRINT(height, width);
 	cells = std::vector<std::vector<Cell>>();
 	flowField = std::vector<std::vector<flowFieldCell>>();
 
@@ -498,8 +494,6 @@ void Grid::changeMap(const std::string& mapName)
 			currCell.setOutlineThickness(1.f);
 		}
 	}
-
-	PRINT(cells.size(), cells[0].size());
 }
 
 void Grid::clearMap()
@@ -695,18 +689,18 @@ void Grid::setHeight(int newHeight)
 	height = newHeight;
 }
 
-void Grid::setWall(GridPos pos)
+void Grid::setWall(GridPos pos, bool _isWall)
 {
-	setWall(pos.row, pos.col);
+	setWall(pos.row, pos.col, _isWall);
 }
 
-void Grid::setWall(int row, int col)
+void Grid::setWall(int row, int col, bool _isWall)
 {
 	if (isOutOfBound(row, col))
 		return;
 
-	cells[row][col].isWall = true;
-	SetColour(row, col, colors.at("Wall").first);
+	cells[row][col].isWall = _isWall;
+	SetColour(row, col, _isWall ? colors.at("Wall").first : colors.at("Floor").first);
 }
 
 
@@ -724,9 +718,9 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
-	return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
+	//return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
 
-	//return cells[row][col].isWall;
+	return cells[row][col].isWall;
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }
@@ -768,6 +762,9 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 		{
 			// skip non-wall cells
 			if (!isWall(row, col))
+				continue;
+
+			if ((row == row1 && col == col1) || (row == row0 && col == col0))
 				continue;
 
 			// convert minRow and minCol to vector 3D

@@ -19,6 +19,8 @@ Vec2 mapSize;
 std::string winTitle = "sfml";
 bool isFullscreen = false;
 bool canZoom = true; // disable zooming when in dropdown menus
+bool isDrawMode = false; // whether left clicking can draw/remove wall
+//bool isDrawingWall = true; // whether to draw wall or floor
 float dt = 0.f;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
@@ -35,7 +37,7 @@ Loader loader;
 Camera camera;
 
 //! temp
-bool isMousePressed{ false };
+bool isLMousePressed{ false }, isRMousePressed{ false };
 bool canExit = false;
 
 int main()
@@ -127,27 +129,45 @@ int main()
             }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
-        {
-            Vec2 target = window.mapPixelToCoords({ event.mouseButton.x, event.mouseButton.y });
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            isLMousePressed = true;
 
-            if (!grid.isWall(grid.getGridPos(target)))
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
+        {
+            isRMousePressed = true;
+            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+            if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
             {
                 grid.updateHeatMap(target);
                 grid.generateFlowField();
 
                 // set all enemy to the target
-                for (Enemy* enemy : factory.getEntities<Enemy>())
+                for (Enemy *enemy : factory.getEntities<Enemy>())
                     enemy->setTargetPos(target, true);
             }
-
         }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
-            isMousePressed = true;
+        if (event.type == sf::Event::MouseMoved && isRMousePressed && isDrawMode)
+        {
+            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-        if (event.type == sf::Event::MouseMoved && isMousePressed)
+            //if (isDrawMode)
+            grid.setWall(grid.getGridPos(target), false);
+            //else if (!grid.isWall(grid.getGridPos(target)) && ALIVE(Enemy, enemy))
+            //{
+            //    grid.updateHeatMap(target);
+            //    grid.generateFlowField();
+
+            //    // set all enemy to the target
+            //    for (Enemy *enemy : factory.getEntities<Enemy>())
+            //        enemy->setTargetPos(target, true);
+            //}
+
+        }
+
+        if (event.type == sf::Event::MouseMoved && isLMousePressed && isDrawMode)
         {
             // calculate grid coordinates from mouse position
             sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -155,7 +175,8 @@ int main()
             Grid::GridPos pos = grid.getGridPos(mousePos);
 
             // set colour of grid upon click
-            grid.SetColour(pos.row, pos.col);
+            //grid.SetColour(pos.row, pos.col);
+            grid.setWall(pos, true);
         }
 
         // FOG TEST (Mouse cursor)
@@ -167,8 +188,10 @@ int main()
 #endif
 
 
-            if (event.type == sf::Event::MouseButtonReleased)
-                isMousePressed = false;
+        if (event.type == sf::Event::MouseButtonReleased)
+        {
+            isLMousePressed = isRMousePressed = false;
+        }
 
         }
 

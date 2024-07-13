@@ -126,3 +126,13 @@
 
 [13/07/2024 22:19:01] Program crashed at line 706 in Grid.cpp, reason: Row: "4294967295" Col: "6" is out of bound because Height: "25" Width: "50"
 
+[13/07/2024 23:09:04] Program crashed at line 718 in Grid.cpp, reason: Row: "13" Col: "4294967279" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:10:12] Program crashed at line 718 in Grid.cpp, reason: Row: "481" Col: "1" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:15:40] Program crashed at line 720 in Grid.cpp, reason: Row: "726" Col: "4294967292" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:16:53] Program crashed at line 720 in Grid.cpp, reason: Row: "328" Col: "3" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:17:21] Program crashed at line 720 in Grid.cpp, reason: Row: "1124" Col: "4294967287" is out of bound because Height: "25" Width: "50"
+

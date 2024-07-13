@@ -143,8 +143,8 @@ public:
 	void setHeight(int newHeight); // which is actually width (fixed)
 
 
-	void setWall(GridPos pos);
-	void setWall(int row, int col);
+	void setWall(GridPos pos, bool _isWall);
+	void setWall(int row, int col, bool _isWall);
 
 	// ========
 	// Checkers
