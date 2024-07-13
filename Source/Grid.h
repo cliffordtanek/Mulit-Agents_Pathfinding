@@ -72,7 +72,7 @@ public:
 	// flow field arrow
 	bool flowFieldArrow{ false };
 
-
+	// display heat map
 	bool showHeatMap{ false };
 
 

@@ -39,8 +39,6 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    //crashIf(!renderer.create(static_cast<unsigned>(winSize.x), static_cast<unsigned>(winSize.y)),
-        //"Renderer failed to be initialised");
 
     sf::Clock clock;
 
@@ -131,10 +129,11 @@ int main()
                 grid.updateHeatMap(target);
                 grid.generateFlowField();
 
-                enemy->setTargetPos(target, true);
+                // set all enemy to the target
+                for (Enemy* enemy : factory.getEntities<Enemy>())
+                    enemy->setTargetPos(target, true);
             }
 
-             //grid.computePath(*enemy, target);
         }
 
         // mouse event must put outside of switch case for some reason

@@ -235,8 +235,6 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		}
 
 		// if debug draw is enabled
-
-
 		if (!debugDrawRadius)
 			continue;
 
@@ -395,10 +393,27 @@ void Grid::generateFlowField()
 						continue;
 					}
 
-
+					// get current neighbour
 					flowFieldCell& neighbourCell = flowField[neighbourRow][neighbourCol];
 
 
+					// skip diagonal neighbors if there's an adjacent wall
+					if (i != 0 && j != 0)
+					{
+						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) || isWall(row, col + j))
+						{
+							minimumMode = true;
+							continue;
+						}
+					}
+
+					// if there is walls amongst neighbour
+					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					{
+						minimumMode = true;
+						continue;
+					}
+					
 					// if pointing directly to goal node
 					if (utl::isEqual(neighbourCell.distance, 0.f))
 					{
@@ -407,23 +422,6 @@ void Grid::generateFlowField()
 						minimumMode = false;
 						break;
 					}
-
-					// skip diagonal neighbors if there's an adjacent wall
-					if (i != 0 && j != 0)
-					{
-						int adjacent1Row = row + i;
-						int adjacent1Col = col;
-						int adjacent2Row = row;
-						int adjacent2Col = col + j;
-						if (isOutOfBound(adjacent1Row, adjacent1Col) || isOutOfBound(adjacent2Row, adjacent2Col) ||
-							isWall(adjacent1Row, adjacent1Col) || isWall(adjacent2Row, adjacent2Col))
-								continue;
-
-					}
-
-
-					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
-						minimumMode = true;
 						
 					// for MINNIMUM MODE
 					if (neighbourCell.distance < minDist)
