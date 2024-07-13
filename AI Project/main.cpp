@@ -216,7 +216,7 @@ int main()
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
-        window.clear(colors.at("Background"));
+        window.clear(colors.at("Background").first);
         editor.createDockspace();
 
         int width = grid.getHeight();
@@ -241,7 +241,7 @@ int main()
         float stroke = 25.f;
 
         rectangle.setSize(mapSize);
-        rectangle.setFillColor(colors.at("Background"));
+        rectangle.setFillColor(colors.at("Background").first);
         window.draw(rectangle);
         window.setView(view);
 
@@ -258,7 +258,7 @@ int main()
         rectangle.setSize(view.getSize());
         rectangle.setPosition(view.getCenter() - winSize / 2.f + minimapOffset + 
             (winSize - view.getSize()) / 2.f);
-        rectangle.setFillColor(colors.at("Translucent"));
+        rectangle.setFillColor(colors.at("Translucent").first);
         rectangle.setOutlineThickness(0.f);
         window.draw(rectangle);
         window.setView(view);

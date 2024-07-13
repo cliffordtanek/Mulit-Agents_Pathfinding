@@ -48,8 +48,8 @@ Grid::Grid(int _width, int _height, float _cellSize)
 			cells[row][col].rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
 			cells[row][col].rect.setPosition(row * cellSize, col * cellSize);
-			cells[row][col].rect.setFillColor(colors.at("Floor_Fill"));
-			cells[row][col].rect.setOutlineColor(colors.at("Floor_Outline"));
+			cells[row][col].rect.setFillColor(colors.at("Floor").first);
+			cells[row][col].rect.setOutlineColor(colors.at("Floor").second);
 			cells[row][col].rect.setOutlineThickness(4.f);
 
 
@@ -104,20 +104,20 @@ void Grid::render(sf::RenderWindow& window)
 			{
 			case UNEXPLORED:
 				// Black colour as unexplored colour
-				cells[row][col].rect.setFillColor(colors.at("Unexplored_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Unexplored_Outline"));
+				cells[row][col].rect.setFillColor(colors.at("Unexplored").first);
+				cells[row][col].rect.setOutlineColor(colors.at("Unexplored").second);
 				break;
 
 			case FOG:
 				// Grey colour as fog colour
-				cells[row][col].rect.setFillColor(colors.at("Fog_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Fog_Outline"));
+				cells[row][col].rect.setFillColor(colors.at("Fog").first);
+				cells[row][col].rect.setOutlineColor(colors.at("Fog").second);
 				break;
 
 			case VISIBLE:
 				// white colour as visible
-				cells[row][col].rect.setFillColor(colors.at("Visible_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Visible_Outline"));
+				cells[row][col].rect.setFillColor(colors.at("Visible").first);
+				cells[row][col].rect.setOutlineColor(colors.at("Visible").second);
 				break;
 			}
 
@@ -240,8 +240,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 					if (!isClearPath(gridpos, GridPos{ r, c }))
 						continue;
 					cells[r][c].visibility = VISIBLE;
-					cells[r][c].rect.setFillColor(colors.at("Visible_Fill"));
-					cells[r][c].rect.setOutlineColor(colors.at("Visible_Outline"));
+					cells[r][c].rect.setFillColor(colors.at("Visible").first);
+					cells[r][c].rect.setOutlineColor(colors.at("Visible").second);
 				}
 			}
 		}
@@ -252,8 +252,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 
 		sf::CircleShape debugradius;
 		// initialize debug pov
-		debugradius.setFillColor(colors.at("Debug_Radius_Fill"));
-		debugradius.setOutlineColor(colors.at("Debug_Radius_Outline"));
+		debugradius.setFillColor(colors.at("Debug_Radius").first);
+		debugradius.setOutlineColor(colors.at("Debug_Radius").second);
 		debugradius.setOutlineThickness(5.f);
 
 		debugradius.setRadius(radius);
@@ -503,8 +503,8 @@ void Grid::changeMap(const std::string& mapName)
 			sf::RectangleShape &currCell = cells.back().back().rect;
 
 			currCell.setPosition(i * cellSize, j * cellSize);
-			currCell.setFillColor(colors.at(indexCells[i][j])); // guaranteed to not crash
-			currCell.setOutlineColor(colors.at("Floor_Outline"));
+			currCell.setFillColor(colors.at(indexCells[i][j]).first); // guaranteed to not crash
+			currCell.setOutlineColor(colors.at(indexCells[i][j]).second);
 			currCell.setOutlineThickness(1.f);
 		}
 	}
@@ -514,7 +514,10 @@ void Grid::clearMap()
 {
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
-			cell.rect.setFillColor(colors.at("Floor_Fill"));
+		{
+			cell.rect.setFillColor(colors.at("Floor").first);
+			cell.rect.setFillColor(colors.at("Floor").second);
+		}
 }
 
 
@@ -595,6 +598,14 @@ void Grid::setVisibility(int row, int col, Visibility visibility)
 
 void Grid::setVisibility(GridPos pos, Visibility visibility) { return setVisibility(pos.row, pos.col, visibility); }
 
+void Grid::SetOutlineColour(int row, int col, sf::Color colour)
+{
+	if (isOutOfBound(row, col))
+		return;
+	cells[row][col].rect.setOutlineColor(colour);
+}
+
+void Grid::SetOutlineColour(GridPos pos, sf::Color colour) { SetOutlineColour(pos.row, pos.col, colour); }
 
 void Grid::SetColour(int row, int col, sf::Color colour)
 {
@@ -611,14 +622,16 @@ void Grid::SetColour(int row, int col)
 {
 	if (!colors.count(penColour))
 		return;
-	SetColour(row, col, colors.at(penColour));
+	SetColour(row, col, colors.at(penColour).first);
+	SetOutlineColour(row, col, colors.at(penColour).second);
 }
 
 void Grid::SetColour(GridPos pos) 
 {  
 	if (!colors.count(penColour))
 		return;
-	SetColour(pos, colors.at(penColour));
+	SetColour(pos, colors.at(penColour).first);
+	SetOutlineColour(pos, colors.at(penColour).second);
 }
 
 void Grid::setPenColour(const std::string &colourName) { penColour = colourName; }
@@ -639,10 +652,11 @@ void Grid::setWidth(int newWidth)
 			for (int j = width; j < newWidth; ++j)
 			{
 				Cell cell;
+				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
 				cell.rect.setPosition(i * cellSize, j * cellSize);
-				cell.rect.setFillColor(colors.at("Floor_Fill"));
-				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
+				cell.rect.setFillColor(colors.at("Floor").first);
+				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
 				cells[i].push_back(cell);
 
@@ -673,10 +687,11 @@ void Grid::setHeight(int newHeight)
 			for (int j = 0; j < width; ++j)
 			{
 				Cell cell;
+				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
 				cell.rect.setPosition(i * cellSize, j * cellSize);
-				cell.rect.setFillColor(colors.at("Floor_Fill"));
-				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
+				cell.rect.setFillColor(colors.at("Floor").first);
+				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
 				cells.back().push_back(cell);
 
@@ -702,7 +717,7 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
-	return cells[row][col].rect.getFillColor() == colors.at("Wall_Fill");
+	return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }

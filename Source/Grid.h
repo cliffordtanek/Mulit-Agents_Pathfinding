@@ -25,21 +25,33 @@ written consent of DigiPen Institute of Technology is prohibited.
 
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
-const std::unordered_map<std::string, sf::Color> colors
+//const std::unordered_map<std::string, sf::Color> colors
+//{
+//	{ "Debug_Radius_Fill", sf::Color::Transparent },
+//	{ "Debug_Radius_Outline", sf::Color::Red },
+//	{ "Floor_Fill", sf::Color::White },
+//	{ "Floor_Outline", sf::Color(20, 20, 20) },
+//	{ "Wall_Fill", sf::Color::Black },
+//	{ "Unexplored_Fill", sf::Color(30, 30, 30) },
+//	{ "Unexplored_Outline", sf::Color(20, 20, 20) },
+//	{ "Fog_Fill", sf::Color(95, 95, 95) },
+//	{ "Fog_Outline", sf::Color(110, 110, 110) },
+//	{ "Visible_Fill", sf::Color(140, 140, 140) },
+//	{ "Visible_Outline", sf::Color(160, 160, 160) },
+//	{ "Translucent", sf::Color(128, 128, 128, 128) },
+//	{ "Background", sf::Color(0, 60, 80) }
+//};
+
+const std::unordered_map<std::string, std::pair<sf::Color, sf::Color>> colors // first = fill, second = outline
 {
-	{ "Debug_Radius_Fill", sf::Color::Transparent },
-	{ "Debug_Radius_Outline", sf::Color::Red },
-	{ "Floor_Fill", sf::Color::White },
-	{ "Floor_Outline", sf::Color(20, 20, 20) },
-	{ "Wall_Fill", sf::Color::Black },
-	{ "Unexplored_Fill", sf::Color(30, 30, 30) },
-	{ "Unexplored_Outline", sf::Color(20, 20, 20) },
-	{ "Fog_Fill", sf::Color(95, 95, 95) },
-	{ "Fog_Outline", sf::Color(110, 110, 110) },
-	{ "Visible_Fill", sf::Color(140, 140, 140) },
-	{ "Visible_Outline", sf::Color(160, 160, 160) },
-	{ "Translucent", sf::Color(128, 128, 128, 128) },
-	{ "Background", sf::Color(0, 60, 80) }
+	{ "Debug_Radius", { sf::Color::Transparent, sf::Color::Red } },
+	{ "Floor", { sf::Color::White, sf::Color(20, 20, 20) } },
+	{ "Wall", { sf::Color::Black, sf::Color(20, 20, 20) } },
+	{ "Unexplored", { sf::Color(30, 30, 30), sf::Color(20, 20, 20) } },
+	{ "Fog", { sf::Color(95, 95, 95), sf::Color(110, 110, 110) } },
+	{ "Visible", { sf::Color(140, 140, 140), sf::Color(160, 160, 160) } },
+	{ "Translucent", { sf::Color(128, 128, 128, 128), sf::Color::Transparent } },
+	{ "Background", { sf::Color(0, 60, 80), sf::Color::Transparent } }
 };
 
 struct Cell
@@ -96,6 +108,7 @@ public:
 	void generateFlowField();
 
 
+	// what these 2 setColors for
 	void setColor(unsigned int row, unsigned int col, const sf::Color& color);
 
 	void setColor(Vec2 pos, const sf::Color& color);
@@ -137,7 +150,8 @@ public:
 	void setVisibility(int row, int col, Visibility visibility);
 	void setVisibility(GridPos pos, Visibility visibility);
 
-
+	void SetOutlineColour(int row, int col, sf::Color colour);
+	void SetOutlineColour(GridPos pos, sf::Color colour);
 	void SetColour(int row, int col, sf::Color colour);
 	void SetColour(GridPos pos, sf::Color colour);
 	void SetColour(int row, int col);
