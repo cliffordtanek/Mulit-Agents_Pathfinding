@@ -45,8 +45,6 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    //crashIf(!renderer.create(static_cast<unsigned>(winSize.x), static_cast<unsigned>(winSize.y)),
-        //"Renderer failed to be initialised");
 
     sf::Clock clock;
 
@@ -57,7 +55,7 @@ int main()
     // initialize systems
     editor.init();
     factory.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 50.f, 50.f }, Vec2{ 50.f, 50.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 50.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
@@ -109,11 +107,19 @@ int main()
                     break;
 
                 case sf::Keyboard::N:
-                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
                     break;
 
                 case sf::Keyboard::L:
                     grid.debugDrawRadius = !grid.debugDrawRadius;
+                    break;
+
+                case sf::Keyboard::K:
+                    grid.showHeatMap = !grid.showHeatMap;
+                    break;
+
+                case sf::Keyboard::J:
+                    grid.flowFieldArrow = !grid.flowFieldArrow;
                     break;
 
                 }
@@ -130,10 +136,11 @@ int main()
                 grid.updateHeatMap(target);
                 grid.generateFlowField();
 
-                enemy->setTargetPos(target, true);
+                // set all enemy to the target
+                for (Enemy* enemy : factory.getEntities<Enemy>())
+                    enemy->setTargetPos(target, true);
             }
 
-             //grid.computePath(*enemy, target);
         }
 
         // mouse event must put outside of switch case for some reason

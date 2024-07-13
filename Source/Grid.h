@@ -22,13 +22,7 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include <unordered_map>
 #include <queue>
 
-// colour corresponds to line number in utility.h
-//const std::vector<sf::Color> colors // for some reason array doesn't work
-//{
-//	sf::Color::White,
-//	sf::Color::Blue,
-//	sf::Color::Black
-//};
+
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
 const std::unordered_map<std::string, sf::Color> colors
@@ -70,9 +64,20 @@ public:
 	struct GridPos { int row{}, col{}; };
 
 
+	// ============
+	// DEBUG
+	// ============
+
 	// debug circle
 	bool debugDrawRadius{ false };
-	sf::CircleShape debugRadius;
+
+	// flow field arrow
+	bool flowFieldArrow{ false };
+
+	// display heat map
+	bool showHeatMap{ false };
+
+
 
 
 	// ======
@@ -90,7 +95,7 @@ public:
 
 	void generateFlowField();
 
-	//void computePath(Entity& entity, Vec2 target) const;
+
 	void setColor(unsigned int row, unsigned int col, const sf::Color& color);
 
 	void setColor(Vec2 pos, const sf::Color& color);
@@ -155,7 +160,7 @@ public:
 	bool isClearPath(int row0, int col0, int row1, int col1) const;
 	bool isClearPath(GridPos lhs, GridPos rhs) const;
 
-	bool hasLineOfSight(Vec2 const& start, Vec2 const& end) const;
+	bool lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1) const;
 
 private:
 
@@ -176,6 +181,8 @@ private:
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
+
+	std::vector<sf::CircleShape> debugRadius;
 };
 
 #endif // GRID_H

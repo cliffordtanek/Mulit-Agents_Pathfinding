@@ -9,101 +9,34 @@ extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
 
-bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
-	int x0 = static_cast<int>(start.x / cellSize);
-	int y0 = static_cast<int>(start.y / cellSize);
-	int x1 = static_cast<int>(end.x / cellSize);
-	int y1 = static_cast<int>(end.y / cellSize);
 
-	int dx = abs(x1 - x0);
-	int dy = abs(y1 - y0);
-	int sx = x0 < x1 ? 1 : -1;
-	int sy = y0 < y1 ? 1 : -1;
-	int err = dx - dy;
-
-	while (true) {
-		if (isWall(y0, x0)) return false; // If there's a wall, return false
-
-		if (x0 == x1 && y0 == y1) return true; // If we've reached the end, return true
-
-		int e2 = 2 * err;
-		if (e2 > -dy) {
-			err -= dy;
-			x0 += sx;
-		}
-		if (e2 < dx) {
-			err += dx;
-			y0 += sy;
-		}
-	}
-}
-
-bool line_intersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1)
-{
-	const float y4y3 = line1P1.y - line1P0.y;
-	const float y1y3 = line0P0.y - line1P0.y;
-	const float y2y1 = line0P1.y - line0P0.y;
-	const float x4x3 = line1P1.x - line1P0.x;
-	const float x2x1 = line0P1.x - line0P0.x;
-	const float x1x3 = line0P0.x - line1P0.x;
-
-	const float divisor = y4y3 * x2x1 - x4x3 * y2y1;
-	const float dividend0 = x4x3 * y1y3 - y4y3 * x1x3;
-	const float dividend1 = x2x1 * y1y3 - y2y1 * x1x3;
-
-	const float eps = 0.0001f;
-	if (std::abs(dividend0) < eps && std::abs(dividend1) < eps && std::abs(divisor) < eps)
-	{	// Lines coincident (on top of each other)
-		return true;
-	}
-
-	if (std::abs(divisor) < eps)
-	{	// Lines parallel
-		return false;
-	}
-
-	const float quotient0 = dividend0 / divisor;
-	const float quotient1 = dividend1 / divisor;
-
-	if (quotient0 < 0.0f || quotient0 > 1.0f || quotient1 < 0.0f || quotient1 > 1.0f)
-	{	// No intersection
-		return false;
-	}
-	else
-	{	// Intersection
-		return true;
-	}
-}
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
-	// Normalize the direction vector
-	Vec2 normalizedDirection = direction.Normalize();
+    // Normalize the direction vector
+    Vec2 normalizedDirection = direction.Normalize();
 
-	// Calculate the end point of the arrow
-	//Vec2 start = start + camera.getOffset();
-	Vec2 end = start + normalizedDirection * length;
+    // Calculate the end point of the arrow
+    Vec2 end = start + normalizedDirection * length;
 
-	// Create the main line of the arrow
-	sf::VertexArray arrow(sf::LinesStrip, 3);
-	arrow[0].position = sf::Vector2f(start.x, start.y);
-	arrow[1].position = sf::Vector2f(end.x, end.y);
+    // Create the main line of the arrow
+    sf::VertexArray arrow(sf::LinesStrip, 3);
+    arrow[0].position = sf::Vector2f(start.x, start.y);
+    arrow[1].position = sf::Vector2f(end.x, end.y);
 
-	// Calculate the head of the arrow
-	Vec2 leftHead = end - normalizedDirection * headLength + Vec2(-normalizedDirection.y, normalizedDirection.x) * headLength / 2;
-	Vec2 rightHead = end - normalizedDirection * headLength + Vec2(normalizedDirection.y, -normalizedDirection.x) * headLength / 2;
+    // Calculate the head of the arrow
+    Vec2 leftHead = end - normalizedDirection * headLength + Vec2(-normalizedDirection.y, normalizedDirection.x) * headLength / 2;
+    Vec2 rightHead = end - normalizedDirection * headLength + Vec2(normalizedDirection.y, -normalizedDirection.x) * headLength / 2;
 
-	// Add the head lines
-	arrow[2].position = sf::Vector2f(leftHead.x, leftHead.y);
-	arrow.append(sf::Vertex(sf::Vector2f(end.x, end.y)));
-	arrow.append(sf::Vertex(sf::Vector2f(rightHead.x, rightHead.y)));
+    // Add the head lines
+    arrow[2].position = sf::Vector2f(leftHead.x, leftHead.y);
+    arrow.append(sf::Vertex(sf::Vector2f(end.x, end.y)));
+    arrow.append(sf::Vertex(sf::Vector2f(rightHead.x, rightHead.y)));
 
-	window.draw(arrow);
+    window.draw(arrow);
 }
 
-//Grid::Grid(int _width, int _height, float _cellSize)
-//	: width(_width), height(_height), cellSize(_cellSize), cells(height, std::vector<Cell>(width)),
-//	flowField(height, std::vector<flowFieldCell>(width))
+
 
 Grid::Grid(int _width, int _height, float _cellSize)
 	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
@@ -112,20 +45,20 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	{
 		for (int col{}; col < width; ++col)
 		{
+			cells[row][col].rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
 			cells[row][col].rect.setPosition(row * cellSize, col * cellSize);
 			cells[row][col].rect.setFillColor(colors.at("Floor_Fill"));
 			cells[row][col].rect.setOutlineColor(colors.at("Floor_Outline"));
 			cells[row][col].rect.setOutlineThickness(4.f);
 
+
+			// flow field
 			flowField[row][col].position = { row, col };
 		}
 	}
 
-	// initialize debug pov
-	debugRadius.setFillColor(colors.at("Debug_Radius_Fill"));
-	debugRadius.setOutlineColor(colors.at("Debug_Radius_Outline"));
-	debugRadius.setOutlineThickness(5.f);
+	//TEMP GRID MAKING
 
 #if 0
    // Left vertical part of U
@@ -196,71 +129,70 @@ void Grid::render(sf::RenderWindow& window)
 			camera.addCell(cells[row][col].rect);
 
 
-			if (debugDrawRadius)
+			if (showHeatMap)
 			{
-				//sf::Vector2f oldPos = debugRadius.getPosition();
-				//debugRadius.setPosition(oldPos + offset);
-				window.draw(debugRadius);
-				//debugRadius.setPosition(oldPos);
+				float value = flowField[row][col].distance;
+
+				float normalizedDistance = std::min(1.f, value / 200.f); // Assuming max distance of 300 for normalization
+
+				if (utl::isEqual(normalizedDistance, 1.f))
+					continue;
+
+
+				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
+
+				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
+				cells[row][col].rect.setFillColor(color);
+
+				window.draw(cells[row][col].rect);
+		}
+			
+
+			// Checking if the cell is not a wall and has a valid direction
+			if (flowFieldArrow)
+			{
+				if (!(utl::isEqual(flowField[row][col].distance, 0.f)))
+				{
+					Vec2 cellCenter = getWorldPos(row, col);
+					Vec2 direction = flowField[row][col].direction;
+					drawArrow(window, cellCenter, direction);
+				}
 			}
 
+#if 0 // TO DISPLAY THE NUMERICAL DISTANCE
+			// Format the distance text to 2 decimal places
+			sf::Text text;
+			text.setFont(font);
+			text.setCharacterSize(16);
+			text.setFillColor(colors.at("Floor_Fill"));
 
-#if 0
-			//!!! TEMP
-			float value = flowField[row][col].distance;
-
-			float normalizedDistance = std::min(1.f, value / 200.f); // Assuming max distance of 300 for normalization
-
-			if (utl::isEqual(normalizedDistance, 1.f))
-				continue;
-
-
-			sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
-
-			sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
-			cells[row][col].rect.setFillColor(color);
-
-			window.draw(cells[row][col].rect);
-
-#endif
-
-#if 1
-			if (!isWall(row, col) && !(!flowField[row][col].direction.x && !flowField[row][col].direction.y))
-			{
-				Vec2 cellCenter = getWorldPos(row, col) + Vec2(cellSize / 2.0f, cellSize / 2.0f);
-				drawArrow(window, cellCenter, flowField[row][col].direction * (cellSize / 2.0f));
-			}
-#endif
-
-			//// Format the distance text to 2 decimal places
-			//sf::Text text;
-			//text.setFont(font);
-			//text.setCharacterSize(16);
-			//text.setFillColor(colors.at("Floor_Fill"));
-
-			//std::ostringstream ss;
+			std::ostringstream ss;
 
 			//ss << std::fixed << (int)flowField[row][col].direction.x << " " << (int)flowField[row][col].direction.y;
-			////ss << std::fixed << std::setprecision(2) << flowField[row][col].distance;
+			ss << std::fixed << std::setprecision(2) << flowField[row][col].distance;
 
-			//text.setString(ss.str());
+			text.setString(ss.str());
 
-			//
+			
 
-			//// Center the text in the cell
-			//sf::FloatRect textRect = text.getLocalBounds();
-			//text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-			//text.setPosition(cells[row][col].rect.getPosition() + sf::Vector2f(cellSize / 2.0f, cellSize / 2.0f));
+			// Center the text in the cell
+			sf::FloatRect textRect = text.getLocalBounds();
+			text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+			text.setPosition(cells[row][col].rect.getPosition());
 
-			//// Draw the text
-			//window.draw(text);
-
-
-
-			if (debugDrawRadius)
-				window.draw(debugRadius);
+			// Draw the text
+			window.draw(text);
+#endif
 		}
 	}
+
+	// only draw one debug circle for one entity
+	if (debugDrawRadius)
+		for (auto const& rad : debugRadius)
+			window.draw(rad);
+
+	debugRadius.clear();
+
 }
 
 void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
@@ -294,13 +226,19 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 			for (int c = startCol; c <= endCol; ++c)
 			{
 				if (isWall(r, c))
-					break;
+					continue;
 
 				// get distance of pos to cell (startRow, startCol)
-				float distance = p.Distance(getWorldPos(r, c));
 
-				if (distance <= radius && hasLineOfSight(p, getWorldPos(r, c)))
+				Vec2 rowCol = getWorldPos(r, c);
+
+
+				float distance = p.Distance(rowCol);
+
+				if (distance <= radius)// && hasLineOfSight(p, getWorldPos(r, c)))
 				{
+					if (!isClearPath(gridpos, GridPos{ r, c }))
+						continue;
 					cells[r][c].visibility = VISIBLE;
 					cells[r][c].rect.setFillColor(colors.at("Visible_Fill"));
 					cells[r][c].rect.setOutlineColor(colors.at("Visible_Outline"));
@@ -308,14 +246,22 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 			}
 		}
 
+		// if debug draw is enabled
+		if (!debugDrawRadius)
+			continue;
 
-		debugRadius.setRadius(radius);
-		debugRadius.setOrigin(radius, radius);
-		debugRadius.setPosition(sf::Vector2(p.x, p.y));
+		sf::CircleShape debugradius;
+		// initialize debug pov
+		debugradius.setFillColor(colors.at("Debug_Radius_Fill"));
+		debugradius.setOutlineColor(colors.at("Debug_Radius_Outline"));
+		debugradius.setOutlineThickness(5.f);
+
+		debugradius.setRadius(radius);
+		debugradius.setOrigin(radius, radius);
+		debugradius.setPosition(sf::Vector2(p.x, p.y));
+
+		debugRadius.push_back(debugradius);
 	}
-
-
-
 }
 
 
@@ -323,7 +269,6 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 void Grid::updateHeatMap(Vec2 target)
 {
 	// get target pos in gridPos
-	//GridPos targetPos = getGridPos(target - camera.getOffset() * canUseCameraOffset);
 	GridPos targetPos = getGridPos(target);
 
 	// skip out of bound target
@@ -362,6 +307,16 @@ void Grid::updateHeatMap(Vec2 target)
 				// skip out of bound and wall cells
 				if (isOutOfBound(neighbourPos) || isWall(neighbourPos))
 					continue;
+
+				// skip diagonal neighbors if there's an adjacent wall
+				if (i != 0 && j != 0)
+				{
+					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
+					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) || isWall(adjacent2))
+						continue;
+				}
+
 
 				// get neighbour cells
 				flowFieldCell& currNeighbour = flowField[neighbourPos.row][neighbourPos.col];
@@ -417,10 +372,20 @@ void Grid::generateFlowField()
 
 			// Skip walls
 			if (isWall(row, col))
-			{
-				//currCell.direction = Vec2(0, 0);
 				continue;
-			}
+
+			
+			// if goal node is found, we double break
+			bool goalBreak{ false };
+			
+			// ===============================================
+			// To check if there is wall amongst its neighbour
+			// ===============================================
+			bool minimumMode{ false }; // this mode is enabled if there is a wall among its neighbour
+			float minDist{ std::numeric_limits<float>::max() };	// to store the min distancce for the case of minimumMode
+			GridPos minDir{};
+
+
 
 			// check its neighbour to generate direction vector
 			for (int i{ -1 }; i <= 1; ++i)
@@ -430,44 +395,72 @@ void Grid::generateFlowField()
 					int neighbourRow = row + i;
 					int neighbourCol = col + j;
 
-					// skip out of bound, walls and self cell
-					if (isOutOfBound(neighbourRow, neighbourCol) || i == 0 && j == 0)
+					// skip self cell
+					if ( i == 0 && j == 0)
 						continue;
 
-					flowFieldCell &neighbourCell = flowField[neighbourRow][neighbourCol];
-
-					if (utl::isEqual(neighbourCell.distance, 0.f))
+					if (isOutOfBound(neighbourRow, neighbourCol))
 					{
-						currCell.direction += Vec2((float)i, (float)j);
+						minimumMode = true;
 						continue;
 					}
 
+					// get current neighbour
+					flowFieldCell& neighbourCell = flowField[neighbourRow][neighbourCol];
 
+
+					// skip diagonal neighbors if there's an adjacent wall
+					if (i != 0 && j != 0)
+					{
+						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) || isWall(row, col + j))
+						{
+							minimumMode = true;
+							continue;
+						}
+					}
+
+					// if there is walls amongst neighbour
+					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					{
+						minimumMode = true;
+						continue;
+					}
+					
+					// if pointing directly to goal node
+					if (utl::isEqual(neighbourCell.distance, 0.f))
+					{
+						currCell.direction = Vec2((float)i, (float)j);
+						goalBreak = true;
+						minimumMode = false;
+						break;
+					}
+						
+					// for MINNIMUM MODE
+					if (neighbourCell.distance < minDist)
+					{
+						minDist = neighbourCell.distance;
+						minDir = { i, j };
+
+					}
+
+					// GRADIENT MODE
 					// get final directional vector
 					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)i, (float)j);
 				}
+
+				if (goalBreak)
+					break;
 			}
 
-			//! test to get closest int
-
-			//currCell.direction = currCell.direction.Normalize();
-
-
-
-			// Round the direction components to the nearest integer
-			//currCell.direction.x = std::round(currCell.direction.x);
-			//currCell.direction.y = std::round(currCell.direction.y);
-
-			// Ensure the direction components are clamped to valid values (-1, 0, 1)
-			//currCell.direction.x = std::max(-1.f, std::min(currCell.direction.x, 1.f));
-			//currCell.direction.y = std::max(-1.f, std::min(currCell.direction.y, 1.f));
+			if (minimumMode)
+				currCell.direction = Vec2((float)minDir.row, (float)minDir.col);
+			
 		}
 	}
 }
 
 void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
 {
-	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 	if (isOutOfBound(row, col))
 		return;
 
@@ -481,7 +474,6 @@ void Grid::setColor(Vec2 pos, const sf::Color& color)
 	int col = static_cast<int>(pos.y / cellSize);
 	if (isOutOfBound(row, col))
 		return;
-	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
 	cells[row][col].rect.setFillColor(color);
 }
@@ -525,19 +517,6 @@ void Grid::clearMap()
 			cell.rect.setFillColor(colors.at("Floor_Fill"));
 }
 
-//void Grid::computePath(Entity& entity, vec2 target) const
-//{
-//	entity.setTargetPos(target);
-//
-//	while (entity.pos != target)
-//	{
-//		// get current cell based on where entity is on
-//		auto[row, col] = getGridPos(entity.pos);
-//
-//		// set direction based on flow field 
-//		entity.dir = flowField[row][col].direction;
-//	}
-//}
 
 
 // =======
@@ -561,8 +540,9 @@ int Grid::getHeight() const
 
 Grid::GridPos Grid::getGridPos(float x, float y) const
 {
-	//x -= camera.getOffset().x * canUseCameraOffset;
-	//y -= camera.getOffset().y * canUseCameraOffset;
+	x += 0.5f * cellSize;
+	y += 0.5f * cellSize;
+
 	int row = static_cast<int>(x / cellSize);
 	int col = static_cast<int>(y / cellSize);
 
@@ -571,7 +551,6 @@ Grid::GridPos Grid::getGridPos(float x, float y) const
 
 Grid::GridPos Grid::getGridPos(Vec2 const& pos) const 
 { 
-	//Vec2 pos = pos - camera.getOffset() * canUseCameraOffset;
 	return getGridPos(pos.x, pos.y); 
 }
 
@@ -748,6 +727,7 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 	// convert row1 and col1 to vectors 2D
 	Vec2 p1 = getWorldPos(row1, col1);
 
+
 	// just use width since map is a square
 	float halfGridWidth = 0.5f * cellSize;
 
@@ -763,11 +743,13 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 		for (int col = col0; (sy > 0) ? (col <= col1) : (col >= col1); col += sy)
 		{
 			// skip non-wall cells
-			if (isWall(row, col))
+			if (!isWall(row, col))
 				continue;
 
 			// convert minRow and minCol to vector 3D
 			Vec2 wallCenter = getWorldPos(row, col);
+			//wallCenter.x += 0.5f * cellSize;
+			//wallCenter.y += 0.5f * cellSize;
 
 			// get points of diagonal
 			Vec2 l1p0 = { wallCenter.x - halfGridWidth, wallCenter.y + halfGridWidth };
@@ -776,7 +758,7 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 			Vec2 l2p1 = { wallCenter.x - halfGridWidth, wallCenter.y - halfGridWidth };
 
 
-			if (line_intersect(p0, p1, l1p0, l1p1) || line_intersect(p0, p1, l2p0, l2p1))
+			if (lineIntersect(p0, p1, l1p0, l1p1) || lineIntersect(p0, p1, l2p0, l2p1))
 				return false;
 		}
 	}
@@ -787,6 +769,44 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 bool Grid::isClearPath(GridPos lhs, GridPos rhs) const
 {
 	return isClearPath(lhs.row, lhs.col, rhs.row, rhs.col);
+}
+
+
+bool Grid::lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1) const
+{
+	const float y4y3 = line1P1.y - line1P0.y;
+	const float y1y3 = line0P0.y - line1P0.y;
+	const float y2y1 = line0P1.y - line0P0.y;
+	const float x4x3 = line1P1.x - line1P0.x;
+	const float x2x1 = line0P1.x - line0P0.x;
+	const float x1x3 = line0P0.x - line1P0.x;
+
+	const float divisor = y4y3 * x2x1 - x4x3 * y2y1;
+	const float dividend0 = x4x3 * y1y3 - y4y3 * x1x3;
+	const float dividend1 = x2x1 * y1y3 - y2y1 * x1x3;
+
+	const float eps = 0.0001f;
+	if (std::abs(dividend0) < eps && std::abs(dividend1) < eps && std::abs(divisor) < eps)
+	{	// Lines coincident (on top of each other)
+		return true;
+	}
+
+	if (std::abs(divisor) < eps)
+	{	// Lines parallel
+		return false;
+	}
+
+	const float quotient0 = dividend0 / divisor;
+	const float quotient1 = dividend1 / divisor;
+
+	if (quotient0 < 0.0f || quotient0 > 1.0f || quotient1 < 0.0f || quotient1 > 1.0f)
+	{	// No intersection
+		return false;
+	}
+	else
+	{	// Intersection
+		return true;
+	}
 }
 
 Cell::Cell(Vec2 pos) : rect(pos) { }
