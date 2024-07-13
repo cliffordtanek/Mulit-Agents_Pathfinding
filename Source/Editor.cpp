@@ -76,7 +76,7 @@ void MainMenu::onUpdate()
 		return;
 	Window::onUpdate();
 
-	ImGui::Begin(name.c_str(), &isOpen);
+	ImGui::Begin(name.c_str());
 
 	ImGui::Text("FPS: %.2f", 1.f / dt);
 	editor.addSpace(3);

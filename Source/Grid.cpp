@@ -95,7 +95,7 @@ void Grid::render(sf::RenderWindow& window)
 			// if cell is a wall but it has been explored before
 			if (isWall(row, col))
 			{
-				if (currCell.visibility != UNEXPLORED)
+				if (currCell.visibility != UNEXPLORED || isDrawMode)
 				{
 					//std::cout << "RENDERING EXPLORED WALLS\n";
 					currCell.rect.setFillColor(colors.at("Wall").first);
@@ -779,10 +779,7 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 				continue;
 
 			if (row == row0 && col == col0 || row == row1 && col == col1)
-			{
-				std::cout << "Should print twice\n";
 				continue;
-			}
 			
 
 				
