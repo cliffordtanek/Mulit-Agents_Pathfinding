@@ -7,7 +7,7 @@
 
 extern sf::Font font;
 extern Loader loader;
-//extern Camera camera;
+extern Camera camera;
 
 bool Grid::hasLineOfSight(Vec2 const& start, Vec2 const& end) const {
 	int x0 = static_cast<int>(start.x / cellSize);
@@ -162,8 +162,9 @@ void Grid::render(sf::RenderWindow& window)
 			{
 				//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
 				//cells[row][col].rect.setPosition(oldPos + offset);
-				window.draw(cells[row][col].rect);
+				//window.draw(cells[row][col].rect);
 				//cells[row][col].rect.setPosition(oldPos);
+				camera.addCell(cells[row][col].rect);
 				continue;
 			}
 
@@ -190,8 +191,10 @@ void Grid::render(sf::RenderWindow& window)
 
 			//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
 			//cells[row][col].rect.setPosition(oldPos + offset);
-			window.draw(cells[row][col].rect);
+			//window.draw(cells[row][col].rect);
 			//cells[row][col].rect.setPosition(oldPos);
+			//camera.addRectangle(cells[row][col].rect);
+			camera.addCell(cells[row][col].rect);
 
 
 			if (debugDrawRadius)
@@ -611,7 +614,9 @@ void Grid::setVisibility(GridPos pos, Visibility visibility) { return setVisibil
 
 void Grid::SetColour(int row, int col, sf::Color colour)
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	if (isOutOfBound(row, col))
+		return;
+	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
 	cells[row][col].rect.setFillColor(colour);
 }

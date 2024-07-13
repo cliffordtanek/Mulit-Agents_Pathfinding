@@ -43,7 +43,9 @@ const std::unordered_map<std::string, sf::Color> colors
 	{ "Fog_Fill", sf::Color(95, 95, 95) },
 	{ "Fog_Outline", sf::Color(110, 110, 110) },
 	{ "Visible_Fill", sf::Color(140, 140, 140) },
-	{ "Visible_Outline", sf::Color(160, 160, 160) }
+	{ "Visible_Outline", sf::Color(160, 160, 160) },
+	{ "Translucent", sf::Color(128, 128, 128, 128) },
+	{ "Background", sf::Color(0, 30, 60) }
 };
 
 struct Cell

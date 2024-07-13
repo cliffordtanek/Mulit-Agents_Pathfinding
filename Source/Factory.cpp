@@ -6,7 +6,7 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern Factory factory;
 extern Grid grid;
-//extern Camera camera;
+extern Camera camera;
 extern float dt;
 
 void Entity::move()
@@ -111,7 +111,7 @@ void Entity::onUpdate()
 		circle.setRadius(scale.x / 2.f);
 		circle.setPosition(pos - Vec2{ scale.x / 2.f, scale.x / 2.f });
 		circle.setFillColor(color);
-		window.draw(circle);
+		camera.addCircle(circle);
 		break;
 	}
 
@@ -126,7 +126,7 @@ void Entity::onUpdate()
 		triangle.setRotation(rot);
 		triangle.setPosition(pos);
 		triangle.setFillColor(color);
-		window.draw(triangle);
+		camera.addTriangle(triangle);
 		break;
 	}
 
@@ -138,7 +138,7 @@ void Entity::onUpdate()
 		rectangle.setRotation(rot);
 		rectangle.setPosition(pos);
 		rectangle.setFillColor(color);
-		window.draw(rectangle);
+		camera.addRectangle(rectangle);
 		break;
 	}
 

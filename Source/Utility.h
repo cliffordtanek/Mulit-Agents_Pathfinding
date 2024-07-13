@@ -6,8 +6,13 @@
 #include <sstream>
 #include <iomanip>
 #include "MathLib.h"
+#include <SFML/Graphics.hpp>
 
 using namespace std::string_literals;
+
+extern sf::View minimap;
+extern sf::View view;
+extern sf::RenderWindow window;
 
 // constants
 //#define EPSILON 0.000001f
@@ -15,7 +20,7 @@ using namespace std::string_literals;
 #define EULER 2.718282f
 #define SQRT2 1.414214f
 #define CAM_MOVE 750.f * dt
-#define CAM_ZOOM 5.f * dt
+#define CAM_ZOOM 7.5f * dt
 #define INVALID -1
 
 // sizes

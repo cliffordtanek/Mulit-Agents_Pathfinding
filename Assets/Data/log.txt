@@ -78,3 +78,21 @@
 
 [12/07/2024 19:46:07] Program crashed at line 337 in Editor.cpp, reason: Could not find window with name "SaveMapAsPopup"
 
+[12/07/2024 21:51:34] Program crashed at line 614 in Grid.cpp, reason: Row: "61" Col: "17" is out of bound
+
+[12/07/2024 21:52:30] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967292" Col: "5" is out of bound
+
+[12/07/2024 23:20:57] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967284" Col: "8" is out of bound
+
+[12/07/2024 23:21:03] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967269" Col: "6" is out of bound
+
+[12/07/2024 23:21:11] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967202" Col: "13" is out of bound
+
+[12/07/2024 23:21:17] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967199" Col: "8" is out of bound
+
+[13/07/2024 12:09:43] Program crashed at line 87 in Camera.cpp, reason: Unknown shape in draw queue
+
+[13/07/2024 12:10:24] Program crashed at line 87 in Camera.cpp, reason: Unknown shape in draw queue "class sf::Drawable * __ptr64"
+
+[13/07/2024 13:09:51] Program crashed at line 653 in Grid.cpp, reason: Row: "25" Col: "6" is out of bound
+

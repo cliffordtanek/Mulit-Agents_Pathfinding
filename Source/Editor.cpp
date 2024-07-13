@@ -12,6 +12,7 @@ extern Loader loader;
 extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
+extern bool canZoom;
 
 Window::~Window()
 {
@@ -139,6 +140,8 @@ void Inspector::onUpdate()
 
 				if (ImGui::BeginCombo("Shape", preview))
 				{
+					canZoom = false;
+
 					for (int i = 0; i < IM_ARRAYSIZE(shapes); ++i)
 					{
 						const bool isSelected = shapeIndex == i;
@@ -191,11 +194,14 @@ void MapEditor::onUpdate()
 	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &maps = loader.getMaps();
 	std::transform(maps.begin(), maps.end(), std::back_inserter(mapNames), [](const auto &elem) 
 		{ return elem.first.c_str(); });
+
 	mapIndex = mapNames.size() ? mapIndex : INVALID;
 	const char *mapPreview = mapIndex == INVALID ? "" : mapNames[mapIndex];
 
 	if (ImGui::BeginCombo("Select Map", mapPreview))
 	{
+		canZoom = false;
+
 		for (int i = 0; i < mapNames.size(); ++i)
 		{
 			const bool isSelected = mapIndex == i;
@@ -211,6 +217,9 @@ void MapEditor::onUpdate()
 	}
 
 	editor.addSpace(5);
+
+	if (ImGui::Button("Clear Map"))
+		grid.clearMap();
 
 	if (ImGui::Button("Save Map As"))
 		editor.openWindow("SaveAsMapPopup");
@@ -248,11 +257,14 @@ void MapEditor::onUpdate()
 	std::vector<const char *> colorNames;
 	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
 		{ return elem.first.c_str(); });
+
 	const char *colorPreview = colorIndex == INVALID ? "" : colorNames[colorIndex];
 	int oldColorIndex = colorIndex;
 
 	if (ImGui::BeginCombo("Select Pen Colour", colorPreview))
 	{
+		canZoom = false;
+
 		for (int i = 0; i < colorNames.size(); ++i)
 		{
 			const bool isSelected = colorIndex == i;
