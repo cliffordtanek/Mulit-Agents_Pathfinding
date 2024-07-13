@@ -219,8 +219,8 @@ int main()
         window.clear(colors.at("Background").first);
         editor.createDockspace();
 
-        int width = grid.getHeight();
-        int height = grid.getWidth();
+        int width = grid.getWidth();
+        int height = grid.getHeight();
         bool isWidthLonger = width * 1.f > height * ratio; // height and width are flipped in grid object
         float gridLength = std::max(height * ratio, width * 1.f) * cellSize;
 

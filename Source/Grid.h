@@ -63,17 +63,17 @@ struct Cell
 	Cell(Vec2 pos);
 };
 
-
 class Grid
 {
 public:
 
 	// constructor
-	Grid(int _width, int _height, float _cellSize);
+	Grid(int _height, int _width, float _cellSize);
 
 
 	// data
 	struct GridPos { int row{}, col{}; };
+
 
 
 	// ============
@@ -106,12 +106,6 @@ public:
 	void resetHeatMap();
 
 	void generateFlowField();
-
-
-	// what these 2 setColors for
-	void setColor(unsigned int row, unsigned int col, const sf::Color& color);
-
-	void setColor(Vec2 pos, const sf::Color& color);
 
 	void changeMap(const std::string& mapName);
 
@@ -158,9 +152,9 @@ public:
 	void SetColour(GridPos pos);
 	void setPenColour(const std::string &colourName);
 
-	void setWidth(int newWidth); // which is actually height
+	void setWidth(int newWidth); // which is actually height (fixed)
 
-	void setHeight(int newHeight); // which is actually width
+	void setHeight(int newHeight); // which is actually width (fixed)
 
 	// ========
 	// Checkers
@@ -187,7 +181,7 @@ private:
 		bool visited{ false };
 	};
 
-	int width, height;	// width and height of the grid
+	int height, width;	// width and height of the grid
 	float cellSize;		// single cell width/ height
 	std::string penColour = "";
 
@@ -198,5 +192,7 @@ private:
 
 	std::vector<sf::CircleShape> debugRadius;
 };
+
+std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs);
 
 #endif // GRID_H

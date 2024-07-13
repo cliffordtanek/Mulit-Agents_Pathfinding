@@ -39,6 +39,7 @@ void Loader::loadMaps()
 
 		size_t rows, cols;
 		ifs >> rows >> cols;
+		PRINT(rows, cols);
 		std::string temp;
 		std::getline(ifs, temp); // get nl
 
@@ -69,10 +70,11 @@ void Loader::saveMap(const std::string& mapName)
 	std::ofstream ofs("../Assets/Data/Maps/" + mapName + ".txt");
 	crashIf(!ofs, "Unable to open " + mapName + ".txt for overwriting");
 
-	size_t newHeight = cells.size() ? cells[0].size() : 0;
+	size_t newWidth = cells.size() ? cells[0].size() : 0;
 	for (const std::vector<Cell> &row : cells)
-		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
-	ofs << cells.size() << ' ' << newHeight << nl;
+		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
+	ofs << cells.size() << ' ' << newWidth << nl;
+	PRINT(cells.size(), newWidth);
 
 	for (const std::vector<Cell> &row : cells)
 	{
