@@ -283,7 +283,7 @@ void MapEditor::onUpdate()
 	if (oldColorIndex != colorIndex)
 		grid.setPenColour(colorNames[colorIndex]);
 
-	static int rowIndex = grid.getWidth() - 1, colIndex = grid.getHeight() - 1;
+	int rowIndex = grid.getWidth() - 1, colIndex = grid.getHeight() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
 
 	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))

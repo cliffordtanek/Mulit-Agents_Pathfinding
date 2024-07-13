@@ -127,8 +127,7 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	debugRadius.setOutlineColor(colors.at("Debug_Radius_Outline"));
 	debugRadius.setOutlineThickness(5.f);
 
-
-	//TEMP GRID MAKING
+#if 0
    // Left vertical part of U
 	for (int row = 10; row < 10 + 10; ++row)
 		cells[row][10].rect.setFillColor(colors.at("Wall_Fill"));
@@ -142,7 +141,7 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	// Right vertical part of U
 	for (int row = 10; row < 10 + 10; ++row) 
 		cells[row][19].rect.setFillColor(colors.at("Wall_Fill"));
-	
+#endif
 
 }
 
@@ -225,7 +224,7 @@ void Grid::render(sf::RenderWindow& window)
 
 #endif
 
-#if 0
+#if 1
 			if (!isWall(row, col) && !(!flowField[row][col].direction.x && !flowField[row][col].direction.y))
 			{
 				Vec2 cellCenter = getWorldPos(row, col) + Vec2(cellSize / 2.0f, cellSize / 2.0f);
@@ -497,13 +496,17 @@ void Grid::changeMap(const std::string& mapName)
 	width = (int)indexCells.size();
 	height = (int)newHeight;
 	cells = std::vector<std::vector<Cell>>();
+	flowField = std::vector<std::vector<flowFieldCell>>();
 
 	for (unsigned i = 0; i < (unsigned)width; ++i)
 	{
 		cells.push_back(std::vector<Cell>());
-
+		flowField.push_back(std::vector<flowFieldCell>());
+		
 		for (unsigned j = 0; j < (unsigned)height; ++j)
 		{
+			flowField.back().emplace_back();
+			flowField.back().back().position = { (int)i, (int)j };
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
 			sf::RectangleShape &currCell = cells.back().back().rect;
 
@@ -649,7 +652,10 @@ void Grid::setWidth(int newWidth)
 
 	for (int i = 0; i < height; ++i)
 		if (isSmaller)
+		{
 			cells[i].erase(cells[i].begin() + newWidth, cells[i].end());
+			flowField[i].erase(flowField[i].begin() + newWidth, flowField[i].end());
+		}
 		else
 			for (int j = width; j < newWidth; ++j)
 			{
@@ -660,6 +666,9 @@ void Grid::setWidth(int newWidth)
 				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
 				cell.rect.setOutlineThickness(4.f);
 				cells[i].push_back(cell);
+
+				flowField[i].emplace_back();
+				flowField[i].back().position = { i, j };
 			}
 
 	width = newWidth;
@@ -672,11 +681,16 @@ void Grid::setHeight(int newHeight)
 	bool isSmaller = newHeight < height;
 
 	if (isSmaller)
+	{
 		cells.erase(cells.begin() + newHeight, cells.end());
+		flowField.erase(flowField.begin() + newHeight, flowField.end());
+	}
 	else
 		for (int i = height; i < newHeight; ++i)
 		{
 			cells.push_back(std::vector<Cell>());
+			flowField.push_back(std::vector<flowFieldCell>());
+
 			for (int j = 0; j < width; ++j)
 			{
 				Cell cell;
@@ -686,6 +700,9 @@ void Grid::setHeight(int newHeight)
 				cell.rect.setOutlineColor(colors.at("Floor_Outline"));
 				cell.rect.setOutlineThickness(4.f);
 				cells.back().push_back(cell);
+
+				flowField.back().emplace_back();
+				flowField.back().back().position = { i, j };
 			}
 		}
 
@@ -703,7 +720,7 @@ const std::vector<std::vector<Cell>> &Grid::getCells() const
 
 bool Grid::isWall(unsigned int row, unsigned int col) const
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
 	return cells[row][col].rect.getFillColor() == colors.at("Wall_Fill");
