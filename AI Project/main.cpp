@@ -40,6 +40,10 @@ Camera camera;
 bool isLMousePressed{ false }, isRMousePressed{ false };
 bool canExit = false;
 
+Vec2 target{};
+
+
+
 int main()
 {
     // Enable run-time memory check for debug builds.
@@ -65,6 +69,9 @@ int main()
     {
         dt = clock.restart().asSeconds();
         sf::Event event;
+
+        grid.updateHeatMap(target);
+        grid.generateFlowField();
 
         while (window.pollEvent(event))
         {
@@ -135,7 +142,7 @@ int main()
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
         {
             isRMousePressed = true;
-            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+            target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
             if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
             {
@@ -204,6 +211,7 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             view.move({ 1.f * CAM_MOVE, 0.f });
         //camera.calcOffset();
+
 
 #if 0
         // Start the ImGui frame

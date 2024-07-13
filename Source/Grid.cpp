@@ -321,7 +321,7 @@ void Grid::updateHeatMap(Vec2 target)
 				GridPos neighbourPos{ currCell.position.row + i, currCell.position.col + j };
 
 				// skip out of bound and wall cells
-				if (isOutOfBound(neighbourPos) || isWall(neighbourPos))
+				if (isOutOfBound(neighbourPos) || isWall(neighbourPos) && cells[neighbourPos.row][neighbourPos.col].visibility != UNEXPLORED)
 					continue;
 
 				// skip diagonal neighbors if there's an adjacent wall
@@ -329,7 +329,7 @@ void Grid::updateHeatMap(Vec2 target)
 				{
 					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
 					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
-					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) || isWall(adjacent2))
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) && cells[adjacent1.row][adjacent1.col].visibility != UNEXPLORED || isWall(adjacent2) && cells[adjacent2.row][adjacent2.col].visibility)
 						continue;
 				}
 
@@ -387,7 +387,7 @@ void Grid::generateFlowField()
 				continue;
 
 			// Skip walls
-			if (isWall(row, col))
+			if (isWall(row, col) && cells[row][col].visibility != UNEXPLORED)
 				continue;
 
 			
@@ -428,7 +428,7 @@ void Grid::generateFlowField()
 					// skip diagonal neighbors if there's an adjacent wall
 					if (i != 0 && j != 0)
 					{
-						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) || isWall(row, col + j))
+						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) && cells[row + i][col].visibility != UNEXPLORED || isWall(row, col + j) && cells[row][col + j].visibility != UNEXPLORED)
 						{
 							minimumMode = true;
 							continue;
@@ -436,7 +436,7 @@ void Grid::generateFlowField()
 					}
 
 					// if there is walls amongst neighbour
-					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					if (isWall(neighbourRow, neighbourCol) && cells[neighbourRow][neighbourCol].visibility != UNEXPLORED || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
 					{
 						minimumMode = true;
 						continue;
@@ -777,10 +777,8 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 				continue;
 
 			if (row == row0 && col == col0 || row == row1 && col == col1)
-			{
-				std::cout << "Should print twice\n";
 				continue;
-			}
+			
 			
 
 				
