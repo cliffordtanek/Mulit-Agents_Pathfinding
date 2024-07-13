@@ -14,8 +14,7 @@ void Entity::move()
 	if (!currSpeed)
 		return;
 
-	//if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
-	if (pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
+	if ((targetPos - pos).SquareLength() < (pos - (pos + dir * currSpeed * dt)).SquareLength())
 	{
 		std::cout << "Target found\n";
 		currSpeed = 0.f;
@@ -46,6 +45,8 @@ void Entity::move()
 
 	pos += dir * currSpeed * dt;
 }
+
+
 
 void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 {
@@ -183,7 +184,7 @@ void Factory::update()
 		for (const auto& [k, v] : map)
 			entityPosition.emplace_back(v->pos);
 
-	grid.updateVisibility(entityPosition, 150.f);
+	grid.updateVisibility(entityPosition, 200.f);
 #endif
 
 	grid.render(window);

@@ -50,7 +50,7 @@ int main()
     // initialize systems
     editor.init();
     factory.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 50.f, 50.f }, Vec2{ 50.f, 50.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 50.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
@@ -102,11 +102,19 @@ int main()
                     break;
 
                 case sf::Keyboard::N:
-                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 100.f });
+                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
                     break;
 
                 case sf::Keyboard::L:
                     grid.debugDrawRadius = !grid.debugDrawRadius;
+                    break;
+
+                case sf::Keyboard::K:
+                    grid.showHeatMap = !grid.showHeatMap;
+                    break;
+
+                case sf::Keyboard::J:
+                    grid.flowFieldArrow = !grid.flowFieldArrow;
                     break;
 
                 }
