@@ -89,14 +89,17 @@ void Grid::render(sf::RenderWindow& window)
 	{
 		for (int col{}; col < width; ++col)
 		{
-			// draw and skip walls
-			if (isWall(row, col))
+
+			Cell& currCell = cells[row][col];
+
+			// if cell is a wall but it has been explored before
+			if (isWall(row, col) && currCell.visibility != UNEXPLORED)
 			{
-				//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
-				//cells[row][col].rect.setPosition(oldPos + offset);
-				//window.draw(cells[row][col].rect);
-				//cells[row][col].rect.setPosition(oldPos);
 				camera.addCell(cells[row][col].rect);
+				
+				currCell.rect.setFillColor(colors.at("Wall").first);
+				currCell.rect.setOutlineColor(colors.at("Wall").second);
+
 				continue;
 			}
 
@@ -104,20 +107,20 @@ void Grid::render(sf::RenderWindow& window)
 			{
 			case UNEXPLORED:
 				// Black colour as unexplored colour
-				cells[row][col].rect.setFillColor(colors.at("Unexplored").first);
-				cells[row][col].rect.setOutlineColor(colors.at("Unexplored").second);
+				currCell.rect.setFillColor(colors.at("Unexplored").first);
+				currCell.rect.setOutlineColor(colors.at("Unexplored").second);
 				break;
 
 			case FOG:
 				// Grey colour as fog colour
-				cells[row][col].rect.setFillColor(colors.at("Fog").first);
-				cells[row][col].rect.setOutlineColor(colors.at("Fog").second);
+				currCell.rect.setFillColor(colors.at("Fog").first);
+				currCell.rect.setOutlineColor(colors.at("Fog").second);
 				break;
 
 			case VISIBLE:
 				// white colour as visible
-				cells[row][col].rect.setFillColor(colors.at("Visible").first);
-				cells[row][col].rect.setOutlineColor(colors.at("Visible").second);
+				currCell.rect.setFillColor(colors.at("Visible").first);
+				currCell.rect.setOutlineColor(colors.at("Visible").second);
 				break;
 			}
 
@@ -142,9 +145,9 @@ void Grid::render(sf::RenderWindow& window)
 				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
 
 				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
-				cells[row][col].rect.setFillColor(color);
+				currCell.rect.setFillColor(color);
 
-				window.draw(cells[row][col].rect);
+				window.draw(currCell.rect);
 		}
 			
 
@@ -164,7 +167,7 @@ void Grid::render(sf::RenderWindow& window)
 			sf::Text text;
 			text.setFont(font);
 			text.setCharacterSize(16);
-			text.setFillColor(colors.at("Floor_Fill"));
+			text.setFillColor(sf::Color::White);
 
 			std::ostringstream ss;
 
@@ -459,24 +462,6 @@ void Grid::generateFlowField()
 	}
 }
 
-void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
-{
-	if (isOutOfBound(row, col))
-		return;
-
-	cells[row][col].rect.setFillColor(color);
-}
-
-void Grid::setColor(Vec2 pos, const sf::Color& color)
-{
-	//pos -= camera.getOffset();
-	int row = static_cast<int>(pos.x / cellSize);
-	int col = static_cast<int>(pos.y / cellSize);
-	if (isOutOfBound(row, col))
-		return;
-
-	cells[row][col].rect.setFillColor(color);
-}
 
 void Grid::changeMap(const std::string& mapName)
 {
@@ -701,7 +686,22 @@ void Grid::setHeight(int newHeight)
 		}
 
 	height = newHeight;
-} 
+}
+
+void Grid::setWall(GridPos pos)
+{
+	setWall(pos.row, pos.col);
+}
+
+void Grid::setWall(int row, int col)
+{
+	if (isOutOfBound(row, col))
+		return;
+
+	cells[row][col].isWall = true;
+	SetColour(row, col, colors.at("Wall").first);
+}
+
 
 // ========
 // CHECKERS
@@ -718,6 +718,8 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 
 	// assuming wall colour is black
 	return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
+
+	//return cells[row][col].isWall;
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }

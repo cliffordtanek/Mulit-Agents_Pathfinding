@@ -114,3 +114,5 @@
 
 [13/07/2024 16:26:02] Program crashed at line 723 in Grid.cpp, reason: Row: "0" Col: "25" is out of bound because Width: "50" Height: "25"
 
+[13/07/2024 21:55:07] Program crashed at line 699 in Grid.cpp, reason: Row: "0" Col: "25" is out of bound because Height: "50" Width: "25"
+
