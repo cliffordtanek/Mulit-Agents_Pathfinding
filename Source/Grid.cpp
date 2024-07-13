@@ -8,7 +8,7 @@
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
-
+extern bool isDrawMode;
 
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
@@ -38,16 +38,17 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 
 
 
-Grid::Grid(int _width, int _height, float _cellSize)
-	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
+Grid::Grid(int _height, int _width, float _cellSize)
+	: height{ _height }, width{ _width }, cellSize { _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
 {
+
 	for (int row{}; row < height; ++row)
 	{
 		for (int col{}; col < width; ++col)
 		{
 			cells[row][col].rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
-			cells[row][col].rect.setPosition(row * cellSize, col * cellSize); // not col *, row *?
+			cells[row][col].rect.setPosition(col * cellSize, row * cellSize); // was row *, col *
 			cells[row][col].rect.setFillColor(colors.at("Floor").first);
 			cells[row][col].rect.setOutlineColor(colors.at("Floor").second);
 			cells[row][col].rect.setOutlineThickness(4.f);
@@ -444,7 +445,7 @@ void Grid::generateFlowField()
 					// if pointing directly to goal node
 					if (utl::isEqual(neighbourCell.distance, 0.f))
 					{
-						currCell.direction = Vec2((float)i, (float)j);
+						currCell.direction = Vec2((float)j, (float)i);
 						goalBreak = true;
 						minimumMode = false;
 						break;
@@ -460,7 +461,7 @@ void Grid::generateFlowField()
 
 					// GRADIENT MODE
 					// get final directional vector
-					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)i, (float)j);
+					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)j, (float)i);
 				}
 
 				if (goalBreak)
@@ -468,38 +469,38 @@ void Grid::generateFlowField()
 			}
 
 			if (minimumMode)
-				currCell.direction = Vec2((float)minDir.row, (float)minDir.col);
+				currCell.direction = Vec2((float)minDir.col, (float)minDir.row);
 			
 		}
 	}
 }
 
-
 void Grid::changeMap(const std::string& mapName)
 {
 	const std::vector<std::vector<std::string>>& indexCells = loader.getMap(mapName);
-	size_t newHeight = indexCells.size() ? indexCells[0].size() : 0;
+	size_t newWidth = indexCells.size() ? indexCells[0].size() : 0;
 	for (const std::vector<std::string>& row : indexCells)
-		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
+		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
-	width = (int)indexCells.size();
-	height = (int)newHeight;
+	height = (int)indexCells.size();
+	width = (int)newWidth;
 	cells = std::vector<std::vector<Cell>>();
 	flowField = std::vector<std::vector<flowFieldCell>>();
 
-	for (unsigned i = 0; i < (unsigned)width; ++i)
+	for (unsigned i = 0; i < (unsigned)height; ++i)
 	{
 		cells.push_back(std::vector<Cell>());
 		flowField.push_back(std::vector<flowFieldCell>());
 		
-		for (unsigned j = 0; j < (unsigned)height; ++j)
+		for (unsigned j = 0; j < (unsigned)width; ++j)
 		{
 			flowField.back().emplace_back();
 			flowField.back().back().position = { (int)i, (int)j };
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
 			sf::RectangleShape &currCell = cells.back().back().rect;
 
-			currCell.setPosition(i * cellSize, j * cellSize);
+			currCell.setOrigin(cellSize / 2.f, cellSize / 2.f);
+			currCell.setPosition(j * cellSize, i * cellSize);
 			currCell.setFillColor(colors.at(indexCells[i][j]).first); // guaranteed to not crash
 			currCell.setOutlineColor(colors.at(indexCells[i][j]).second);
 			currCell.setOutlineThickness(1.f);
@@ -543,8 +544,8 @@ Grid::GridPos Grid::getGridPos(float x, float y) const
 	x += 0.5f * cellSize;
 	y += 0.5f * cellSize;
 
-	int row = static_cast<int>(x / cellSize);
-	int col = static_cast<int>(y / cellSize);
+	int row = static_cast<int>(y / cellSize);
+	int col = static_cast<int>(x / cellSize);
 
 	return { row, col };
 }
@@ -557,7 +558,7 @@ Grid::GridPos Grid::getGridPos(Vec2 const& pos) const
 
 Vec2 Grid::getWorldPos(int row, int col) const
 {
-	return Vec2{ row * cellSize, col * cellSize };
+	return Vec2{ col * cellSize, row * cellSize };
 }
 
 
@@ -651,7 +652,7 @@ void Grid::setWidth(int newWidth)
 				Cell cell;
 				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
-				cell.rect.setPosition(i * cellSize, j * cellSize);
+				cell.rect.setPosition(j * cellSize, i * cellSize);
 				cell.rect.setFillColor(colors.at("Floor").first);
 				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
@@ -686,7 +687,7 @@ void Grid::setHeight(int newHeight)
 				Cell cell;
 				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
-				cell.rect.setPosition(i * cellSize, j * cellSize);
+				cell.rect.setPosition(j * cellSize, i * cellSize);
 				cell.rect.setFillColor(colors.at("Floor").first);
 				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
@@ -700,18 +701,18 @@ void Grid::setHeight(int newHeight)
 	height = newHeight;
 }
 
-void Grid::setWall(GridPos pos)
+void Grid::setWall(GridPos pos, bool _isWall)
 {
-	setWall(pos.row, pos.col);
+	setWall(pos.row, pos.col, _isWall);
 }
 
-void Grid::setWall(int row, int col)
+void Grid::setWall(int row, int col, bool _isWall)
 {
 	if (isOutOfBound(row, col))
 		return;
 
-	cells[row][col].isWall = true;
-	SetColour(row, col, colors.at("Wall").first);
+	cells[row][col].isWall = _isWall;
+	SetColour(row, col, _isWall ? colors.at("Wall").first : colors.at("Floor").first);
 }
 
 
@@ -784,6 +785,9 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 
 				
 
+			if ((row == row1 && col == col1) || (row == row0 && col == col0))
+				continue;
+
 			// convert minRow and minCol to vector 3D
 			Vec2 wallCenter = getWorldPos(row, col);
 
@@ -846,3 +850,9 @@ bool Grid::lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& l
 }
 
 Cell::Cell(Vec2 pos) : rect(pos) { }
+
+std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs)
+{
+	os << "{" << rhs.row << ", " << rhs.col << "}";
+	return os;
+}

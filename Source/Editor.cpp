@@ -13,6 +13,7 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
 extern bool canZoom;
+extern bool isDrawMode;
 
 // local globals for constant dropdown lists
 static std::vector<const char *> colorNames;
@@ -251,13 +252,14 @@ void MapEditor::onUpdate()
 	}
 	else
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
 		ImGui::Text("No map selected");
 		ImGui::PopStyleColor();
 	}
 
 	editor.addSpace(5);
 
+#if 0
 	static int colorIndex = INVALID;
 	const char *colorPreview = colorIndex == INVALID ? "" : colorNames[colorIndex];
 	int oldColorIndex = colorIndex;
@@ -282,8 +284,25 @@ void MapEditor::onUpdate()
 
 	if (oldColorIndex != colorIndex)
 		grid.setPenColour(colorNames[colorIndex]);
+#endif
 
-	int rowIndex = grid.getWidth() - 1, colIndex = grid.getHeight() - 1;
+	ImGui::Checkbox("Draw Mode", &isDrawMode);
+
+	if (isDrawMode)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+		ImGui::Text("Left click to draw wall");
+		ImGui::Text("Right click to erase wall");
+		ImGui::PopStyleColor();
+	}
+	else
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_BLUE);
+		ImGui::Text("Right click to set target position");
+		ImGui::PopStyleColor();
+	}
+
+	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
 
 	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))
@@ -323,9 +342,9 @@ void MapEditor::onUpdate()
 	}
 
 	if (rowIndex != oldRowIndex)
-		grid.setWidth(rowIndex + 1);
+		grid.setHeight(rowIndex + 1);
 	if (colIndex != oldColIndex)
-		grid.setHeight(colIndex + 1);
+		grid.setWidth(colIndex + 1);
 
 	ImGui::End();
 }
@@ -353,7 +372,7 @@ void SaveAsMapPopup::onUpdate()
 
 	if (loader.doesMapExist(buffer))
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
 		ImGui::Text("File already exists");
 		ImGui::PopStyleColor();
 	}

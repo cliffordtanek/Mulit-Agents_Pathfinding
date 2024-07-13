@@ -49,17 +49,17 @@ struct Cell
 	Cell(Vec2 pos);
 };
 
-
 class Grid
 {
 public:
 
 	// constructor
-	Grid(int _width, int _height, float _cellSize);
+	Grid(int _height, int _width, float _cellSize);
 
 
 	// data
 	struct GridPos { int row{}, col{}; };
+
 
 
 	// ============
@@ -138,14 +138,13 @@ public:
 	void SetColour(GridPos pos);
 	void setPenColour(const std::string &colourName);
 
+	void setWidth(int newWidth); // which is actually height (fixed)
 
-	void setWidth(int newWidth); // which is actually height
-
-	void setHeight(int newHeight); // which is actually width
+	void setHeight(int newHeight); // which is actually width (fixed)
 
 
-	void setWall(GridPos pos);
-	void setWall(int row, int col);
+	void setWall(GridPos pos, bool _isWall);
+	void setWall(int row, int col, bool _isWall);
 
 	// ========
 	// Checkers
@@ -172,7 +171,7 @@ private:
 		bool visited{ false };
 	};
 
-	int width, height;	// width and height of the grid
+	int height, width;	// width and height of the grid
 	float cellSize;		// single cell width/ height
 	std::string penColour = "";
 
@@ -183,5 +182,7 @@ private:
 
 	std::vector<sf::CircleShape> debugRadius;
 };
+
+std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs);
 
 #endif // GRID_H
