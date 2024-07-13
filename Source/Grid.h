@@ -25,22 +25,6 @@ written consent of DigiPen Institute of Technology is prohibited.
 
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
-//const std::unordered_map<std::string, sf::Color> colors
-//{
-//	{ "Debug_Radius_Fill", sf::Color::Transparent },
-//	{ "Debug_Radius_Outline", sf::Color::Red },
-//	{ "Floor_Fill", sf::Color::White },
-//	{ "Floor_Outline", sf::Color(20, 20, 20) },
-//	{ "Wall_Fill", sf::Color::Black },
-//	{ "Unexplored_Fill", sf::Color(30, 30, 30) },
-//	{ "Unexplored_Outline", sf::Color(20, 20, 20) },
-//	{ "Fog_Fill", sf::Color(95, 95, 95) },
-//	{ "Fog_Outline", sf::Color(110, 110, 110) },
-//	{ "Visible_Fill", sf::Color(140, 140, 140) },
-//	{ "Visible_Outline", sf::Color(160, 160, 160) },
-//	{ "Translucent", sf::Color(128, 128, 128, 128) },
-//	{ "Background", sf::Color(0, 60, 80) }
-//};
 
 const std::unordered_map<std::string, std::pair<sf::Color, sf::Color>> colors // first = fill, second = outline
 {
@@ -58,6 +42,8 @@ struct Cell
 {
 	sf::RectangleShape rect{};				// rectangle tile 
 	Visibility visibility{ UNEXPLORED };	// visibility enum
+
+	bool isWall{false};
 
 	Cell() = default;
 	Cell(Vec2 pos);
@@ -155,6 +141,10 @@ public:
 	void setWidth(int newWidth); // which is actually height (fixed)
 
 	void setHeight(int newHeight); // which is actually width (fixed)
+
+
+	void setWall(GridPos pos);
+	void setWall(int row, int col);
 
 	// ========
 	// Checkers
