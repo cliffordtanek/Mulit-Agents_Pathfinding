@@ -130,6 +130,7 @@ int main()
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
         {
             Vec2 target = window.mapPixelToCoords({ event.mouseButton.x, event.mouseButton.y });
+            PRINT(target);
 
             if (!grid.isWall(grid.getGridPos(target)))
             {

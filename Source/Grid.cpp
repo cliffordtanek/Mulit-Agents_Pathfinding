@@ -89,19 +89,31 @@ void Grid::render(sf::RenderWindow& window)
 	{
 		for (int col{}; col < width; ++col)
 		{
-
 			Cell& currCell = cells[row][col];
 
 			// if cell is a wall but it has been explored before
-			if (isWall(row, col) && currCell.visibility != UNEXPLORED)
+			if (isWall(row, col))
 			{
-				camera.addCell(cells[row][col].rect);
-				
-				currCell.rect.setFillColor(colors.at("Wall").first);
-				currCell.rect.setOutlineColor(colors.at("Wall").second);
+				if (currCell.visibility != UNEXPLORED)
+				{
+					//std::cout << "RENDERING EXPLORED WALLS\n";
+					currCell.rect.setFillColor(colors.at("Wall").first);
+					currCell.rect.setOutlineColor(colors.at("Wall").second);
+				}
+
+				else // Unexplored
+				{
+					//std::cout << "RENDERING UNEXPLORED WALLS\n";
+					currCell.rect.setFillColor(colors.at("Unexplored").first);
+					currCell.rect.setOutlineColor(colors.at("Unexplored").second);
+				}
+
+				camera.addCell(currCell.rect);
+				window.draw(currCell.rect);
 
 				continue;
 			}
+
 
 			switch (cells[row][col].visibility)
 			{
@@ -124,12 +136,7 @@ void Grid::render(sf::RenderWindow& window)
 				break;
 			}
 
-			//sf::Vector2f oldPos = cells[row][col].rect.getPosition();
-			//cells[row][col].rect.setPosition(oldPos + offset);
-			//window.draw(cells[row][col].rect);
-			//cells[row][col].rect.setPosition(oldPos);
-			//camera.addRectangle(cells[row][col].rect);
-			camera.addCell(cells[row][col].rect);
+			camera.addCell(currCell.rect);
 
 
 			if (showHeatMap)
@@ -228,8 +235,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
-				if (isWall(r, c))
-					continue;
+				//if (isWall(r, c))
+				//	continue;
 
 				// get distance of pos to cell (startRow, startCol)
 
@@ -242,9 +249,14 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 				{
 					if (!isClearPath(gridpos, GridPos{ r, c }))
 						continue;
+
 					cells[r][c].visibility = VISIBLE;
-					cells[r][c].rect.setFillColor(colors.at("Visible").first);
-					cells[r][c].rect.setOutlineColor(colors.at("Visible").second);
+
+					if (!isWall(r, c))
+					{
+						cells[r][c].rect.setFillColor(colors.at("Visible").first);
+						cells[r][c].rect.setOutlineColor(colors.at("Visible").second);
+					}
 				}
 			}
 		}
@@ -609,6 +621,10 @@ void Grid::SetColour(int row, int col)
 		return;
 	SetColour(row, col, colors.at(penColour).first);
 	SetOutlineColour(row, col, colors.at(penColour).second);
+
+	std::cout << "DRAWING " << penColour.c_str() << '\n';
+	//! TEMP
+	cells[row][col].isWall = true;
 }
 
 void Grid::SetColour(GridPos pos) 
@@ -717,9 +733,9 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
-	return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
+	//return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
 
-	//return cells[row][col].isWall;
+	return cells[row][col].isWall;
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }
@@ -735,8 +751,8 @@ bool Grid::isOutOfBound(GridPos pos) const { return isOutOfBound(pos.row, pos.co
 
 bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 {
-	if (isWall(row0, col0) || isWall(row1, col1))
-		return false;
+	//if (isWall(row0, col0) || isWall(row1, col1))
+	//	return false;
 
 	// convert row0 and col0 to vectors 2D
 	Vec2 p0 = getWorldPos(row0, col0);
@@ -763,10 +779,17 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 			if (!isWall(row, col))
 				continue;
 
+			if (row == row0 && col == col0 || row == row1 && col == col1)
+			{
+				std::cout << "Should print twice\n";
+				continue;
+			}
+			
+
+				
+
 			// convert minRow and minCol to vector 3D
 			Vec2 wallCenter = getWorldPos(row, col);
-			//wallCenter.x += 0.5f * cellSize;
-			//wallCenter.y += 0.5f * cellSize;
 
 			// get points of diagonal
 			Vec2 l1p0 = { wallCenter.x - halfGridWidth, wallCenter.y + halfGridWidth };
