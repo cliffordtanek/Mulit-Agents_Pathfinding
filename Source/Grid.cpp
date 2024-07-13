@@ -465,9 +465,9 @@ void Grid::generateFlowField()
 
 void Grid::changeMap(const std::string& mapName)
 {
-	const std::vector<std::vector<std::string>>& indexCells = loader.getMap(mapName);
+	const std::vector<std::vector<bool>>& indexCells = loader.getMap(mapName);
 	size_t newWidth = indexCells.size() ? indexCells[0].size() : 0;
-	for (const std::vector<std::string>& row : indexCells)
+	for (const std::vector<bool>& row : indexCells)
 		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
 	height = (int)indexCells.size();
@@ -485,12 +485,13 @@ void Grid::changeMap(const std::string& mapName)
 			flowField.back().emplace_back();
 			flowField.back().back().position = { (int)i, (int)j };
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
+			cells.back().back().isWall = indexCells[i][j];
 			sf::RectangleShape &currCell = cells.back().back().rect;
 
 			currCell.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			currCell.setPosition(j * cellSize, i * cellSize);
-			currCell.setFillColor(colors.at(indexCells[i][j]).first); // guaranteed to not crash
-			currCell.setOutlineColor(colors.at(indexCells[i][j]).second);
+			currCell.setFillColor(indexCells[i][j] ? colors.at("Wall").first : colors.at("Floor").first); 
+			currCell.setOutlineColor(indexCells[i][j] ? colors.at("Wall").second : colors.at("Floor").second);
 			currCell.setOutlineThickness(1.f);
 		}
 	}
@@ -501,6 +502,7 @@ void Grid::clearMap()
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
 		{
+			cell.isWall = false;
 			cell.rect.setFillColor(colors.at("Floor").first);
 			cell.rect.setFillColor(colors.at("Floor").second);
 		}
