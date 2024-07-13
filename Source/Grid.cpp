@@ -47,7 +47,7 @@ Grid::Grid(int _width, int _height, float _cellSize)
 		{
 			cells[row][col].rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
-			cells[row][col].rect.setPosition(row * cellSize, col * cellSize);
+			cells[row][col].rect.setPosition(row * cellSize, col * cellSize); // not col *, row *?
 			cells[row][col].rect.setFillColor(colors.at("Floor").first);
 			cells[row][col].rect.setOutlineColor(colors.at("Floor").second);
 			cells[row][col].rect.setOutlineThickness(4.f);

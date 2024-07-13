@@ -30,7 +30,7 @@ sf::View minimap(mapSize / 2.f, mapSize);
 int cellSize = 100;
 Editor editor;
 Factory factory;
-Grid grid(50, 25, cellSize); // this is height x width not width x height omg
+Grid grid(25, 50, cellSize); // this is height x width not width x height omg
 Loader loader;
 Camera camera;
 
@@ -221,11 +221,12 @@ int main()
 
         int width = grid.getHeight();
         int height = grid.getWidth();
-        bool isWidthLonger = width > height; // height and width are flipped in grid object
-        float gridLength = std::max(height, width) * cellSize;
+        bool isWidthLonger = width * 1.f > height * ratio; // height and width are flipped in grid object
+        float gridLength = std::max(height * ratio, width * 1.f) * cellSize;
 
-        mapSize = { isWidthLonger ? gridLength : gridLength * ratio, 
-            isWidthLonger ? gridLength / ratio : gridLength };
+        //mapSize = { isWidthLonger ? gridLength : gridLength * ratio, 
+            //isWidthLonger ? gridLength / ratio : gridLength };
+        mapSize = { gridLength, gridLength / ratio };
         minimapOffset = { (mapSize.x - width * cellSize) / 2.f, (mapSize.y - height * cellSize) / 2.f };
         minimap.setCenter(mapSize / 2.f);
         minimap.setSize(mapSize);
@@ -238,7 +239,7 @@ int main()
 
         window.setView(minimap);
         sf::RectangleShape rectangle;
-        float stroke = 25.f;
+        float stroke = 20.f;
 
         rectangle.setSize(mapSize);
         rectangle.setFillColor(colors.at("Background").first);
