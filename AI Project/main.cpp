@@ -75,6 +75,10 @@ int main()
         {
             grid.updateHeatMap(grid.getWorldPos(grid.exitCell->position));
             grid.generateFlowField();
+
+            // set all enemy to the target
+            for (Enemy* enemy : factory.getEntities<Enemy>())
+                enemy->setTargetPos(grid.getWorldPos(grid.exitCell->position), true);
         }
         else
         {
@@ -147,7 +151,7 @@ int main()
                     grid.showPotentialField = !grid.showPotentialField;
                     break;
                 case sf::Keyboard::I:
-                    grid.generatePotentialField();
+                    grid.generateRandomGoal();
                     break;
                 case sf::Keyboard::H:
 
@@ -177,7 +181,7 @@ int main()
         }
 
 
-        grid.updatePotentialField();
+        //grid.updatePotentialField();
         //auto const& tmp = grid.getNextMove(enemy->pos);
         //enemy->setTargetPos(vec2(tmp.position.col, tmp.position.row), true);
 

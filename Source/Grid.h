@@ -87,8 +87,7 @@ public:
 	void render(sf::RenderWindow& window);
 
 	//! update visibility of map based on radius
-	void updateVisibility(std::vector<Vec2> const& pos, float radius);
-
+	void updateVisibility(std::vector<std::pair<Vec2, Vec2>> const& entities, float fovRadius, float fovAngleDegrees, float visionCircleRadius);
 	//! update heat map based on target position
 	void updateHeatMap(Vec2 target);
 
@@ -107,7 +106,7 @@ public:
 
 	// potential field methods
 	struct potentialFieldCell;
-	void generatePotentialField();
+	void generateRandomGoal();
 	void updatePotentialField();
 	potentialFieldCell getNextMove(vec2 pos);
 
@@ -210,7 +209,7 @@ private:
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
 
-	std::vector<sf::CircleShape> debugRadius;
+	std::vector<std::unique_ptr<sf::Drawable>> debugRadius;
 };
 
 std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs);
