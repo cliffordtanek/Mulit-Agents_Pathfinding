@@ -35,7 +35,8 @@ const std::unordered_map<std::string, std::pair<sf::Color, sf::Color>> colors //
 	{ "Fog", { sf::Color(95, 95, 95), sf::Color(110, 110, 110) } },
 	{ "Visible", { sf::Color(140, 140, 140), sf::Color(160, 160, 160) } },
 	{ "Translucent", { sf::Color(128, 128, 128, 128), sf::Color::Transparent } },
-	{ "Background", { sf::Color(0, 60, 80), sf::Color::Transparent } }
+	{ "Background", { sf::Color(0, 60, 80), sf::Color::Transparent } },
+	{ "Highlight", { sf::Color(0, 180, 210), sf::Color(180, 210, 0) } }
 };
 
 struct Cell
@@ -44,6 +45,9 @@ struct Cell
 	Visibility visibility{ UNEXPLORED };	// visibility enum
 
 	bool isWall{false};
+
+	float intensity = 0.f; // fade white out after clicking
+	bool isHighlighted = false; // highlight border when moused over
 
 	Cell() = default;
 	Cell(Vec2 pos);
@@ -137,6 +141,9 @@ public:
 	void SetColour(int row, int col);
 	void SetColour(GridPos pos);
 	void setPenColour(const std::string &colourName);
+
+	void setHighlight(GridPos pos);
+	void setIntensity(GridPos pos, float _intensity = 0.5f);
 
 	void setWidth(int newWidth); // which is actually height (fixed)
 

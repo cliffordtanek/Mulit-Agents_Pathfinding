@@ -112,18 +112,6 @@ int main()
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
                     break;
 
-                case sf::Keyboard::L:
-                    grid.debugDrawRadius = !grid.debugDrawRadius;
-                    break;
-
-                case sf::Keyboard::K:
-                    grid.showHeatMap = !grid.showHeatMap;
-                    break;
-
-                case sf::Keyboard::J:
-                    grid.flowFieldArrow = !grid.flowFieldArrow;
-                    break;
-
                 }
                 break;
             }
@@ -139,6 +127,7 @@ int main()
 
             if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
             {
+                grid.setIntensity(grid.getGridPos(target));
                 grid.updateHeatMap(target);
                 grid.generateFlowField();
 
@@ -194,6 +183,10 @@ int main()
         }
 
         }
+
+        //Vec2 mousePos = window.mapPixelToCoords(sf::Mouse::getPosition());
+        //if (!grid.isOutOfBound(grid.getGridPos(mousePos)))
+        //    grid.setHighlight(grid.getGridPos(mousePos));
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             view.move({ 0.f, -1.f * CAM_MOVE });

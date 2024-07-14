@@ -9,7 +9,7 @@ extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
 extern bool isDrawMode;
-
+extern float dt;
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
@@ -109,8 +109,23 @@ void Grid::render(sf::RenderWindow& window)
 					currCell.rect.setOutlineColor(colors.at("Unexplored").second);
 				}
 
+				if (currCell.isHighlighted)
+				{
+					currCell.rect.setOutlineColor(colors.at("Highlight").second);
+					currCell.isHighlighted = false;
+				}
+
+				if (currCell.intensity > 0.f)
+				{
+					sf::Color color = currCell.rect.getFillColor();
+					sf::Color hlColor = colors.at("Highlight").first;
+					currCell.rect.setFillColor({ (sf::Uint8)((float)color.r + (float)hlColor.r *
+						currCell.intensity), (sf::Uint8)((float)color.g + (float)hlColor.g * currCell.intensity),
+						(sf::Uint8)((float)color.b + (float)hlColor.b * currCell.intensity) });
+					currCell.intensity -= 0.5f * dt;
+				}
+
 				camera.addCell(currCell.rect);
-				window.draw(currCell.rect);
 
 				continue;
 			}
@@ -137,8 +152,23 @@ void Grid::render(sf::RenderWindow& window)
 				break;
 			}
 
-			camera.addCell(currCell.rect);
+			if (currCell.isHighlighted)
+			{
+				currCell.rect.setOutlineColor(colors.at("Highlight").second);
+				currCell.isHighlighted = false;
+			}
 
+			if (currCell.intensity > 0.f)
+			{
+				sf::Color color = currCell.rect.getFillColor();
+				sf::Color hlColor = colors.at("Highlight").first;
+				currCell.rect.setFillColor({ (sf::Uint8)((float)color.r + (float)hlColor.r *
+					currCell.intensity), (sf::Uint8)((float)color.g + (float)hlColor.g * currCell.intensity),
+					(sf::Uint8)((float)color.b + (float)hlColor.b * currCell.intensity) });
+				currCell.intensity -= 0.5f * dt;
+			}
+
+			camera.addCell(currCell.rect);
 
 			if (showHeatMap)
 			{
@@ -635,6 +665,20 @@ void Grid::SetColour(GridPos pos)
 }
 
 void Grid::setPenColour(const std::string &colourName) { penColour = colourName; }
+
+void Grid::setHighlight(GridPos pos)
+{
+	if (isOutOfBound(pos))
+		return;
+	cells[pos.row][pos.col].isHighlighted = true;
+}
+
+void Grid::setIntensity(GridPos pos, float _intensity)
+{
+	if (isOutOfBound(pos))
+		return;
+	cells[pos.row][pos.col].intensity = _intensity;
+}
 
 void Grid::setWidth(int newWidth)
 {
