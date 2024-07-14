@@ -10,7 +10,7 @@ extern Camera camera;
 extern float dt;
 
 
-#define TRANSITION_DURATION 0.5f // Total time to change direction 
+#define TRANSITION_DURATION 1.f // Total time to change direction 
 
 
 void Entity::move()
@@ -41,25 +41,33 @@ void Entity::move()
 	// get new direction base on cell
 	vec2 newDir = grid.getFlowFieldDir(row, col);
 
-
 	if (newDir == Vec2{ 0.f, 0.f })
 		newDir = targetPos - pos;
 	
-
 	newDir = newDir.Normalize();
 
-	if (dir != newDir) 
+	// initial
+	if (targetDir == Vec2{ 0.f, 0.f })
+		targetDir = newDir;
+
+
+	if (dir != targetDir) 
 	{
 		if (transitionTime < TRANSITION_DURATION) 
 		{
 			transitionTime += dt;
-			dir = Lerp(dir, newDir, transitionTime, TRANSITION_DURATION).Normalize();
+			dir = Lerp(dir, targetDir, transitionTime, TRANSITION_DURATION).Normalize();
 		}
 		else
 		{
-			dir = newDir;
+			dir = targetDir;
 			transitionTime = 0.f; // Reset for the next transition
+			targetDir = newDir;
 		}
+	}
+	else
+	{
+		targetDir = newDir;
 	}
 
 	pos += dir * currSpeed * dt;
