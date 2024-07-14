@@ -38,9 +38,9 @@ public:
 	std::list<Arrow *> wpArrows;
 
 	Entity(Vec2 _pos = Vec2(), 
-		Vec2 _scale = Vec2(), 
+		Vec2 _scale = { 50.f, 50.f },
 		Vec2 _dir = Vec2(), 
-		Shape _shape = NONE,
+		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Green,
 		float _speed = 500.f)
 
@@ -69,7 +69,7 @@ public:
 	float damage;
 
 	Ally(Vec2 _pos = Vec2(),
-		Vec2 _scale = Vec2(),
+		Vec2 _scale = { 50.f, 50.f },
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Red,
@@ -94,7 +94,7 @@ public:
 	float damage;
 
 	Enemy(Vec2 _pos = Vec2(),
-		Vec2 _scale = Vec2(),
+		Vec2 _scale = { 30.f, 50.f },
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Blue,
@@ -119,7 +119,7 @@ public:
 	float stroke;
 
 	Arrow(Vec2 _pos = Vec2(),
-		Vec2 _scale = Vec2(),
+		Vec2 _scale = { 50.f, 50.f },
 		Vec2 _dir = Vec2(),
 		Shape _shape = NONE,
 		const sf::Color &_color = sf::Color::Blue,
@@ -139,6 +139,7 @@ public:
 class Factory
 {
 	std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> entities;
+	std::string entityPen;
 
 	template <typename T>
 	std::string checkType()
@@ -159,6 +160,8 @@ public:
 	void free();
 
 	const std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> &getAllEntities();
+	void setEntityPen(const std::string &type);
+	Enemy *cloneEnemyAt(Vec2 pos);
 
 	template <typename T>
 	std::vector<T *> getEntities()
@@ -175,6 +178,17 @@ public:
 	{
 		std::string type = checkType<T>();
 		T *newEntity = new T(std::forward<Args>(args)...);
+		entities.at(type)[newEntity] = newEntity;
+		return newEntity;
+	}
+
+	template <typename ...Args>
+	Entity *createEntity(const std::string &type, Args... args)
+	{
+		if (!entities.count(type))
+			return nullptr;
+
+		Entity *newEntity = new Entity(std::forward<Args>(args)...);
 		entities.at(type)[newEntity] = newEntity;
 		return newEntity;
 	}

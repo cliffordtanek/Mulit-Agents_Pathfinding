@@ -44,6 +44,18 @@ void Entity::move()
 	dir = dir.Normalize();
 
 	pos += dir * currSpeed * dt;
+
+	// collision with wall
+	float wallRadius = std::sqrtf(std::powf(grid.getCellSize(), 2.f) * 2.f) / 2.f;
+	float entityRadius = std::sqrtf(std::powf(scale.x / 2.f, 2.f) + std::powf(scale.y / 2.f, 2.f));
+
+	for (Cell *wall : grid.getNeighborWalls(grid.getGridPos(pos)))
+	{
+		Vec2 wallPos = grid.getWorldPos(wall->pos);
+		float overlap = wallRadius + entityRadius - wallPos.Distance(pos);
+		if (overlap > 0.f)
+			pos += (pos - wallPos).Normalize() * overlap / 2.f;
+	}
 }
 
 
@@ -208,4 +220,18 @@ void Factory::free()
 const std::unordered_map<std::string, std::unordered_map<Entity*, Entity*>>& Factory::getAllEntities()
 {
 	return entities;
+}
+
+void Factory::setEntityPen(const std::string &type)
+{
+	entityPen = type;
+}
+
+Enemy *Factory::cloneEnemyAt(Vec2 pos)
+{
+	//if (!entities.count(entityPen))
+	//	return nullptr;
+	if (grid.isOutOfBound(grid.getGridPos(pos)))
+		return nullptr;
+	return createEntity<Enemy>(pos);
 }

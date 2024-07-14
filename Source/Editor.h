@@ -49,11 +49,11 @@ public:
 	void onExit() override;
 };
 
-class MapEditor : public Window
+class MapMaker : public Window
 {
 public:
 
-	MapEditor(const std::string &_name = "", bool _canBeOpened = true) : Window(_name, _canBeOpened) { };
+	MapMaker(const std::string &_name = "", bool _canBeOpened = true) : Window(_name, _canBeOpened) { };
 
 	void onEnter() override;
 	void onUpdate() override;
@@ -74,6 +74,17 @@ public:
 	void onExit() override;
 
 	void initMode(bool _isSaveAsMode, const char *_oldName);
+};
+
+class ControlPanel : public Window
+{
+public:
+
+	ControlPanel(const std::string &_name = "", bool _canBeOpened = true) : Window(_name, _canBeOpened) { };
+
+	void onEnter() override;
+	void onUpdate() override;
+	void onExit() override;
 };
 
 class Editor

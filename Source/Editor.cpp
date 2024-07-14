@@ -13,12 +13,16 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
 extern bool canZoom;
-extern bool isDrawMode;
+//extern bool isDrawMode;
+extern DrawMode mode;
+extern int tunnelSize;
+extern int wallSize;
 
 // local globals for constant dropdown lists
-static std::vector<const char *> colorNames;
-static std::vector<std::string> rowNums; // rows or cols
-static std::vector<const char *>rowNames;
+std::vector<const char *> colorNames;
+std::vector<std::string> rowNums; // rows or cols
+std::vector<const char *>rowNames;
+//std::vector<std::string> entityTypes;
 
 Window::~Window()
 {
@@ -105,6 +109,7 @@ void Inspector::onUpdate()
 	Window::onUpdate();
 
 	ImGui::Begin(name.c_str(), &isOpen);
+	int count = 0;
 	
 	for (const auto &[type, entities] : factory.getAllEntities())
 	{
@@ -112,29 +117,35 @@ void Inspector::onUpdate()
 
 		for (const auto &[entityPtr, entity] : entities)
 		{
-			if (ImGui::CollapsingHeader(utl::ptrToStr(entity).c_str()))
+			if (ImGui::CollapsingHeader(("Entity " + std::to_string(++count)).c_str()))
 			{
 				// pos
 				Vec2 mapSize = { grid.getWidth() * grid.getCellSize(), grid.getHeight() * grid.getCellSize() };
-				ImGui::SliderFloat("X Position", &entity->pos.x, 0.f, mapSize.x);
-				ImGui::SliderFloat("Y Position", &entity->pos.y, 0.f, mapSize.y);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] X Position").c_str(), 
+					&entity->pos.x, 0.f, mapSize.x);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] Y Position").c_str(),
+					&entity->pos.y, 0.f, mapSize.y);
 
 				// dir
-				ImGui::SliderFloat("X Direction", &entity->dir.x, -1.f, 1.f);
-				ImGui::SliderFloat("Y Direction", &entity->dir.y, -1.f, 1.f);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] X Direction").c_str(), 
+					&entity->dir.x, -1.f, 1.f);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] Y Direction").c_str(),
+					&entity->dir.y, -1.f, 1.f);
 
 				// color
 				float color[4] = { entity->color.r / 256.f, entity->color.g / 256.f, entity->color.b / 256.f,
 				entity->color.a / 256.f };
-				ImGui::ColorEdit4("Color", color);
+				ImGui::ColorEdit4(("[" + std::to_string(count) + "] Colour").c_str(), color);
 				entity->color.r = (sf::Uint8)(color[0] * 256.f);
 				entity->color.g = (sf::Uint8)(color[1] * 256.f);
 				entity->color.b = (sf::Uint8)(color[2] * 256.f);
 				entity->color.a = (sf::Uint8)(color[3] * 256.f);
 
 				// scale
-				ImGui::SliderFloat("X Scale", &entity->scale.x, 0.f, mapSize.x);
-				ImGui::SliderFloat("Y Scale", &entity->scale.y, 0.f, mapSize.y);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] X Scale").c_str(), 
+					&entity->scale.x, 0.f, mapSize.x);
+				ImGui::SliderFloat(("[" + std::to_string(count) + "] Y Scale").c_str(), 
+					&entity->scale.y, 0.f, mapSize.y);
 
 				// speed
 				ImGui::SliderFloat("Speed", &entity->speed, 0.f, 1000.f);
@@ -144,7 +155,7 @@ void Inspector::onUpdate()
 				const char *shapes[] = { "None", "Circle", "Triangle", "Rectangle" };
 				const char *preview = shapes[shapeIndex];
 
-				if (ImGui::BeginCombo("Shape", preview))
+				if (ImGui::BeginCombo(("[" + std::to_string(count) + "] Shape").c_str(), preview))
 				{
 					canZoom = false;
 
@@ -177,12 +188,12 @@ void Inspector::onExit()
 	Window::onExit();
 }
 
-void MapEditor::onEnter()
+void MapMaker::onEnter()
 {
 	Window::onEnter();
 }
 
-void MapEditor::onUpdate()
+void MapMaker::onUpdate()
 {
 	if (!isOpen)
 		return;
@@ -286,22 +297,45 @@ void MapEditor::onUpdate()
 		grid.setPenColour(colorNames[colorIndex]);
 #endif
 
-	ImGui::Checkbox("Draw Mode", &isDrawMode);
+	static std::vector<char const *> modeNames{ "None", "Wall", "Entity" };
 
-	if (isDrawMode)
+	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+		canZoom = false;
+
+			for (int i = 0; i < modeNames.size(); ++i)
+			{
+				const bool isSelected = static_cast<int>(mode) == i;
+					if (ImGui::Selectable(modeNames[i], isSelected))
+						mode = static_cast<DrawMode>(i);
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+			}
+
+		ImGui::EndCombo();
+	}
+
+	ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+
+	switch (mode)
+	{
+	case DrawMode::WALL:
 		ImGui::Text("Left click to draw wall");
 		ImGui::Text("Right click to erase wall");
-		ImGui::PopStyleColor();
-	}
-	else
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_BLUE);
-		ImGui::Text("Right click to set target position");
-		ImGui::PopStyleColor();
+		break;
+
+	case DrawMode::ENTITY:
+		ImGui::Text("Left click to spawn Enemy");
+		ImGui::Text("Right click to despawn Enemy");
+		break;
+
+	default:
+		break;
 	}
 
+	ImGui::PopStyleColor();
 	editor.addSpace(5);
 	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
@@ -347,10 +381,17 @@ void MapEditor::onUpdate()
 	if (colIndex != oldColIndex)
 		grid.setWidth(colIndex + 1);
 
+	editor.addSpace(5);
+
+	ImGui::SliderInt("Wall + Tunnel Width", &wallSize, 1, 10);
+	ImGui::SliderInt("Tunnel Width", &tunnelSize, 1, 10);
+	if (ImGui::Button("Generate Map"))
+		grid.generateMap();
+
 	ImGui::End();
 }
 
-void MapEditor::onExit()
+void MapMaker::onExit()
 {
 	Window::onExit();
 }
@@ -404,6 +445,31 @@ void SaveAsMapPopup::initMode(bool _isSaveAsMode, const char *_oldName)
 	oldName = _oldName;
 }
 
+void ControlPanel::onEnter()
+{
+	Window::onEnter();
+}
+
+void ControlPanel::onUpdate()
+{
+	if (!isOpen)
+		return;
+	Window::onUpdate();
+
+	ImGui::Begin(name.c_str(), &isOpen);
+
+	ImGui::Checkbox("Draw vision radius", &grid.debugDrawRadius);
+	ImGui::Checkbox("Draw heat map", &grid.showHeatMap);
+	ImGui::Checkbox("Draw flow field arrows", &grid.flowFieldArrow);
+
+	ImGui::End();
+}
+
+void ControlPanel::onExit()
+{
+	Window::onExit();
+}
+
 void Editor::init()
 {
 	// Initialize ImGui-SFML
@@ -417,14 +483,18 @@ void Editor::init()
 
 	addWindow<MainMenu>(true, false);
 	addWindow<Inspector>(true, true);
-	addWindow<MapEditor>(true, true);
+	addWindow<MapMaker>(true, true);
 	addWindow<SaveAsMapPopup>(false, false);
+	addWindow<ControlPanel>(true, true);
 
 	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
 		{ return elem.first.c_str(); });
 	std::generate_n(std::back_inserter(rowNums), 100, [n = 0]() mutable { return std::to_string(++n); });
 	std::transform(rowNums.begin(), rowNums.end(), std::back_inserter(rowNames),
 		[](const auto &elem) { return elem.c_str(); });
+	auto entities = factory.getAllEntities();
+	//std::transform(entities.begin(), entities.end(), std::back_inserter(entityTypes),
+		//[](const auto &elem) { return elem.first; });
 }
 
 void Editor::update()
