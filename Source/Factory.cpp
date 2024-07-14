@@ -6,7 +6,7 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern Factory factory;
 extern Grid grid;
-//extern Camera camera;
+extern Camera camera;
 extern float dt;
 
 void Entity::move()
@@ -61,10 +61,18 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 	/*targetPos.x += grid.getCellSize() * 0.5f;
 	targetPos.y += grid.getCellSize() * 0.5f;*/
 
+
+	auto [row, col] = grid.getGridPos(pos);
+
+	if (grid.getFlowFieldDir(row, col) == Vec2{ 0.f, 0.f })
+		return;
+
+
 	//targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	targetPos = _targetPos;
 	currSpeed = speed;
 
+	
 	//dir = dir.Normalize();
 }
 
@@ -112,7 +120,7 @@ void Entity::onUpdate()
 		circle.setRadius(scale.x / 2.f);
 		circle.setPosition(pos - Vec2{ scale.x / 2.f, scale.x / 2.f });
 		circle.setFillColor(color);
-		window.draw(circle);
+		camera.addCircle(circle);
 		break;
 	}
 
@@ -127,7 +135,7 @@ void Entity::onUpdate()
 		triangle.setRotation(rot);
 		triangle.setPosition(pos);
 		triangle.setFillColor(color);
-		window.draw(triangle);
+		camera.addTriangle(triangle);
 		break;
 	}
 
@@ -139,7 +147,7 @@ void Entity::onUpdate()
 		rectangle.setRotation(rot);
 		rectangle.setPosition(pos);
 		rectangle.setFillColor(color);
-		window.draw(rectangle);
+		camera.addRectangle(rectangle);
 		break;
 	}
 
@@ -184,7 +192,7 @@ void Factory::update()
 		for (const auto& [k, v] : map)
 			entityPosition.emplace_back(v->pos);
 
-	grid.updateVisibility(entityPosition, 200.f);
+	grid.updateVisibility(entityPosition, 750.f);
 #endif
 
 	grid.render(window);

@@ -12,6 +12,13 @@ extern Loader loader;
 extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
+extern bool canZoom;
+extern bool isDrawMode;
+
+// local globals for constant dropdown lists
+static std::vector<const char *> colorNames;
+static std::vector<std::string> rowNums; // rows or cols
+static std::vector<const char *>rowNames;
 
 Window::~Window()
 {
@@ -69,7 +76,7 @@ void MainMenu::onUpdate()
 		return;
 	Window::onUpdate();
 
-	ImGui::Begin(name.c_str(), &isOpen);
+	ImGui::Begin(name.c_str());
 
 	ImGui::Text("FPS: %.2f", 1.f / dt);
 	editor.addSpace(3);
@@ -139,6 +146,8 @@ void Inspector::onUpdate()
 
 				if (ImGui::BeginCombo("Shape", preview))
 				{
+					canZoom = false;
+
 					for (int i = 0; i < IM_ARRAYSIZE(shapes); ++i)
 					{
 						const bool isSelected = shapeIndex == i;
@@ -188,14 +197,17 @@ void MapEditor::onUpdate()
 
 	static int mapIndex = INVALID;
 	std::vector<const char *> mapNames;
-	const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &maps = loader.getMaps();
+	const std::unordered_map<std::string, std::vector<std::vector<bool>>> &maps = loader.getMaps();
 	std::transform(maps.begin(), maps.end(), std::back_inserter(mapNames), [](const auto &elem) 
 		{ return elem.first.c_str(); });
+
 	mapIndex = mapNames.size() ? mapIndex : INVALID;
 	const char *mapPreview = mapIndex == INVALID ? "" : mapNames[mapIndex];
 
 	if (ImGui::BeginCombo("Select Map", mapPreview))
 	{
+		canZoom = false;
+
 		for (int i = 0; i < mapNames.size(); ++i)
 		{
 			const bool isSelected = mapIndex == i;
@@ -211,6 +223,9 @@ void MapEditor::onUpdate()
 	}
 
 	editor.addSpace(5);
+
+	if (ImGui::Button("Clear Map"))
+		grid.clearMap();
 
 	if (ImGui::Button("Save Map As"))
 		editor.openWindow("SaveAsMapPopup");
@@ -237,22 +252,22 @@ void MapEditor::onUpdate()
 	}
 	else
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
 		ImGui::Text("No map selected");
 		ImGui::PopStyleColor();
 	}
 
 	editor.addSpace(5);
 
+#if 0
 	static int colorIndex = INVALID;
-	std::vector<const char *> colorNames;
-	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
-		{ return elem.first.c_str(); });
 	const char *colorPreview = colorIndex == INVALID ? "" : colorNames[colorIndex];
 	int oldColorIndex = colorIndex;
 
-	if (ImGui::BeginCombo("Select Pen Colour", colorPreview))
+	if (ImGui::BeginCombo("Pen", colorPreview))
 	{
+		canZoom = false;
+
 		for (int i = 0; i < colorNames.size(); ++i)
 		{
 			const bool isSelected = colorIndex == i;
@@ -269,6 +284,68 @@ void MapEditor::onUpdate()
 
 	if (oldColorIndex != colorIndex)
 		grid.setPenColour(colorNames[colorIndex]);
+#endif
+
+	ImGui::Checkbox("Draw Mode", &isDrawMode);
+
+	if (isDrawMode)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+		ImGui::Text("Left click to draw wall");
+		ImGui::Text("Right click to erase wall");
+		ImGui::PopStyleColor();
+	}
+	else
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_BLUE);
+		ImGui::Text("Right click to set target position");
+		ImGui::PopStyleColor();
+	}
+
+	editor.addSpace(5);
+	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
+	int oldRowIndex = rowIndex, oldColIndex = colIndex;
+
+	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))
+	{
+		canZoom = false;
+
+		for (int i = 0; i < rowNames.size(); ++i)
+		{
+			const bool isSelected = rowIndex == i;
+			if (ImGui::Selectable(rowNames[i], isSelected))
+				rowIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (ImGui::BeginCombo("Columns", std::to_string(colIndex + 1).c_str()))
+	{
+		canZoom = false;
+
+		for (int i = 0; i < rowNames.size(); ++i)
+		{
+			const bool isSelected = colIndex == i;
+			if (ImGui::Selectable(rowNames[i], isSelected))
+				colIndex = i;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (rowIndex != oldRowIndex)
+		grid.setHeight(rowIndex + 1);
+	if (colIndex != oldColIndex)
+		grid.setWidth(colIndex + 1);
 
 	ImGui::End();
 }
@@ -296,7 +373,7 @@ void SaveAsMapPopup::onUpdate()
 
 	if (loader.doesMapExist(buffer))
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, RED);
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
 		ImGui::Text("File already exists");
 		ImGui::PopStyleColor();
 	}
@@ -342,6 +419,12 @@ void Editor::init()
 	addWindow<Inspector>(true, true);
 	addWindow<MapEditor>(true, true);
 	addWindow<SaveAsMapPopup>(false, false);
+
+	std::transform(colors.begin(), colors.end(), std::back_inserter(colorNames), [](const auto &elem)
+		{ return elem.first.c_str(); });
+	std::generate_n(std::back_inserter(rowNums), 100, [n = 0]() mutable { return std::to_string(++n); });
+	std::transform(rowNums.begin(), rowNums.end(), std::back_inserter(rowNames),
+		[](const auto &elem) { return elem.c_str(); });
 }
 
 void Editor::update()

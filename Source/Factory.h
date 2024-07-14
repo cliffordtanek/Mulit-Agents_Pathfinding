@@ -139,7 +139,6 @@ public:
 class Factory
 {
 	std::unordered_map<std::string, std::unordered_map<Entity *, Entity *>> entities;
-	//std::vector<std::pair<std::string, Entity*>> toDelete;
 
 	template <typename T>
 	std::string checkType()

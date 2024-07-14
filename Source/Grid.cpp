@@ -7,7 +7,8 @@
 
 extern sf::Font font;
 extern Loader loader;
-
+extern Camera camera;
+extern bool isDrawMode;
 
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
@@ -37,20 +38,21 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 
 
 
-Grid::Grid(int _width, int _height, float _cellSize)
-	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }
+Grid::Grid(int _height, int _width, float _cellSize)
+	: height{ _height }, width{ _width }, cellSize { _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }
 	, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
 	, potentialField{ static_cast<size_t>(height), std::vector<potentialFieldCell>{ static_cast<size_t>(width)} }
 {
+
 	for (int row{}; row < height; ++row)
 	{
 		for (int col{}; col < width; ++col)
 		{
 			cells[row][col].rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			cells[row][col].rect.setSize(sf::Vector2f(cellSize, cellSize));
-			cells[row][col].rect.setPosition(row * cellSize, col * cellSize);
-			cells[row][col].rect.setFillColor(colors.at("Floor_Fill"));
-			cells[row][col].rect.setOutlineColor(colors.at("Floor_Outline"));
+			cells[row][col].rect.setPosition(col * cellSize, row * cellSize); // was row *, col *
+			cells[row][col].rect.setFillColor(colors.at("Floor").first);
+			cells[row][col].rect.setOutlineColor(colors.at("Floor").second);
 			cells[row][col].rect.setOutlineThickness(4.f);
 
 
@@ -68,6 +70,8 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	updatePotentialField();
 
 	//TEMP GRID MAKING
+
+#if 0
    // Left vertical part of U
 	for (int row = 10; row < 10 + 10; ++row)
 		cells[row][10].rect.setFillColor(colors.at("Wall_Fill"));
@@ -81,7 +85,7 @@ Grid::Grid(int _width, int _height, float _cellSize)
 	// Right vertical part of U
 	for (int row = 10; row < 10 + 10; ++row) 
 		cells[row][19].rect.setFillColor(colors.at("Wall_Fill"));
-	
+#endif
 
 }
 
@@ -96,35 +100,54 @@ void Grid::render(sf::RenderWindow& window)
 	{
 		for (int col{}; col < width; ++col)
 		{
-			// draw and skip walls
+			Cell& currCell = cells[row][col];
+
+			// if cell is a wall but it has been explored before
 			if (isWall(row, col))
 			{
-				window.draw(cells[row][col].rect);
+				if (currCell.visibility != UNEXPLORED || isDrawMode)
+				{
+					//std::cout << "RENDERING EXPLORED WALLS\n";
+					currCell.rect.setFillColor(colors.at("Wall").first);
+					currCell.rect.setOutlineColor(colors.at("Wall").second);
+				}
+
+				else // Unexplored
+				{
+					//std::cout << "RENDERING UNEXPLORED WALLS\n";
+					currCell.rect.setFillColor(colors.at("Unexplored").first);
+					currCell.rect.setOutlineColor(colors.at("Unexplored").second);
+				}
+
+				camera.addCell(currCell.rect);
+				window.draw(currCell.rect);
+
 				continue;
 			}
+
 
 			switch (cells[row][col].visibility)
 			{
 			case UNEXPLORED:
 				// Black colour as unexplored colour
-				cells[row][col].rect.setFillColor(colors.at("Unexplored_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Unexplored_Outline"));
+				currCell.rect.setFillColor(colors.at("Unexplored").first);
+				currCell.rect.setOutlineColor(colors.at("Unexplored").second);
 				break;
 
 			case FOG:
 				// Grey colour as fog colour
-				cells[row][col].rect.setFillColor(colors.at("Fog_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Fog_Outline"));
+				currCell.rect.setFillColor(colors.at("Fog").first);
+				currCell.rect.setOutlineColor(colors.at("Fog").second);
 				break;
 
 			case VISIBLE:
 				// white colour as visible
-				cells[row][col].rect.setFillColor(colors.at("Visible_Fill"));
-				cells[row][col].rect.setOutlineColor(colors.at("Visible_Outline"));
+				currCell.rect.setFillColor(colors.at("Visible").first);
+				currCell.rect.setOutlineColor(colors.at("Visible").second);
 				break;
 			}
 
-			window.draw(cells[row][col].rect);
+			camera.addCell(currCell.rect);
 
 
 			if (showHeatMap)
@@ -140,10 +163,10 @@ void Grid::render(sf::RenderWindow& window)
 				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
 
 				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
-				cells[row][col].rect.setFillColor(color);
+				currCell.rect.setFillColor(color);
 
-				window.draw(cells[row][col].rect);
-			}
+				window.draw(currCell.rect);
+		}
 			
 
 			// Checking if the cell is not a wall and has a valid direction
@@ -180,7 +203,7 @@ void Grid::render(sf::RenderWindow& window)
 			sf::Text text;
 			text.setFont(font);
 			text.setCharacterSize(16);
-			text.setFillColor(colors.at("Floor_Fill"));
+			text.setFillColor(sf::Color::White);
 
 			std::ostringstream ss;
 
@@ -244,8 +267,8 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
-				if (isWall(r, c))
-					continue;
+				//if (isWall(r, c))
+				//	continue;
 
 				// get distance of pos to cell (startRow, startCol)
 
@@ -258,23 +281,26 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 				{
 					if (!isClearPath(gridpos, GridPos{ r, c }))
 						continue;
+
 					cells[r][c].visibility = VISIBLE;
-					cells[r][c].rect.setFillColor(colors.at("Visible_Fill"));
-					cells[r][c].rect.setOutlineColor(colors.at("Visible_Outline"));
+
+					if (!isWall(r, c))
+					{
+						cells[r][c].rect.setFillColor(colors.at("Visible").first);
+						cells[r][c].rect.setOutlineColor(colors.at("Visible").second);
+					}
 				}
 			}
 		}
 
 		// if debug draw is enabled
-
-
 		if (!debugDrawRadius)
 			continue;
 
 		sf::CircleShape debugradius;
 		// initialize debug pov
-		debugradius.setFillColor(colors.at("Debug_Radius_Fill"));
-		debugradius.setOutlineColor(colors.at("Debug_Radius_Outline"));
+		debugradius.setFillColor(colors.at("Debug_Radius").first);
+		debugradius.setOutlineColor(colors.at("Debug_Radius").second);
 		debugradius.setOutlineThickness(5.f);
 
 		debugradius.setRadius(radius);
@@ -326,7 +352,7 @@ void Grid::updateHeatMap(Vec2 target)
 				GridPos neighbourPos{ currCell.position.row + i, currCell.position.col + j };
 
 				// skip out of bound and wall cells
-				if (isOutOfBound(neighbourPos) || isWall(neighbourPos))
+				if (isOutOfBound(neighbourPos) || isWall(neighbourPos) && cells[neighbourPos.row][neighbourPos.col].visibility != UNEXPLORED)
 					continue;
 
 				// skip diagonal neighbors if there's an adjacent wall
@@ -334,7 +360,7 @@ void Grid::updateHeatMap(Vec2 target)
 				{
 					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
 					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
-					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) || isWall(adjacent2))
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) && cells[adjacent1.row][adjacent1.col].visibility != UNEXPLORED || isWall(adjacent2) && cells[adjacent2.row][adjacent2.col].visibility)
 						continue;
 				}
 
@@ -392,7 +418,7 @@ void Grid::generateFlowField()
 				continue;
 
 			// Skip walls
-			if (isWall(row, col))
+			if (isWall(row, col) && cells[row][col].visibility != UNEXPLORED)
 				continue;
 
 			
@@ -426,35 +452,35 @@ void Grid::generateFlowField()
 						continue;
 					}
 
-
+					// get current neighbour
 					flowFieldCell& neighbourCell = flowField[neighbourRow][neighbourCol];
 
-
-					// if pointing directly to goal node
-					if (utl::isEqual(neighbourCell.distance, 0.f))
-					{
-						currCell.direction = Vec2((float)i, (float)j);
-						goalBreak = true;
-						minimumMode = false;
-						break;
-					}
 
 					// skip diagonal neighbors if there's an adjacent wall
 					if (i != 0 && j != 0)
 					{
-						int adjacent1Row = row + i;
-						int adjacent1Col = col;
-						int adjacent2Row = row;
-						int adjacent2Col = col + j;
-						if (isOutOfBound(adjacent1Row, adjacent1Col) || isOutOfBound(adjacent2Row, adjacent2Col) ||
-							isWall(adjacent1Row, adjacent1Col) || isWall(adjacent2Row, adjacent2Col))
-								continue;
-
+						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) && cells[row + i][col].visibility != UNEXPLORED || isWall(row, col + j) && cells[row][col + j].visibility != UNEXPLORED)
+						{
+							minimumMode = true;
+							continue;
+						}
 					}
 
-
-					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					// if there is walls amongst neighbour
+					if (isWall(neighbourRow, neighbourCol) && cells[neighbourRow][neighbourCol].visibility != UNEXPLORED || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					{
 						minimumMode = true;
+						continue;
+					}
+					
+					// if pointing directly to goal node
+					if (utl::isEqual(neighbourCell.distance, 0.f))
+					{
+						currCell.direction = Vec2((float)j, (float)i);
+						goalBreak = true;
+						minimumMode = false;
+						break;
+					}
 						
 					// for MINNIMUM MODE
 					if (neighbourCell.distance < minDist)
@@ -466,7 +492,7 @@ void Grid::generateFlowField()
 
 					// GRADIENT MODE
 					// get final directional vector
-					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)i, (float)j);
+					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)j, (float)i);
 				}
 
 				if (goalBreak)
@@ -474,54 +500,41 @@ void Grid::generateFlowField()
 			}
 
 			if (minimumMode)
-				currCell.direction = Vec2((float)minDir.row, (float)minDir.col);
+				currCell.direction = Vec2((float)minDir.col, (float)minDir.row);
 			
 		}
 	}
 }
 
-void Grid::setColor(unsigned int row, unsigned int col, const sf::Color& color)
-{
-	if (isOutOfBound(row, col))
-		return;
-
-	cells[row][col].rect.setFillColor(color);
-}
-
-void Grid::setColor(Vec2 pos, const sf::Color& color)
-{
-	//pos -= camera.getOffset();
-	int row = static_cast<int>(pos.x / cellSize);
-	int col = static_cast<int>(pos.y / cellSize);
-	if (isOutOfBound(row, col))
-		return;
-
-	cells[row][col].rect.setFillColor(color);
-}
-
 void Grid::changeMap(const std::string& mapName)
 {
-	const std::vector<std::vector<std::string>>& indexCells = loader.getMap(mapName);
-	size_t newHeight = indexCells.size() ? indexCells[0].size() : 0;
-	for (const std::vector<std::string>& row : indexCells)
-		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
+	const std::vector<std::vector<bool>>& indexCells = loader.getMap(mapName);
+	size_t newWidth = indexCells.size() ? indexCells[0].size() : 0;
+	for (const std::vector<bool>& row : indexCells)
+		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
 
-	width = (int)indexCells.size();
-	height = (int)newHeight;
+	height = (int)indexCells.size();
+	width = (int)newWidth;
 	cells = std::vector<std::vector<Cell>>();
+	flowField = std::vector<std::vector<flowFieldCell>>();
 
-	for (unsigned i = 0; i < (unsigned)width; ++i)
+	for (unsigned i = 0; i < (unsigned)height; ++i)
 	{
 		cells.push_back(std::vector<Cell>());
-
-		for (unsigned j = 0; j < (unsigned)height; ++j)
+		flowField.push_back(std::vector<flowFieldCell>());
+		
+		for (unsigned j = 0; j < (unsigned)width; ++j)
 		{
+			flowField.back().emplace_back();
+			flowField.back().back().position = { (int)i, (int)j };
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
+			cells.back().back().isWall = indexCells[i][j];
 			sf::RectangleShape &currCell = cells.back().back().rect;
 
-			currCell.setPosition(i * cellSize, j * cellSize);
-			currCell.setFillColor(colors.at(indexCells[i][j])); // guaranteed to not crash
-			currCell.setOutlineColor(colors.at("Floor_Outline"));
+			currCell.setOrigin(cellSize / 2.f, cellSize / 2.f);
+			currCell.setPosition(j * cellSize, i * cellSize);
+			currCell.setFillColor(indexCells[i][j] ? colors.at("Wall").first : colors.at("Floor").first); 
+			currCell.setOutlineColor(indexCells[i][j] ? colors.at("Wall").second : colors.at("Floor").second);
 			currCell.setOutlineThickness(1.f);
 		}
 	}
@@ -531,7 +544,11 @@ void Grid::clearMap()
 {
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
-			cell.rect.setFillColor(colors.at("Floor_Fill"));
+		{
+			cell.isWall = false;
+			cell.rect.setFillColor(colors.at("Floor").first);
+			cell.rect.setFillColor(colors.at("Floor").second);
+		}
 }
 
 // potential field
@@ -638,8 +655,8 @@ Grid::GridPos Grid::getGridPos(float x, float y) const
 	x += 0.5f * cellSize;
 	y += 0.5f * cellSize;
 
-	int row = static_cast<int>(x / cellSize);
-	int col = static_cast<int>(y / cellSize);
+	int row = static_cast<int>(y / cellSize);
+	int col = static_cast<int>(x / cellSize);
 
 	return { row, col };
 }
@@ -652,7 +669,7 @@ Grid::GridPos Grid::getGridPos(Vec2 const& pos) const
 
 Vec2 Grid::getWorldPos(int row, int col) const
 {
-	return Vec2{ row * cellSize, col * cellSize };
+	return Vec2{ col * cellSize, row * cellSize };
 }
 
 
@@ -690,10 +707,20 @@ void Grid::setVisibility(int row, int col, Visibility visibility)
 
 void Grid::setVisibility(GridPos pos, Visibility visibility) { return setVisibility(pos.row, pos.col, visibility); }
 
+void Grid::SetOutlineColour(int row, int col, sf::Color colour)
+{
+	if (isOutOfBound(row, col))
+		return;
+	cells[row][col].rect.setOutlineColor(colour);
+}
+
+void Grid::SetOutlineColour(GridPos pos, sf::Color colour) { SetOutlineColour(pos.row, pos.col, colour); }
 
 void Grid::SetColour(int row, int col, sf::Color colour)
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	if (isOutOfBound(row, col))
+		return;
+	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
 
 	cells[row][col].rect.setFillColor(colour);
 }
@@ -704,17 +731,101 @@ void Grid::SetColour(int row, int col)
 {
 	if (!colors.count(penColour))
 		return;
-	SetColour(row, col, colors.at(penColour));
+	SetColour(row, col, colors.at(penColour).first);
+	SetOutlineColour(row, col, colors.at(penColour).second);
 }
 
 void Grid::SetColour(GridPos pos) 
 {  
 	if (!colors.count(penColour))
 		return;
-	SetColour(pos, colors.at(penColour));
+	SetColour(pos, colors.at(penColour).first);
+	SetOutlineColour(pos, colors.at(penColour).second);
 }
 
 void Grid::setPenColour(const std::string &colourName) { penColour = colourName; }
+
+void Grid::setWidth(int newWidth)
+{
+	if (width == newWidth)
+		return;
+	bool isSmaller = newWidth < width;
+
+	for (int i = 0; i < height; ++i)
+		if (isSmaller)
+		{
+			cells[i].erase(cells[i].begin() + newWidth, cells[i].end());
+			flowField[i].erase(flowField[i].begin() + newWidth, flowField[i].end());
+		}
+		else
+			for (int j = width; j < newWidth; ++j)
+			{
+				Cell cell;
+				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
+				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
+				cell.rect.setPosition(j * cellSize, i * cellSize);
+				cell.rect.setFillColor(colors.at("Floor").first);
+				cell.rect.setOutlineColor(colors.at("Floor").second);
+				cell.rect.setOutlineThickness(4.f);
+				cells[i].push_back(cell);
+
+				flowField[i].emplace_back();
+				flowField[i].back().position = { i, j };
+			}
+
+	width = newWidth;
+}
+
+void Grid::setHeight(int newHeight)
+{
+	if (height == newHeight)
+		return;
+	bool isSmaller = newHeight < height;
+
+	if (isSmaller)
+	{
+		cells.erase(cells.begin() + newHeight, cells.end());
+		flowField.erase(flowField.begin() + newHeight, flowField.end());
+	}
+	else
+		for (int i = height; i < newHeight; ++i)
+		{
+			cells.push_back(std::vector<Cell>());
+			flowField.push_back(std::vector<flowFieldCell>());
+
+			for (int j = 0; j < width; ++j)
+			{
+				Cell cell;
+				cell.rect.setOrigin(cellSize / 2.f, cellSize / 2.f);
+				cell.rect.setSize(sf::Vector2f(cellSize, cellSize));
+				cell.rect.setPosition(j * cellSize, i * cellSize);
+				cell.rect.setFillColor(colors.at("Floor").first);
+				cell.rect.setOutlineColor(colors.at("Floor").second);
+				cell.rect.setOutlineThickness(4.f);
+				cells.back().push_back(cell);
+
+				flowField.back().emplace_back();
+				flowField.back().back().position = { i, j };
+			}
+		}
+
+	height = newHeight;
+}
+
+void Grid::setWall(GridPos pos, bool _isWall)
+{
+	setWall(pos.row, pos.col, _isWall);
+}
+
+void Grid::setWall(int row, int col, bool _isWall)
+{
+	if (isOutOfBound(row, col))
+		return;
+
+	cells[row][col].isWall = _isWall;
+	SetColour(row, col, _isWall ? colors.at("Wall").first : colors.at("Floor").first);
+}
+
 
 // ========
 // CHECKERS
@@ -727,10 +838,12 @@ const std::vector<std::vector<Cell>> &Grid::getCells() const
 
 bool Grid::isWall(unsigned int row, unsigned int col) const
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
-	return cells[row][col].rect.getFillColor() == colors.at("Wall_Fill");
+	//return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
+
+	return cells[row][col].isWall;
 }
 
 bool Grid::isWall(GridPos pos) const { return isWall(pos.row, pos.col); }
@@ -746,8 +859,8 @@ bool Grid::isOutOfBound(GridPos pos) const { return isOutOfBound(pos.row, pos.co
 
 bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 {
-	if (isWall(row0, col0) || isWall(row1, col1))
-		return false;
+	//if (isWall(row0, col0) || isWall(row1, col1))
+	//	return false;
 
 	// convert row0 and col0 to vectors 2D
 	Vec2 p0 = getWorldPos(row0, col0);
@@ -774,10 +887,18 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 			if (!isWall(row, col))
 				continue;
 
+			if (row == row0 && col == col0 || row == row1 && col == col1)
+				continue;
+			
+			
+
+				
+
+			if ((row == row1 && col == col1) || (row == row0 && col == col0))
+				continue;
+
 			// convert minRow and minCol to vector 3D
 			Vec2 wallCenter = getWorldPos(row, col);
-			//wallCenter.x += 0.5f * cellSize;
-			//wallCenter.y += 0.5f * cellSize;
 
 			// get points of diagonal
 			Vec2 l1p0 = { wallCenter.x - halfGridWidth, wallCenter.y + halfGridWidth };
@@ -838,3 +959,9 @@ bool Grid::lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& l
 }
 
 Cell::Cell(Vec2 pos) : rect(pos) { }
+
+std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs)
+{
+	os << "{" << rhs.row << ", " << rhs.col << "}";
+	return os;
+}

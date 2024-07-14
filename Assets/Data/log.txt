@@ -78,25 +78,67 @@
 
 [12/07/2024 19:46:07] Program crashed at line 337 in Editor.cpp, reason: Could not find window with name "SaveMapAsPopup"
 
-[13/07/2024 11:18:17] Program crashed at line 584 in Grid.cpp, reason: Row: "4294967293" Col: "4294967295" is out of bound
+[12/07/2024 21:51:34] Program crashed at line 614 in Grid.cpp, reason: Row: "61" Col: "17" is out of bound
 
-[13/07/2024 12:10:51] Program crashed at line 586 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[12/07/2024 21:52:30] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967292" Col: "5" is out of bound
 
-[13/07/2024 12:10:56] Program crashed at line 586 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[12/07/2024 23:20:57] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967284" Col: "8" is out of bound
 
-[13/07/2024 12:11:04] Program crashed at line 586 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[12/07/2024 23:21:03] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967269" Col: "6" is out of bound
 
-[13/07/2024 12:11:13] Program crashed at line 586 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[12/07/2024 23:21:11] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967202" Col: "13" is out of bound
 
-[13/07/2024 12:11:44] Program crashed at line 583 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[12/07/2024 23:21:17] Program crashed at line 650 in Grid.cpp, reason: Row: "4294967199" Col: "8" is out of bound
 
-[13/07/2024 12:14:06] Program crashed at line 587 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound
+[13/07/2024 12:09:43] Program crashed at line 87 in Camera.cpp, reason: Unknown shape in draw queue
 
-[13/07/2024 12:56:14] Program crashed at line 614 in Grid.cpp, reason: Row: "4294967295" Col: "2" is out of bound
+[13/07/2024 12:10:24] Program crashed at line 87 in Camera.cpp, reason: Unknown shape in draw queue "class sf::Drawable * __ptr64"
 
-[13/07/2024 15:18:19] Program crashed at line 612 in Grid.cpp, reason: Row: "50" Col: "11" is out of bound
+[13/07/2024 13:09:51] Program crashed at line 653 in Grid.cpp, reason: Row: "25" Col: "6" is out of bound
 
-[13/07/2024 15:19:05] Program crashed at line 612 in Grid.cpp, reason: Row: "6" Col: "4294967295" is out of bound
+[13/07/2024 15:48:40] Program crashed at line 688 in Grid.cpp, reason: Row: "1" Col: "2" is out of bound
 
-[13/07/2024 15:31:46] Program crashed at line 621 in Grid.cpp, reason: Row: "4294967295" Col: "4294967290" is out of bound
+[13/07/2024 15:52:01] Program crashed at line 688 in Grid.cpp, reason: Row: "0" Col: "1" is out of bound
+
+[13/07/2024 16:06:29] Program crashed at line 704 in Grid.cpp, reason: Row: "0" Col: "1" is out of bound
+
+[13/07/2024 16:18:11] Program crashed at line 709 in Grid.cpp, reason: Row: "6" Col: "11" is out of bound
+
+[13/07/2024 16:21:41] Program crashed at line 723 in Grid.cpp, reason: Row: "50" Col: "13" is out of bound
+
+[13/07/2024 16:22:05] Program crashed at line 723 in Grid.cpp, reason: Row: "25" Col: "0" is out of bound
+
+[13/07/2024 16:24:26] Program crashed at line 723 in Grid.cpp, reason: Row: "25" Col: "1" is out of bound because Height: "25 Width: \"50\""
+
+[13/07/2024 16:25:08] Program crashed at line 723 in Grid.cpp, reason: Row: "25" Col: "1" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 16:26:02] Program crashed at line 723 in Grid.cpp, reason: Row: "0" Col: "25" is out of bound because Width: "50" Height: "25"
+
+[13/07/2024 21:49:35] Program crashed at line 720 in Grid.cpp, reason: Row: "4294967295" Col: "12" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 21:54:52] Program crashed at line 701 in Grid.cpp, reason: Row: "11" Col: "4294967295" is out of bound because Height: "27" Width: "29"
+
+[13/07/2024 22:06:17] Program crashed at line 706 in Grid.cpp, reason: Row: "4294967295" Col: "9" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 22:11:58] Program crashed at line 706 in Grid.cpp, reason: Row: "4294967295" Col: "8" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 22:16:32] Program crashed at line 706 in Grid.cpp, reason: Row: "4294967295" Col: "16" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 22:19:01] Program crashed at line 706 in Grid.cpp, reason: Row: "4294967295" Col: "6" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:09:04] Program crashed at line 718 in Grid.cpp, reason: Row: "13" Col: "4294967279" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:10:12] Program crashed at line 718 in Grid.cpp, reason: Row: "481" Col: "1" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:15:40] Program crashed at line 720 in Grid.cpp, reason: Row: "726" Col: "4294967292" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:16:53] Program crashed at line 720 in Grid.cpp, reason: Row: "328" Col: "3" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:17:21] Program crashed at line 720 in Grid.cpp, reason: Row: "1124" Col: "4294967287" is out of bound because Height: "25" Width: "50"
+
+[13/07/2024 23:14:33] Program crashed at line 729 in Grid.cpp, reason: Row: "2" Col: "4294967295" is out of bound because Height: "50" Width: "25"
+
+[13/07/2024 23:17:28] Program crashed at line 732 in Grid.cpp, reason: Row: "0" Col: "4294967295" is out of bound because Height: "50" Width: "25"
+
+[13/07/2024 23:19:16] Program crashed at line 732 in Grid.cpp, reason: Row: "4294967295" Col: "0" is out of bound because Height: "50" Width: "25"
 

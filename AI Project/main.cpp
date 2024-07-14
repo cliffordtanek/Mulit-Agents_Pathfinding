@@ -13,24 +13,36 @@
 #include "Grid.h"
 
 Vec2 winSize = { 1600.f, 900.f };
+float ratio = winSize.x / winSize.y;
+Vec2 minimapOffset;
+Vec2 mapSize;
 std::string winTitle = "sfml";
 bool isFullscreen = false;
+bool canZoom = true; // disable zooming when in dropdown menus
+bool isDrawMode = false; // whether left clicking can draw/remove wall
+//bool isDrawingWall = true; // whether to draw wall or floor
 float dt = 0.f;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
 sf::Font font;
-sf::View view({ winSize.x / 2.f, winSize.y / 2.f }, winSize);
+sf::View view(winSize / 2.f, winSize);
+sf::View minimap(mapSize / 2.f, mapSize);
 
+int cellSize = 100;
 Editor editor;
 Factory factory;
-Grid grid(50, 50, 100.f);
+Grid grid(25, 50, cellSize); // this is height x width not width x height omg
 Loader loader;
-//Camera camera;
+Camera camera;
 
 //! temp
-bool isMousePressed{ false };
+bool isLMousePressed{ false }, isRMousePressed{ false };
 bool canExit = false;
+
+Vec2 target{};
+
+
 
 int main()
 {
@@ -39,13 +51,12 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    //crashIf(!renderer.create(static_cast<unsigned>(winSize.x), static_cast<unsigned>(winSize.y)),
-        //"Renderer failed to be initialised");
 
     sf::Clock clock;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");
     window.setFramerateLimit(60);
+    minimap.setViewport(sf::FloatRect(0.75f, 0.0208f, 0.25f, 0.25f));
 
     // initialize systems
     editor.init();
@@ -59,6 +70,9 @@ int main()
         dt = clock.restart().asSeconds();
         sf::Event event;
 
+        grid.updateHeatMap(target);
+        grid.generateFlowField();
+
         while (window.pollEvent(event))
         {
             // Pass events to ImGui
@@ -71,7 +85,7 @@ int main()
                 break;
 
             case sf::Event::MouseWheelScrolled:
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel && canZoom)
                     if (event.mouseWheelScroll.delta > 0.f)
                         view.zoom(1.f - CAM_ZOOM);
                     else
@@ -128,19 +142,23 @@ int main()
             }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right && ALIVE(Enemy, enemy))
-        {
-            Vec2 target = window.mapPixelToCoords({ event.mouseButton.x, event.mouseButton.y });
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            isLMousePressed = true;
 
-            if (!grid.isWall(grid.getGridPos(target)))
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
+        {
+            isRMousePressed = true;
+            target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+            if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
             {
                 grid.updateHeatMap(target);
                 grid.generateFlowField();
 
-                enemy->setTargetPos(target, true);
+                // set all enemy to the target
+                for (Enemy *enemy : factory.getEntities<Enemy>())
+                    enemy->setTargetPos(target, true);
             }
-
-             //grid.computePath(*enemy, target);
         }
 
 
@@ -149,10 +167,25 @@ int main()
         //enemy->setTargetPos(vec2(tmp.position.col, tmp.position.row), true);
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))
-            isMousePressed = true;
+        if (event.type == sf::Event::MouseMoved && isRMousePressed && isDrawMode)
+        {
+            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-        if (event.type == sf::Event::MouseMoved && isMousePressed)
+            //if (isDrawMode)
+            grid.setWall(grid.getGridPos(target), false);
+            //else if (!grid.isWall(grid.getGridPos(target)) && ALIVE(Enemy, enemy))
+            //{
+            //    grid.updateHeatMap(target);
+            //    grid.generateFlowField();
+
+            //    // set all enemy to the target
+            //    for (Enemy *enemy : factory.getEntities<Enemy>())
+            //        enemy->setTargetPos(target, true);
+            //}
+
+        }
+
+        if (event.type == sf::Event::MouseMoved && isLMousePressed && isDrawMode)
         {
             // calculate grid coordinates from mouse position
             sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -160,7 +193,8 @@ int main()
             Grid::GridPos pos = grid.getGridPos(mousePos);
 
             // set colour of grid upon click
-            grid.SetColour(pos.row, pos.col);
+            //grid.SetColour(pos.row, pos.col);
+            grid.setWall(pos, true);
         }
 
         // FOG TEST (Mouse cursor)
@@ -172,8 +206,10 @@ int main()
 #endif
 
 
-            if (event.type == sf::Event::MouseButtonReleased)
-                isMousePressed = false;
+        if (event.type == sf::Event::MouseButtonReleased)
+        {
+            isLMousePressed = isRMousePressed = false;
+        }
 
         }
 
@@ -186,6 +222,7 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             view.move({ 1.f * CAM_MOVE, 0.f });
         //camera.calcOffset();
+
 
 #if 0
         // Start the ImGui frame
@@ -221,13 +258,53 @@ int main()
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
-        window.clear();
+        window.clear(colors.at("Background").first);
         editor.createDockspace();
 
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        bool isWidthLonger = width * 1.f > height * ratio; // height and width are flipped in grid object
+        float gridLength = std::max(height * ratio, width * 1.f) * cellSize;
+
+        //mapSize = { isWidthLonger ? gridLength : gridLength * ratio, 
+            //isWidthLonger ? gridLength / ratio : gridLength };
+        mapSize = { gridLength, gridLength / ratio };
+        minimapOffset = { (mapSize.x - width * cellSize) / 2.f, (mapSize.y - height * cellSize) / 2.f };
+        minimap.setCenter(mapSize / 2.f);
+        minimap.setSize(mapSize);
+
         // update other systems
+        canZoom = true;
         window.setView(view);
         editor.update();
         factory.update();
+
+        window.setView(minimap);
+        sf::RectangleShape rectangle;
+        float stroke = 20.f;
+
+        rectangle.setSize(mapSize);
+        rectangle.setFillColor(colors.at("Background").first);
+        window.draw(rectangle);
+        window.setView(view);
+
+        camera.flushDrawQueue();
+
+        window.setView(minimap);
+        rectangle.setSize({ mapSize.x - stroke * 2.f, mapSize.y - stroke * 2.f });
+        rectangle.setPosition({ stroke, stroke });
+        rectangle.setFillColor(sf::Color::Transparent);
+        rectangle.setOutlineThickness(stroke);
+        rectangle.setOutlineColor(sf::Color::White);
+        window.draw(rectangle);
+
+        rectangle.setSize(view.getSize());
+        rectangle.setPosition(view.getCenter() - winSize / 2.f + minimapOffset + 
+            (winSize - view.getSize()) / 2.f);
+        rectangle.setFillColor(colors.at("Translucent").first);
+        rectangle.setOutlineThickness(0.f);
+        window.draw(rectangle);
+        window.setView(view);
 
         // render imgui onto the window
         ImGui::SFML::Render(window);

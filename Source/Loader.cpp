@@ -13,13 +13,13 @@ Loader::Loader()
 		colorNames[color] = str;
 }
 
-const std::vector<std::vector<std::string>> &Loader::getMap(const std::string &mapName)
+const std::vector<std::vector<bool>> &Loader::getMap(const std::string &mapName)
 {
 	crashIf(!maps.count(mapName), "Map " + utl::quote(mapName) + " does not exist");
 	return maps.at(mapName);
 }
 
-const std::unordered_map<std::string, std::vector<std::vector<std::string>>> &Loader::getMaps()
+const std::unordered_map<std::string, std::vector<std::vector<bool>>> &Loader::getMaps()
 {
 	return maps;
 }
@@ -42,13 +42,13 @@ void Loader::loadMaps()
 		std::string temp;
 		std::getline(ifs, temp); // get nl
 
-		std::string input;
-		maps[mapName] = std::vector<std::vector<std::string>>();
-		std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
+		bool input;
+		maps[mapName] = std::vector<std::vector<bool>>();
+		std::vector<std::vector<bool>> &currMap = maps.at(mapName);
 		
 		for (size_t i = 0; i < rows; ++i)
 		{
-			currMap.push_back(std::vector<std::string>());
+			currMap.push_back(std::vector<bool>());
 
 			for (size_t j = 0; j < cols; ++j)
 			{
@@ -64,26 +64,31 @@ void Loader::loadMaps()
 void Loader::saveMap(const std::string& mapName)
 {
 	const std::vector<std::vector<Cell>> &cells = grid.getCells();
-	maps[mapName] = std::vector<std::vector<std::string>>();
-	std::vector<std::vector<std::string>> &currMap = maps.at(mapName);
+	maps[mapName] = std::vector<std::vector<bool>>();
+	std::vector<std::vector<bool>> &currMap = maps.at(mapName);
 	std::ofstream ofs("../Assets/Data/Maps/" + mapName + ".txt");
 	crashIf(!ofs, "Unable to open " + mapName + ".txt for overwriting");
 
-	size_t newHeight = cells.size() ? cells[0].size() : 0;
+	size_t newWidth = cells.size() ? cells[0].size() : 0;
 	for (const std::vector<Cell> &row : cells)
-		crashIf(newHeight != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
-	ofs << cells.size() << ' ' << newHeight << nl;
+		crashIf(newWidth != row.size(), "Map " + utl::quote(mapName) + " has rows of different sizes");
+	ofs << cells.size() << ' ' << newWidth << nl;
 
 	for (const std::vector<Cell> &row : cells)
 	{
-		currMap.push_back(std::vector<std::string>());
+		currMap.push_back(std::vector<bool>());
 
 		for (const Cell &cell : row)
 		{
-			crashIf(!colorNames.count(cell.rect.getFillColor()), "Color for a cell has not been registered");
-			const std::string colorName = colorNames.at(cell.rect.getFillColor());
-			ofs << colorName << ' ';
-			currMap.back().push_back(colorName);
+			//crashIf(!colorNames.count(std::make_pair(cell.rect.getFillColor(), cell.rect.getOutlineColor())),
+				//"Color for a cell has not been registered");
+			//const std::string colorName = colorNames.at(std::make_pair(cell.rect.getFillColor(),
+				//cell.rect.getOutlineColor()));
+			//ofs << colorName << ' ';
+			//currMap.back().push_back(colorName);
+
+			ofs << cell.isWall << ' ';
+			currMap.back().push_back(cell.isWall);
 		}
 
 		ofs << nl;
@@ -100,7 +105,7 @@ void Loader::deleteMap(const std::string &mapName)
 void Loader::renameMap(const std::string &oldName, const std::string &newName)
 {
 	crashIf(!maps.count(oldName), "Map " + utl::quote(oldName) + " does not exist");
-	const std::vector<std::vector<std::string>> map = getMap(oldName); // not a reference
+	const std::vector<std::vector<bool>> map = getMap(oldName); // not a reference
 
 	try
 	{
