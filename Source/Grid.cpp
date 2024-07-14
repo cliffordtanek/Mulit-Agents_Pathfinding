@@ -38,7 +38,9 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 
 
 Grid::Grid(int _width, int _height, float _cellSize)
-	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
+	: width{ _width }, height{ _height }, cellSize{ _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }
+	, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
+	, potentialField{ static_cast<size_t>(height), std::vector<potentialFieldCell>{ static_cast<size_t>(width)} }
 {
 	for (int row{}; row < height; ++row)
 	{
@@ -54,8 +56,16 @@ Grid::Grid(int _width, int _height, float _cellSize)
 
 			// flow field
 			flowField[row][col].position = { row, col };
+			
+			// potential field
+			potentialField[row][col].direction = { 0, 0 };
+			potentialField[row][col].potential = 1000;
+			potentialField[row][col].position = { row, col };
 		}
 	}
+
+	generatePotentialField();
+	updatePotentialField();
 
 	//TEMP GRID MAKING
    // Left vertical part of U
@@ -133,7 +143,7 @@ void Grid::render(sf::RenderWindow& window)
 				cells[row][col].rect.setFillColor(color);
 
 				window.draw(cells[row][col].rect);
-		}
+			}
 			
 
 			// Checking if the cell is not a wall and has a valid direction
@@ -145,6 +155,24 @@ void Grid::render(sf::RenderWindow& window)
 					Vec2 direction = flowField[row][col].direction;
 					drawArrow(window, cellCenter, direction);
 				}
+			}
+
+			if (showPotentialField)
+			{
+				float value = potentialField[row][col].potential;
+
+				float normalizedDistance = value / 50.f; // Assuming max distance of 300 for normalization
+
+				//if (utl::isEqual(normalizedDistance, 1.f))
+				//	continue;
+
+
+				sf::Uint8 alpha = static_cast<sf::Uint8>((normalizedDistance) * 255);
+
+				sf::Color color = sf::Color(0, 0, 255, alpha); // Red color with varying alpha
+				cells[row][col].rect.setFillColor(color);
+
+				window.draw(cells[row][col].rect);
 			}
 
 #if 0 // TO DISPLAY THE NUMERICAL DISTANCE
@@ -173,6 +201,9 @@ void Grid::render(sf::RenderWindow& window)
 #endif
 		}
 	}
+
+	cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
+	window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
 
 	// only draw one debug circle for one entity
 	if (debugDrawRadius)
@@ -503,6 +534,84 @@ void Grid::clearMap()
 			cell.rect.setFillColor(colors.at("Floor_Fill"));
 }
 
+// potential field
+void Grid::generatePotentialField()
+{
+	srand(time(0));
+	int exitX = rand() % width;
+	int exitY = rand() % height;
+	cells[exitY][exitX].isExit = true;
+
+	exitCell = &potentialField[exitY][exitX];
+	exitCell->potential = 0; // Exit has the lowest potential
+}
+
+void Grid::updatePotentialField()
+{
+	std::queue<potentialFieldCell> toProcess;
+	toProcess.push(*exitCell);
+
+	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
+	while (!toProcess.empty())
+	{
+		potentialFieldCell current = toProcess.front();
+		toProcess.pop();
+
+		for (auto& direction : directions) {
+			int newX = current.position.col + direction.first;
+			int newY = current.position.row + direction.second;
+
+			if (!isOutOfBound(newY, newX))
+			{
+				potentialFieldCell& neighbor = potentialField[newY][newX];
+				int newPotential = current.potential + 1;
+				if (newPotential < neighbor.potential) {
+					neighbor.potential = newPotential;
+					toProcess.push(neighbor);
+				}
+			}
+		}
+	}
+
+	// Add attractive forces towards unexplored areas
+	//for (auto& row : potentialField) {
+	//	for (auto& cell : row) {
+	//		if (cells[cell.position.row][cell.position.col].visibility == Visibility::UNEXPLORED) {
+	//			cell.potential = 100.f;
+	//		}
+
+	//		// Add repulsive forces from obstacles
+	//		if (isWall(cell.position.row, cell.position.col))
+	//		{
+	//			cell.potential = 50.f;
+	//		}
+	//		else if (cells[cell.position.row][cell.position.col].visibility != Visibility::UNEXPLORED)
+	//		{
+	//			cell.potential = 20.f;
+	//		}
+	//	}
+	//}
+}
+
+typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
+{
+	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
+	potentialFieldCell nextMove = potentialField[pos.y][pos.x];
+
+	for (auto& direction : directions) {
+		int newX = pos.x + direction.first;
+		int newY = pos.y + direction.second;
+
+		if (!isOutOfBound(newY, newX)) {
+			potentialFieldCell& neighbor = potentialField[newY][newX];
+			if (!isWall(neighbor.position) && cells[newY][newX].visibility == Visibility::VISIBLE && neighbor.potential < nextMove.potential) {
+				nextMove = neighbor;
+			}
+		}
+	}
+
+	return nextMove;
+}
 
 
 // =======

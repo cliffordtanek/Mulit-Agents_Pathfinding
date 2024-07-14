@@ -116,6 +116,12 @@ int main()
                 case sf::Keyboard::J:
                     grid.flowFieldArrow = !grid.flowFieldArrow;
                     break;
+                case sf::Keyboard::O:
+                    grid.showPotentialField = !grid.showPotentialField;
+                    break;
+                case sf::Keyboard::I:
+                    grid.generatePotentialField();
+                    break;
 
                 }
                 break;
@@ -136,6 +142,11 @@ int main()
 
              //grid.computePath(*enemy, target);
         }
+
+
+        grid.updatePotentialField();
+        //auto const& tmp = grid.getNextMove(enemy->pos);
+        //enemy->setTargetPos(vec2(tmp.position.col, tmp.position.row), true);
 
         // mouse event must put outside of switch case for some reason
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && ALIVE(Enemy, enemy))

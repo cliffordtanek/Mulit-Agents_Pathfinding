@@ -44,6 +44,7 @@ struct Cell
 {
 	sf::RectangleShape rect{};				// rectangle tile 
 	Visibility visibility{ UNEXPLORED };	// visibility enum
+	bool isExit{ false };					// exit flag
 
 	Cell() = default;
 	Cell(Vec2 pos);
@@ -75,6 +76,8 @@ public:
 
 	bool showHeatMap{ false };
 
+	bool showPotentialField{ false };
+
 
 
 
@@ -101,6 +104,12 @@ public:
 	void changeMap(const std::string& mapName);
 
 	void clearMap();
+
+	// potential field methods
+	struct potentialFieldCell;
+	void generatePotentialField();
+	void updatePotentialField();
+	potentialFieldCell getNextMove(vec2 pos);
 
 
 	// =======
@@ -156,11 +165,21 @@ public:
 
 	bool lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1) const;
 
+	potentialFieldCell* exitCell{ nullptr };
 private:
 
 	struct flowFieldCell
 	{
 		float distance{ std::numeric_limits<float>::max() };
+		vec2 direction{};
+		GridPos position{};
+
+		bool visited{ false };
+	};
+
+	struct potentialFieldCell
+	{
+		float potential{ std::numeric_limits<float>::max() };
 		vec2 direction{};
 		GridPos position{};
 
@@ -173,6 +192,8 @@ private:
 
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container
+
+	std::vector<std::vector<potentialFieldCell>> potentialField; // potential field container
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
 
