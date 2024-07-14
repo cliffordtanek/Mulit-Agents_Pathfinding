@@ -34,6 +34,11 @@ void Arrow::onUpdate()
 	Entity::onUpdate();
 }
 
+void Arrow::onRender()
+{
+	Entity::onRender();
+}
+
 void Arrow::onDestroy()
 {
 	std::cout << "arrow destroyed\n";

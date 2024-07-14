@@ -534,7 +534,7 @@ void Grid::setVisibility(GridPos pos, Visibility visibility) { return setVisibil
 
 void Grid::SetColour(int row, int col, sf::Color colour)
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound for set colour");
 
 	cells[row][col].rect.setFillColor(colour);
 }
@@ -547,7 +547,12 @@ void Grid::SetColour(GridPos pos, sf::Color colour) { return SetColour(pos.row, 
 
 bool Grid::isWall(int row, int col) const
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound");
+	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound for is wall");
+
+	if (isOutOfBound(row, col))
+	{
+		std::cout << "Row " << row <<", Col " << col << " \n";
+	}
 
 	// assuming wall colour is black
 	return cells[row][col].rect.getFillColor() == sf::Color::Black;
@@ -560,6 +565,14 @@ bool Grid::isOutOfBound(int row, int col) const
 {
 	return row >= height || col >= width || row < 0 || col < 0;
 }
+
+bool Grid::isOutOfBound(Vec2 const& pos) const
+{
+	vec2 gridMax{ width * cellSize, height * cellSize };
+
+	return pos.x < 0 || pos.x > gridMax.x || pos.y < 0 || pos.y > gridMax.y;
+}
+
 
 bool Grid::isOutOfBound(GridPos pos) const { return isOutOfBound(pos.row, pos.col); }
 
@@ -614,4 +627,17 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 bool Grid::isClearPath(GridPos lhs, GridPos rhs) const
 {
 	return isClearPath(lhs.row, lhs.col, rhs.row, rhs.col);
+}
+
+Vec2 Grid::resolvePosition(Vec2 const& vec)
+{
+	Vec2 resolvedPos = vec;
+	vec2 gridMax{ width * cellSize, height * cellSize };
+
+	resolvedPos.x = std::max(resolvedPos.x, 0.f);
+	resolvedPos.x = std::min(resolvedPos.x, gridMax.x);
+	resolvedPos.y = std::max(resolvedPos.y, 0.f);
+	resolvedPos.y = std::min(resolvedPos.y, gridMax.y);
+
+	return resolvedPos;
 }

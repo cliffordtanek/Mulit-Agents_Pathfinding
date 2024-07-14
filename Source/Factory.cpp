@@ -9,10 +9,9 @@ void Entity::move()
 	if (!currSpeed)
 		return;
 
-	//if ((targetPos - pos).SquareLength() < (targetPos - (pos + dir * currSpeed)).SquareLength())
-	if(pos.x < targetPos.x + 5.f && pos.x  > targetPos.x - 5.f && pos.y < targetPos.y + 5.f && pos.y > targetPos.y - 5.f)
+	if ((targetPos - pos).SquareLength() < (pos - (pos + dir * currSpeed * 1.666f)).SquareLength())
 	{
-		std::cout << "Target found\n";
+		// std::cout << "Target found\n";
 		currSpeed = 0.f;
 
 		if (waypoints.size())
@@ -80,6 +79,28 @@ void Entity::setWaypoints(const std::list<Vec2> &_waypoints)
 	waypoints.pop_front();
 }
 
+bool Entity::isColliding(Entity* entity)
+{
+	float lhs_radius = std::min(scale.x, scale.y) * 0.5f;
+	float rhs_radius = std::min(entity->scale.x, entity->scale.y) * 0.5f;
+
+	float target = (lhs_radius + rhs_radius) * (lhs_radius + rhs_radius);
+
+	float actual = (pos - entity->pos).SquareLength();
+
+	if (actual <= target)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool Entity::isVecZero(Vec2 const& vec)
+{
+	return vec.x <= std::numeric_limits<float>::epsilon() && vec.y <= std::numeric_limits<float>::epsilon();
+}
+
 void Entity::onCreate()
 {
 	
@@ -88,6 +109,10 @@ void Entity::onCreate()
 void Entity::onUpdate()
 {
 	move();
+}
+
+void Entity::onRender()
+{
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
 
 	// draw entity
@@ -111,7 +136,7 @@ void Entity::onUpdate()
 		triangle.setPoint(1, sf::Vector2f(pos.x + scale.x / 2.f, pos.y + scale.y / 2.f));
 		triangle.setPoint(2, sf::Vector2f(pos.x, pos.y - scale.y / 2.f));
 		triangle.setOrigin(pos);
-		triangle.setRotation(rot); 
+		triangle.setRotation(rot);
 		triangle.setPosition(pos);
 		triangle.setFillColor(color);
 		window.draw(triangle);
@@ -133,6 +158,7 @@ void Entity::onUpdate()
 	default:
 		break;
 	}
+
 }
 
 void Entity::onDestroy()
@@ -145,6 +171,7 @@ void Entity::onDestroy()
 
 void Factory::init()
 {
+	// registering all the entity types
 	addEntityType<Enemy>();
 
 	//! Temp
@@ -179,7 +206,91 @@ void Factory::update()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+
+	std::vector<Ally*> ally = factory.getEntities<Ally>();
+
+	std::vector<Ally*> leaders{};
+
+	for (auto const& l : ally)
+	{
+		if (l->isLeader())
+		{
+			leaders.push_back(l);
+		}
+	}
+
+	for (auto const& l : leaders)
+	{
+		auto& members = l->battle_order.section;
+		float factor = std::max(l->scale.x, l->scale.y);
+
+		for (auto const& m : members)
+		{
+			if (l->isColliding(m))
+			{
+		
+				vec2 direction = m->pos - l->pos;
+
+				// if they are pointing in the same direction
+				if (m->dir.Dot(l->dir) < 0)
+				{
+					direction = { -direction.y, direction.x };
+				}
+
+				direction.Normalize();
+
+				float lerp = 0.97f;
+
+				Vec2 newPos = m->pos + factor * 0.25f * direction.Normalize();
+				m->pos = newPos * lerp + m->pos * (1 - lerp);
+			}
+		}	
+
+		for (unsigned i = 0; i < members.size(); ++i)
+		{
+			for (unsigned j = i + 1; j < members.size(); ++j)
+			{
+				auto& m1 = members[i];
+				auto& m2 = members[j];
+
+				while (m1->isColliding(m2)) // Adjusted distance check with a small buffer
+				{
+					vec2 direction = m2->pos - m1->pos;
+
+					if (Entity::isVecZero(direction))
+					{
+						direction = { 1, 1 };
+					}
+
+					direction = direction.Normalize();
+
+					if (direction.Length() != 1)
+					{
+						direction *= (1 / direction.Length());
+					}
+
+					float currentDistance = (m1->pos - m2->pos).Length();
+					float requiredDistance = 100.1f; // Adjusted required distance with a small buffer
+					float correctionFactor = (requiredDistance - currentDistance) / 2.f;
+
+					vec2 displacement = direction * correctionFactor;
+
+					// Move both m1 and m2 away from each other
+					m1->pos -= displacement * 0.5f;
+					m2->pos += displacement * 0.5f;
+
+					if ((m1->pos - m2->pos).Length() >= 100.1f) // Adding a small buffer to the check
+					{
+						break; // Exit loop if they are no longer colliding
+					}
+				}
+			}
+		}
+	}
 	
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			v->onRender();
 }
 
 void Factory::free()

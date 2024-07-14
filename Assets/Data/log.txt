@@ -52,3 +52,27 @@
 
 [09/07/2024 15:58:20] Program crashed at line 465 in Grid.cpp, reason: Row: "-8" Col: "8" is out of bound
 
+[13/07/2024 22:12:23] Program crashed at line 550 in Grid.cpp, reason: Row: "-1" Col: "9" is out of bound
+
+[13/07/2024 22:24:28] Program crashed at line 550 in Grid.cpp, reason: Row: "-1" Col: "19" is out of bound
+
+[13/07/2024 22:24:39] Program crashed at line 550 in Grid.cpp, reason: Row: "-1" Col: "20" is out of bound
+
+[13/07/2024 22:57:21] Program crashed at line 550 in Grid.cpp, reason: Row: "2" Col: "50" is out of bound
+
+[13/07/2024 22:58:18] Program crashed at line 550 in Grid.cpp, reason: Row: "0" Col: "50" is out of bound
+
+[13/07/2024 23:00:00] Program crashed at line 550 in Grid.cpp, reason: Row: "0" Col: "50" is out of bound for is wall
+
+[13/07/2024 23:07:27] Program crashed at line 550 in Grid.cpp, reason: Row: "0" Col: "50" is out of bound for is wall
+
+[13/07/2024 23:07:40] Program crashed at line 550 in Grid.cpp, reason: Row: "50" Col: "36" is out of bound for is wall
+
+[13/07/2024 23:07:59] Program crashed at line 550 in Grid.cpp, reason: Row: "0" Col: "50" is out of bound for is wall
+
+[14/07/2024 01:57:32] Program crashed at line 550 in Grid.cpp, reason: Row: "3" Col: "50" is out of bound for is wall
+
+[14/07/2024 01:58:33] Program crashed at line 550 in Grid.cpp, reason: Row: "2" Col: "50" is out of bound for is wall
+
+[14/07/2024 03:11:00] Program crashed at line 537 in Grid.cpp, reason: Row: "14" Col: "-1" is out of bound for set colour
+

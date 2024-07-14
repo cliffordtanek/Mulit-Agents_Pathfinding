@@ -56,34 +56,77 @@ public:
 	void setTargetPos(Vec2 _targetPos, bool canClearWaypoints = false);
 	void setWaypoints(const std::list<Vec2> &_waypoints);
 
+	bool isColliding(Entity* entity);
+
 	virtual void onCreate();
 	virtual void onUpdate();
+	virtual void onRender();
 	virtual void onDestroy();
+
+	static bool isVecZero(Vec2 const& vec);
 };
 
 class Ally : public Entity
 {
-public:
+private:
+	struct Battle_Orders
+	{
+		bool isLeader;
+		std::vector<Ally*> section;
 
+		Ally* leader;
+
+		Battle_Orders() : isLeader(false), leader(nullptr) {}
+	};
+
+public:
 	float health;
-	float damage;
+	float const full_health;
+
+	Battle_Orders battle_order;
 
 	Ally(Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
-		const sf::Color &_color = sf::Color::Red,
+		const sf::Color &_color = sf::Color::White,
 		float _speed = 10.f,
 		float _health = 100.f,
-		float _damage = 10.f)
+		float _full_health = 100.f)
 
 		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
 		health(_health),
-		damage(_damage) { }
+		full_health(_full_health) { }
 
 	void onCreate() override;
 	void onUpdate() override;
+	void onRender() override;
 	void onDestroy() override;
+
+	void makeLeader();
+	void takeDamage(float damage);
+	void heal(float hp = -1.f);
+	
+
+	void assignMember(Ally* member);
+	bool isLeader();
+
+	// Function to calculate the centroid of a set of positions
+	Vec2 calculateCentroid() {
+		Vec2 centroid(0, 0);
+
+		for (const auto& m : battle_order.section) {
+			centroid += m->pos;
+		}
+		centroid.x /= battle_order.section.size();
+		centroid.y /= battle_order.section.size();
+		return centroid;
+	}
+
+private:
+	void drawHealth();
+
+
 };
 
 class Enemy : public Entity
@@ -91,24 +134,33 @@ class Enemy : public Entity
 public:
 
 	float health;
-	float damage;
+	float const full_health;
 
 	Enemy(Vec2 _pos = Vec2(),
 		Vec2 _scale = Vec2(),
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
-		const sf::Color &_color = sf::Color::Blue,
+		const sf::Color &_color = sf::Color::Red,
 		float _speed = 03.f,
 		float _health = 100.f,
-		float _damage = 10.f)
+		float _full_health = 100.f)
 
 		: Entity(_pos, _scale, _dir, _shape, _color, _speed),
 		health(_health),
-		damage(_damage) { }
+		full_health(_full_health) { }
 
 	void onCreate() override;
 	void onUpdate() override;
+	void onRender() override;
 	void onDestroy() override;
+
+	void takeDamage(float damage);
+	void heal(float hp = -1.f);
+
+	
+
+private:
+	void drawHealth();
 };
 
 class Arrow : public Entity
@@ -136,6 +188,7 @@ public:
 
 	void onCreate() override;
 	void onUpdate() override;
+	void onRender() override;
 	void onDestroy() override;
 };
 

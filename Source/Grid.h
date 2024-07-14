@@ -82,7 +82,7 @@ public:
 	Vec2 getFlowFieldDir(int row, int col) const;
 	Vec2 getFlowFieldDir(GridPos pos) const;
 
-
+	Vec2 resolvePosition(Vec2 const& vec);
 
 
 	// =======
@@ -103,6 +103,7 @@ public:
 
 	bool isOutOfBound(int row, int col) const;
 	bool isOutOfBound(GridPos pos) const;
+	bool isOutOfBound(vec2 const& pos) const;
 
 	bool isClearPath(int row0, int col0, int row1, int col1) const;
 	bool isClearPath(GridPos lhs, GridPos rhs) const;

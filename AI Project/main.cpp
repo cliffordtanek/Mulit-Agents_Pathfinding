@@ -33,7 +33,6 @@ int main()
 #endif
 
     sf::Clock clock;
-    //sf::Font font;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");
     window.setFramerateLimit(60);
@@ -45,14 +44,28 @@ int main()
 
     // initialize other systems
     factory.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 50.f, 50.f }, Vec2{ 50.f, 50.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 100.f, 100.f }, Vec2{ 50.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
+
+    Ally* leader = factory.createEntity<Ally>(Vec2{ 2000.f, 100.f }, Vec2{ 50.f, 50.f });
+    leader->makeLeader();
+
+    float x = 1900.f;
+
+    for (int i = 0; i < 100; ++i)
+    {
+        Ally* member = factory.createEntity<Ally>(Vec2{ x-=10.f, 100.f }, Vec2{ 50.f, 50.f });
+        leader->assignMember(member);
+    }
+
 
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
         sf::Event event;
+
+        enemy->takeDamage(0.1f);
 
         while (window.pollEvent(event))
         {
@@ -117,7 +130,7 @@ int main()
                 factory.grid->updateHeatMap(target);
                 factory.grid->generateFlowField();
 
-                enemy->setTargetPos(target, true);
+                leader->setTargetPos(target, true);
             }
 
             // factory.grid->computePath(*enemy, target);
