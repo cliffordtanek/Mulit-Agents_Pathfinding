@@ -30,7 +30,7 @@ sf::Font font;
 sf::View view(winSize / 2.f, winSize);
 sf::View minimap(mapSize / 2.f, mapSize);
 
-int cellSize = 100;
+float cellSize = 100.f;
 Editor editor;
 Factory factory;
 Grid grid(25, 50, cellSize); // this is height x width not width x height omg

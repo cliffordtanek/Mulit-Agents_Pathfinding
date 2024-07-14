@@ -188,16 +188,12 @@ void Factory::init()
 void Factory::update()
 {
 	std::vector<std::pair<Vec2, Vec2>> entityPositionDirection;
-	//std::vector<Vec2> entityDirection;
 	for (const auto& [type, map] : entities)
 		for (const auto& [k, v] : map)
 			entityPositionDirection.emplace_back(v->pos, v->dir);
 		
 	
-
-
-
-	grid.updateVisibility(entityPositionDirection, 500.f, 20.f, 100.f);
+	grid.updateVisibility(entityPositionDirection, 500.f, 60.f, 120.f);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)
