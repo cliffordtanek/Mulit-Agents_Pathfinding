@@ -152,3 +152,9 @@
 
 [14/07/2024 12:44:51] Program crashed at line 929 in Grid.cpp, reason: Row: "25" Col: "15" is out of bound because Height: "25" Width: "50"
 
+[14/07/2024 18:39:03] Program crashed at line 929 in Grid.cpp, reason: Row: "26" Col: "16" is out of bound because Height: "25" Width: "50"
+
+[14/07/2024 18:40:19] Program crashed at line 929 in Grid.cpp, reason: Row: "4294967294" Col: "21" is out of bound because Height: "25" Width: "50"
+
+[14/07/2024 19:19:26] Program crashed at line 967 in Grid.cpp, reason: Row: "4294967281" Col: "60" is out of bound because Height: "25" Width: "50"
+

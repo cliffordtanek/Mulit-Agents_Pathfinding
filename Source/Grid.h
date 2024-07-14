@@ -95,6 +95,8 @@ public:
 	//! update heat map based on potentials
 	void updateHeatMap();
 
+	void addRepulsion(GridPos pos, float radius, float strength);
+
 	void resetHeatMap();
 
 	void generateFlowField();

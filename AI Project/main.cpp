@@ -75,6 +75,9 @@ int main()
         //grid.generateFlowField();
 
         grid.updateHeatMap();
+        for (Enemy* enemy : factory.getEntities<Enemy>())
+            grid.addRepulsion(grid.getGridPos(enemy->pos), 200.f, 1.f);
+
         grid.generateFlowField();
 
         while (window.pollEvent(event))

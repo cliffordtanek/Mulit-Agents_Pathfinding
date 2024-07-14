@@ -402,7 +402,6 @@ void Grid::updateHeatMap()
 	// reset the map first
 	resetHeatMap();
 
-
 	// initialize target cell
 	//flowField[targetPos.row][targetPos.col].distance = 0.f;
 	//flowField[targetPos.row][targetPos.col].visited = true;
@@ -458,7 +457,7 @@ void Grid::updateHeatMap()
 
 
 				// Calculate new distance
-				float newDistance = currCell.distance + distOfTwoCells(targetPos, neighbourPos);
+				float newDistance = currCell.distance + distOfTwoCells(currCell.position, neighbourPos);
 
 				// If neighbor is visited and the new distance is shorter, update it
 				if (currNeighbour.visited)
@@ -473,6 +472,41 @@ void Grid::updateHeatMap()
 					currNeighbour.visited = true;
 					openList.push(&currNeighbour);
 				}
+			}
+		}
+	}
+
+}
+
+void Grid::addRepulsion(GridPos gridPos, float radius, float strength)
+{
+	int startRow = std::max(0, gridPos.row - static_cast<int>(radius / cellSize));
+	int endRow = std::min(height - 1, gridPos.row + static_cast<int>(radius / cellSize));
+
+	int startCol = std::max(0, gridPos.col - static_cast<int>(radius / cellSize));
+	int endCol = std::min(width - 1, gridPos.col + static_cast<int>(radius / cellSize));
+
+
+	for (int r = startRow; r <= endRow; ++r)
+	{
+		for (int c = startCol; c <= endCol; ++c)
+		{
+			//if (isWall(r, c))
+			//	continue;
+
+			// get distance of pos to cell (startRow, startCol)
+
+			Vec2 rowCol = getWorldPos(r, c);
+
+
+			float distance = getWorldPos(gridPos).Distance(rowCol);
+
+			if (distance <= radius)
+			{
+				if (!isClearPath(gridPos, GridPos{ r, c }))
+					continue;
+
+				flowField[r][c].distance += strength;
 			}
 		}
 	}
@@ -519,8 +553,6 @@ void Grid::generateFlowField()
 			bool minimumMode{ false }; // this mode is enabled if there is a wall among its neighbour
 			float minDist{ std::numeric_limits<float>::max() };	// to store the min distancce for the case of minimumMode
 			GridPos minDir{};
-
-
 
 			// check its neighbour to generate direction vector
 			for (int i{ -1 }; i <= 1; ++i)
