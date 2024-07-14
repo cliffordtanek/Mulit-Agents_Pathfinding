@@ -217,3 +217,17 @@ const std::unordered_map<std::string, std::unordered_map<Entity*, Entity*>>& Fac
 {
 	return entities;
 }
+
+void Factory::setEntityPen(const std::string &type)
+{
+	entityPen = type;
+}
+
+Enemy *Factory::cloneEnemyAt(Vec2 pos)
+{
+	//if (!entities.count(entityPen))
+	//	return nullptr;
+	if (grid.isOutOfBound(grid.getGridPos(pos)))
+		return nullptr;
+	return createEntity<Enemy>(pos);
+}

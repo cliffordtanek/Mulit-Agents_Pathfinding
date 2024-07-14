@@ -25,6 +25,8 @@ written consent of DigiPen Institute of Technology is prohibited.
 
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
+// data
+struct GridPos { int row{}, col{}; };
 
 const std::unordered_map<std::string, std::pair<sf::Color, sf::Color>> colors // first = fill, second = outline
 {
@@ -47,7 +49,12 @@ struct Cell
 	bool isWall{false};
 
 	float intensity = 0.f; // fade white out after clicking
-	bool isHighlighted = false; // highlight border when moused over
+	bool isHighlighted = false; // highlight border when moused over (does not work)
+
+	// map generation
+	bool isVisited = false;
+	Cell *parent = nullptr;
+	GridPos pos;
 
 	Cell() = default;
 	Cell(Vec2 pos);
@@ -59,10 +66,6 @@ public:
 
 	// constructor
 	Grid(int _height, int _width, float _cellSize);
-
-
-	// data
-	struct GridPos { int row{}, col{}; };
 
 
 
@@ -101,6 +104,9 @@ public:
 
 	void clearMap();
 
+	void generateMap();
+
+	void findPath(Cell &currCell);
 
 	// =======
 	// Getters
@@ -125,7 +131,7 @@ public:
 	Vec2 getFlowFieldDir(int row, int col) const;
 	Vec2 getFlowFieldDir(GridPos pos) const;
 
-
+	std::vector<Cell *> getOrthNeighbors(GridPos pos, int steps = 2);
 
 
 	// =======
@@ -188,8 +194,11 @@ private:
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
 
 	std::vector<sf::CircleShape> debugRadius;
+
+	std::vector<Cell *> waypoints; // debug;
 };
 
-std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs);
+std::ostream &operator<<(std::ostream &os, GridPos const &rhs);
+bool operator==(GridPos lhs, GridPos rhs);
 
 #endif // GRID_H

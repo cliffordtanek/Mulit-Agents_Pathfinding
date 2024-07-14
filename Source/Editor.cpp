@@ -14,11 +14,14 @@ extern sf::RenderWindow window;
 extern float dt;
 extern bool canZoom;
 extern bool isDrawMode;
+extern int tunnelSize;
+extern int wallSize;
 
 // local globals for constant dropdown lists
-static std::vector<const char *> colorNames;
-static std::vector<std::string> rowNums; // rows or cols
-static std::vector<const char *>rowNames;
+std::vector<const char *> colorNames;
+std::vector<std::string> rowNums; // rows or cols
+std::vector<const char *>rowNames;
+//std::vector<std::string> entityTypes;
 
 Window::~Window()
 {
@@ -294,21 +297,44 @@ void MapMaker::onUpdate()
 #endif
 
 	ImGui::Checkbox("Draw Mode", &isDrawMode);
+	ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
 
 	if (isDrawMode)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
 		ImGui::Text("Left click to draw wall");
 		ImGui::Text("Right click to erase wall");
-		ImGui::PopStyleColor();
 	}
 	else
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_BLUE);
-		ImGui::Text("Right click to set target position");
-		ImGui::PopStyleColor();
+		ImGui::Text("Left click to spawn Enemy");
+		ImGui::Text("Right click to despawn Enemy");
+
+		//static int typeIndex = -1;
+		//int oldTypeIndex = typeIndex;
+
+		//if (ImGui::BeginCombo("Entity", typeIndex < 0 ? "" : entityTypes[typeIndex].c_str()))
+		//{
+		//	canZoom = false;
+
+		//		for (int i = 0; i < entityTypes.size(); ++i)
+		//		{
+		//			const bool isSelected = typeIndex == i;
+		//				if (ImGui::Selectable(entityTypes[i].c_str(), isSelected))
+		//					typeIndex = i;
+
+		//				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+		//					if (isSelected)
+		//						ImGui::SetItemDefaultFocus();
+		//		}
+
+		//	ImGui::EndCombo();
+		//}
+
+		//if (oldTypeIndex != typeIndex)
+		//	factory.setEntityPen(entityTypes[typeIndex]);
 	}
 
+	ImGui::PopStyleColor();
 	editor.addSpace(5);
 	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
@@ -353,6 +379,13 @@ void MapMaker::onUpdate()
 		grid.setHeight(rowIndex + 1);
 	if (colIndex != oldColIndex)
 		grid.setWidth(colIndex + 1);
+
+	editor.addSpace(5);
+
+	ImGui::SliderInt("Wall + Tunnel Width", &wallSize, 1, 10);
+	ImGui::SliderInt("Tunnel Width", &tunnelSize, 1, 10);
+	if (ImGui::Button("Generate Map"))
+		grid.generateMap();
 
 	ImGui::End();
 }
@@ -458,6 +491,9 @@ void Editor::init()
 	std::generate_n(std::back_inserter(rowNums), 100, [n = 0]() mutable { return std::to_string(++n); });
 	std::transform(rowNums.begin(), rowNums.end(), std::back_inserter(rowNames),
 		[](const auto &elem) { return elem.c_str(); });
+	auto entities = factory.getAllEntities();
+	//std::transform(entities.begin(), entities.end(), std::back_inserter(entityTypes),
+		//[](const auto &elem) { return elem.first; });
 }
 
 void Editor::update()

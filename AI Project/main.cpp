@@ -55,8 +55,8 @@ int main()
     minimap.setViewport(sf::FloatRect(0.75f, 0.0208f, 0.25f, 0.25f));
 
     // initialize systems
-    editor.init();
     factory.init();
+    editor.init();
     Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 50.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
@@ -117,70 +117,87 @@ int main()
             }
 
         // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-            isLMousePressed = true;
-
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
-        {
-            isRMousePressed = true;
-            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-
-            if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
             {
+                isLMousePressed = true;
+                Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 grid.setIntensity(grid.getGridPos(target));
-                grid.updateHeatMap(target);
-                grid.generateFlowField();
-
-                // set all enemy to the target
-                for (Enemy *enemy : factory.getEntities<Enemy>())
-                    enemy->setTargetPos(target, true);
+                factory.cloneEnemyAt(target);
             }
-        }
 
-        // mouse event must put outside of switch case for some reason
-        if (event.type == sf::Event::MouseMoved && isRMousePressed && isDrawMode)
-        {
-            Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
+            {
+                isRMousePressed = true;
+                Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                grid.setIntensity(grid.getGridPos(target));
 
-            //if (isDrawMode)
-            grid.setWall(grid.getGridPos(target), false);
-            //else if (!grid.isWall(grid.getGridPos(target)) && ALIVE(Enemy, enemy))
-            //{
-            //    grid.updateHeatMap(target);
-            //    grid.generateFlowField();
+                for (Enemy *enemy : factory.getEntities<Enemy>())
+                    if (grid.getGridPos(target) == grid.getGridPos(enemy->pos))
+                        factory.destroyEntity<Enemy>(enemy);
+                //if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
+                //{
+                //    //grid.updateHeatMap(target);
+                //    //grid.generateFlowField();
 
-            //    // set all enemy to the target
-            //    for (Enemy *enemy : factory.getEntities<Enemy>())
-            //        enemy->setTargetPos(target, true);
-            //}
+                //    //// set all enemy to the target
+                //    //for (Enemy *enemy : factory.getEntities<Enemy>())
+                //    //    enemy->setTargetPos(target, true);
 
-        }
+                //    for (Enemy *enemy : factory.getEntities<Enemy>())
+                //        if (target.SquareDistance(enemy->pos) < 50.f)
+                //            factory.destroyEntity<Enemy>(enemy);
+                //}
 
-        if (event.type == sf::Event::MouseMoved && isLMousePressed && isDrawMode)
-        {
-            // calculate grid coordinates from mouse position
-            sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                //if (isDrawMode)
+            }
+
+            // mouse event must put outside of switch case for some reason
+            if (event.type == sf::Event::MouseMoved && isRMousePressed)
+            {
+                Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+                //if (isDrawMode)
+                if (isDrawMode)
+                    grid.setWall(grid.getGridPos(target), false);
+
+                //else if (!grid.isWall(grid.getGridPos(target)) && ALIVE(Enemy, enemy))
+                //{
+                //    grid.updateHeatMap(target);
+                //    grid.generateFlowField();
+
+                //    // set all enemy to the target
+                //    for (Enemy *enemy : factory.getEntities<Enemy>())
+                //        enemy->setTargetPos(target, true);
+                //}
+
+
+            }
+
+            if (event.type == sf::Event::MouseMoved && isLMousePressed)
+            {
+                // calculate grid coordinates from mouse position
+                Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             
-            Grid::GridPos pos = grid.getGridPos(mousePos);
+                // set colour of grid upon click
+                //grid.SetColour(pos.row, pos.col);
+                if (isDrawMode)
+                    grid.setWall(grid.getGridPos(target), true);
 
-            // set colour of grid upon click
-            //grid.SetColour(pos.row, pos.col);
-            grid.setWall(pos, true);
-        }
+            }
 
-        // FOG TEST (Mouse cursor)
-#if 1
-        if (event.type == sf::Event::MouseMoved)
-        {
-           // grid.updateHeatMap({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) });
-        }
-#endif
+            // FOG TEST (Mouse cursor)
+    #if 1
+            if (event.type == sf::Event::MouseMoved)
+            {
+               // grid.updateHeatMap({ static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y) });
+            }
+    #endif
 
 
-        if (event.type == sf::Event::MouseButtonReleased)
-        {
-            isLMousePressed = isRMousePressed = false;
-        }
+            if (event.type == sf::Event::MouseButtonReleased)
+            {
+                isLMousePressed = isRMousePressed = false;
+            }
 
         }
 

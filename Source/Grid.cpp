@@ -4,12 +4,21 @@
 #include "Utility.h"
 #include "Loader.h"
 #include "Camera.h"
+#include <algorithm>
+#include <random>
+#include <stack>
 
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
 extern bool isDrawMode;
 extern float dt;
+
+std::random_device rd;
+std::mt19937 g(rd());
+
+int tunnelSize = 1;
+int wallSize = 1;
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
@@ -52,7 +61,7 @@ Grid::Grid(int _height, int _width, float _cellSize)
 			cells[row][col].rect.setFillColor(colors.at("Floor").first);
 			cells[row][col].rect.setOutlineColor(colors.at("Floor").second);
 			cells[row][col].rect.setOutlineThickness(4.f);
-
+			cells[row][col].pos = { row, col };
 
 			// flow field
 			flowField[row][col].position = { row, col };
@@ -85,6 +94,11 @@ Grid::Grid(int _height, int _width, float _cellSize)
 void Grid::render(sf::RenderWindow& window)
 {
 	//sf::Vector2f offset = camera.getOffset();
+
+	for (Cell *cell : waypoints)
+	{
+		cell->intensity = 0.5f;
+	}
 
 	for (int row{}; row < height; ++row)
 	{
@@ -528,8 +542,9 @@ void Grid::changeMap(const std::string& mapName)
 			flowField.back().back().position = { (int)i, (int)j };
 			cells.back().emplace_back(Vec2{ cellSize, cellSize });
 			cells.back().back().isWall = indexCells[i][j];
-			sf::RectangleShape &currCell = cells.back().back().rect;
+			cells.back().back().pos = { (int)i, (int)j };
 
+			sf::RectangleShape &currCell = cells.back().back().rect;
 			currCell.setOrigin(cellSize / 2.f, cellSize / 2.f);
 			currCell.setPosition(j * cellSize, i * cellSize);
 			currCell.setFillColor(indexCells[i][j] ? colors.at("Wall").first : colors.at("Floor").first); 
@@ -550,6 +565,134 @@ void Grid::clearMap()
 		}
 }
 
+void Grid::generateMap()
+{
+	// so it doesn't crash on empty map
+	if (cells.empty() || cells[0].empty())
+		return;
+
+	// initialise map
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+		{
+			cell.isVisited = false;
+			cell.parent = nullptr;
+			cell.isWall = true;
+		}
+
+	std::stack<Cell *> openList; // bfs
+	openList.push(&cells[0][0]);
+
+	while (openList.size())
+	{
+		Cell &currCell = *openList.top();
+		openList.pop();
+
+		currCell.isVisited = true;
+		std::vector<Cell *> neighbors = getOrthNeighbors(currCell.pos, tunnelSize + 1);
+		std::shuffle(neighbors.begin(), neighbors.end(), g);
+
+		for (Cell *neighbor : neighbors)
+			if (!neighbor->isVisited)
+			{
+				openList.push(neighbor);
+				neighbor->parent = &currCell;
+			}
+	}
+
+	// remove walls
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+		{
+			if (cell.parent)
+			{
+				//waypoints.push_back(&cell);
+#if 1			
+				if (cell.parent->pos.row == cell.pos.row) // same row
+				{
+					int maxCol = std::max(cell.parent->pos.col, cell.pos.col);
+					
+					for (int j = 1; j < wallSize + 1; j = std::abs(j) + 1)
+					{
+						j = j % 2 ? -j : j;
+						if (!isOutOfBound(cell.pos.row + j / 2, maxCol))
+							for (int i = std::min(cell.parent->pos.col, cell.pos.col); i <= maxCol; ++i)
+								cells[cell.pos.row + j / 2][i].isWall = false;
+						//if (!isOutOfBound(cell.pos.row + j / 2, maxCol + 1))
+						//	cells[cell.pos.row + j / 2][maxCol + 1].isWall = false;
+					}
+				}
+				else // same col
+				{
+					int maxRow = std::max(cell.parent->pos.row, cell.pos.row);
+
+					for (int j = 1; j < wallSize + 1; j = std::abs(j) + 1)
+					{
+						j = j % 2 ? -j : j;
+						if (!isOutOfBound(maxRow, cell.pos.col + j / 2))
+							for (int i = std::min(cell.parent->pos.row, cell.pos.row); i <= maxRow; ++i)
+								cells[i][cell.pos.col + j / 2].isWall = false;
+						//if (!isOutOfBound(maxRow + 1, cell.pos.col + j / 2))
+						//	cells[maxRow + 1][cell.pos.col + j / 2].isWall = false;
+					}
+				}
+#endif
+#if 0			
+				if (cell.parent->pos.row == cell.pos.row) // same row
+				{
+					int maxCol = std::max(cell.parent->pos.col, cell.pos.col);
+
+					for (int j = 1; j < 5; j = std::abs(j) + 1)
+					{
+						j = j % 2 ? -j : j;
+						for (int i = std::min(cell.parent->pos.col, cell.pos.col) - (5 - 1) / 2; 
+							i <= maxCol + (5 - 1) / 2; ++i)
+							if (!isOutOfBound(cell.pos.row + j / 2, i))
+								cells[cell.pos.row + j / 2][i].isWall = false;
+						//if (!isOutOfBound(cell.pos.row + j / 2, maxCol + 1))
+						//	cells[cell.pos.row + j / 2][maxCol + 1].isWall = false;
+					}
+				}
+				else // same col
+				{
+					int maxRow = std::max(cell.parent->pos.row, cell.pos.row);
+
+					for (int j = 1; j < 5; j = std::abs(j) + 1)
+					{
+						j = j % 2 ? -j : j;
+						for (int i = std::min(cell.parent->pos.row, cell.pos.row) - (5 - 1) / 2;
+							i <= maxRow + (5 - 1) / 2; ++i)
+							if (!isOutOfBound(i, cell.pos.col + j / 2))
+								cells[i][cell.pos.col + j / 2].isWall = false;
+						//if (!isOutOfBound(maxRow + 1, cell.pos.col + j / 2))
+						//	cells[maxRow + 1][cell.pos.col + j / 2].isWall = false;
+					}
+				}
+#endif
+#if 0
+				if (cell.parent->pos.row == cell.pos.row) // same row
+				{
+					int maxCol = std::max(cell.parent->pos.col, cell.pos.col);
+							for (int i = std::min(cell.parent->pos.col, cell.pos.col); i <= maxCol; ++i)
+								cells[cell.pos.row][i].isWall = false;
+				}
+				else // same col
+				{
+					int maxRow = std::max(cell.parent->pos.row, cell.pos.row);
+							for (int i = std::min(cell.parent->pos.row, cell.pos.row); i <= maxRow; ++i)
+								cells[i][cell.pos.col].isWall = false;
+				}
+#endif
+			}
+		}
+}
+
+void Grid::findPath(Cell &currCell)
+{
+
+
+
+}
 
 
 // =======
@@ -571,7 +714,7 @@ int Grid::getHeight() const
 	return height;
 }
 
-Grid::GridPos Grid::getGridPos(float x, float y) const
+GridPos Grid::getGridPos(float x, float y) const
 {
 	x += 0.5f * cellSize;
 	y += 0.5f * cellSize;
@@ -582,7 +725,7 @@ Grid::GridPos Grid::getGridPos(float x, float y) const
 	return { row, col };
 }
 
-Grid::GridPos Grid::getGridPos(Vec2 const& pos) const 
+GridPos Grid::getGridPos(Vec2 const& pos) const 
 { 
 	return getGridPos(pos.x, pos.y); 
 }
@@ -614,7 +757,28 @@ Vec2 Grid::getFlowFieldDir(int row, int col) const
 
 Vec2 Grid::getFlowFieldDir(GridPos pos) const { return getFlowFieldDir(pos.row, pos.col); }
 
+std::vector<Cell *> Grid::getOrthNeighbors(GridPos pos, int steps)
+{
+	std::vector<Cell *> ret;
 
+	// north
+	if (!isOutOfBound(pos.row - steps, pos.col))
+		ret.push_back(&cells[pos.row - steps][pos.col]);
+	
+	// south
+	if (!isOutOfBound(pos.row + steps, pos.col))
+		ret.push_back(&cells[pos.row + steps][pos.col]);
+
+	// east
+	if (!isOutOfBound(pos.row, pos.col + steps))
+		ret.push_back(&cells[pos.row][pos.col + steps]);
+
+	// west
+	if (!isOutOfBound(pos.row, pos.col - steps))
+		ret.push_back(&cells[pos.row][pos.col - steps]);
+
+	return ret;
+}
 
 
 // =======
@@ -702,6 +866,7 @@ void Grid::setWidth(int newWidth)
 				cell.rect.setFillColor(colors.at("Floor").first);
 				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
+				cell.pos = { i, j };
 				cells[i].push_back(cell);
 
 				flowField[i].emplace_back();
@@ -737,6 +902,7 @@ void Grid::setHeight(int newHeight)
 				cell.rect.setFillColor(colors.at("Floor").first);
 				cell.rect.setOutlineColor(colors.at("Floor").second);
 				cell.rect.setOutlineThickness(4.f);
+				cell.pos = { i, j };
 				cells.back().push_back(cell);
 
 				flowField.back().emplace_back();
@@ -894,8 +1060,13 @@ bool Grid::lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& l
 
 Cell::Cell(Vec2 pos) : rect(pos) { }
 
-std::ostream &operator<<(std::ostream &os, Grid::GridPos const &rhs)
+std::ostream &operator<<(std::ostream &os, GridPos const &rhs)
 {
 	os << "{" << rhs.row << ", " << rhs.col << "}";
 	return os;
+}
+
+bool operator==(GridPos lhs, GridPos rhs)
+{
+	return lhs.row == rhs.row && lhs.col == rhs.col;
 }

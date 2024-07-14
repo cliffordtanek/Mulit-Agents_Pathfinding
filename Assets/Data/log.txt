@@ -146,3 +146,5 @@
 
 [14/07/2024 15:16:08] Program crashed at line 732 in Grid.cpp, reason: Row: "6" Col: "4294967295" is out of bound because Height: "25" Width: "50"
 
+[14/07/2024 20:10:06] Program crashed at line 202 in Factory.h, reason: Entity to delete was not found
+
