@@ -112,16 +112,26 @@ public:
 	bool isLeader();
 
 	// Function to calculate the centroid of a set of positions
-	Vec2 calculateCentroid() {
-		Vec2 centroid(0, 0);
-
-		for (const auto& m : battle_order.section) {
-			centroid += m->pos;
+	static vec2 calculateCentroid(const std::vector<Ally*>& members)
+	{
+		vec2 centroid(0, 0);
+		for (const auto& member : members)
+		{
+			centroid += member->pos;
 		}
-		centroid.x /= battle_order.section.size();
-		centroid.y /= battle_order.section.size();
+		centroid.x /= members.size();
+		centroid.y /= members.size();
 		return centroid;
 	}
+
+	static void sortMembersByDistanceToCenter(std::vector<Ally*>& members, const vec2& center)
+	{
+		std::sort(members.begin(), members.end(), [&center](Ally* a, Ally* b) {
+			return (a->pos - center).Length() < (b->pos - center).Length();
+			});
+	}
+
+
 
 private:
 	void drawHealth();

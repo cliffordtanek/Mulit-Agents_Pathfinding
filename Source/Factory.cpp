@@ -222,6 +222,9 @@ void Factory::update()
 	for (auto const& l : leaders)
 	{
 		auto& members = l->battle_order.section;
+		Vec2 cen = Ally::calculateCentroid(members);
+		// Ally::sortMembersByDistanceToCenter(members, cen);
+
 		float factor = std::max(l->scale.x, l->scale.y);
 
 		for (auto const& m : members)

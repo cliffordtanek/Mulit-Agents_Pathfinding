@@ -40,45 +40,11 @@ void Ally::onUpdate()
 	}
 
 	Entity::onUpdate();
-
-	if (isLeader())
-	{
-		for (auto& p : battle_order.section)
-		{
-			//if (isColliding(p))
-			//{
-			//	if (p->currSpeed > std::numeric_limits<float>::epsilon())
-			//	{
-			//		std::cout << "Colliding\n";
-
-			//		// Determine the new position using sine and cosine
-			//		Vec2 center = pos - dir;  // Center of the imaginary circle
-
-			//		// Calculate the angle of the leader with respect to the center
-			//		float leaderAngle = atan2(pos.y - center.y, pos.x - center.x);
-
-			//		// Increment the angle
-			//		float newAngle = leaderAngle + 2.f;  // Increment angle by a small value (e.g., 0.1 radians)
-
-			//		// Calculate the new position using the new angle
-			//		float radius =50.0f;  // Distance from the center to the new position
-			//		float newX = center.x + radius * cos(newAngle);
-			//		float newY = center.y + radius * sin(newAngle);
-
-			//		p->pos = Vec2{ newX, newY };
-			//		p->dir = Vec2{ cos(newAngle), sin(newAngle) };
-
-			//	}
-			//}
-		}
-	}
 }
 
 void Ally::onRender()
 {
 	Entity::onRender();
-
-	// Ally::drawHealth();
 }
 
 void Ally::onDestroy()
