@@ -40,6 +40,10 @@ Camera camera;
 bool isLMousePressed{ false }, isRMousePressed{ false };
 bool canExit = false;
 
+Vec2 target{};
+
+
+
 int main()
 {
     // Enable run-time memory check for debug builds.
@@ -65,6 +69,26 @@ int main()
     {
         dt = clock.restart().asSeconds();
         sf::Event event;
+
+        // if exit found, path to exit
+        if (grid.isExitFound())
+        {
+            grid.updateHeatMap(grid.getWorldPos(grid.exitCell->position));
+            grid.generateFlowField();
+
+            // set all enemy to the target
+            for (Enemy* enemy : factory.getEntities<Enemy>())
+                enemy->setTargetPos(grid.getWorldPos(grid.exitCell->position), true);
+        }
+        else
+        {
+            grid.updateHeatMap();
+            for (Enemy* enemy : factory.getEntities<Enemy>())
+                grid.addRepulsion(grid.getGridPos(enemy->pos), 200.f, 1.f);
+
+            grid.generateFlowField();
+        }
+
 
         while (window.pollEvent(event))
         {
@@ -112,6 +136,7 @@ int main()
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
                     break;
 
+                    break;
                 }
                 break;
             }
@@ -214,6 +239,7 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             view.move({ 1.f * CAM_MOVE, 0.f });
         //camera.calcOffset();
+
 
 #if 0
         // Start the ImGui frame

@@ -175,25 +175,17 @@ void Factory::init()
 
 void Factory::update()
 {
-	//for (const auto &[type, entity] : toDelete)
-	//{
-	//	crashIf(!entities.at(type).count(entity), "Entity to delete was not found");
-	//	entities.at(type).at(entity)->onDestroy();
-	//	delete entities.at(type).at(entity);
-	//	entities.at(type).erase(entity);
-	//}
-
-	//toDelete.clear();
-
-	//! FOG TEST
-#if 1
-	std::vector<Vec2> entityPosition;
+	std::vector<std::pair<Vec2, Vec2>> entityPositionDirection;
+	//std::vector<Vec2> entityDirection;
 	for (const auto& [type, map] : entities)
 		for (const auto& [k, v] : map)
-			entityPosition.emplace_back(v->pos);
+			entityPositionDirection.emplace_back(v->pos, v->dir);
+		
+	
 
-	grid.updateVisibility(entityPosition, 200.f);
-#endif
+
+
+	grid.updateVisibility(entityPositionDirection, 500.f, 20.f, 100.f);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)

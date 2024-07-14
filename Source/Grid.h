@@ -45,6 +45,7 @@ struct Cell
 {
 	sf::RectangleShape rect{};				// rectangle tile 
 	Visibility visibility{ UNEXPLORED };	// visibility enum
+	bool isExit{ false };					// exit flag
 
 	bool isWall{false};
 
@@ -82,6 +83,8 @@ public:
 	// display heat map
 	bool showHeatMap{ false };
 
+	bool showPotentialField{ false };
+
 
 
 
@@ -91,10 +94,14 @@ public:
 	void render(sf::RenderWindow& window);
 
 	//! update visibility of map based on radius
-	void updateVisibility(std::vector<Vec2> const& pos, float radius);
-
+	void updateVisibility(std::vector<std::pair<Vec2, Vec2>> const& entities, float fovRadius, float fovAngleDegrees, float visionCircleRadius);
 	//! update heat map based on target position
 	void updateHeatMap(Vec2 target);
+
+	//! update heat map based on potentials
+	void updateHeatMap();
+
+	void addRepulsion(GridPos pos, float radius, float strength);
 
 	void resetHeatMap();
 
@@ -104,9 +111,15 @@ public:
 
 	void clearMap();
 
+	// potential field methods
+	struct potentialFieldCell;
+	void generateRandomGoal();
+	void updatePotentialField();
+	potentialFieldCell getNextMove(vec2 pos);
 	void generateMap();
 
 	void findPath(Cell &currCell);
+
 
 	// =======
 	// Getters
@@ -173,6 +186,9 @@ public:
 
 	bool lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1) const;
 
+	bool isExitFound() const { return exitFound; }
+
+	potentialFieldCell* exitCell{ nullptr };
 private:
 
 	struct flowFieldCell
@@ -184,18 +200,32 @@ private:
 		bool visited{ false };
 	};
 
+	struct potentialFieldCell
+	{
+		float potential{ std::numeric_limits<float>::max() };
+		vec2 direction{};
+		GridPos position{};
+
+		bool visited{ false };
+	};
+
 	int height, width;	// width and height of the grid
 	float cellSize;		// single cell width/ height
 	std::string penColour = "";
 
+	bool exitFound{ false };
+
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container
+
+	std::vector<std::vector<potentialFieldCell>> potentialField; // potential field container
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
 
 	std::vector<sf::CircleShape> debugRadius;
 
 	std::vector<Cell *> waypoints; // debug;
+	std::vector<std::unique_ptr<sf::Drawable>> debugRadius;
 };
 
 std::ostream &operator<<(std::ostream &os, GridPos const &rhs);

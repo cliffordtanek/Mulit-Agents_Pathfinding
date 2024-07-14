@@ -48,7 +48,9 @@ void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& directio
 
 
 Grid::Grid(int _height, int _width, float _cellSize)
-	: height{ _height }, width{ _width }, cellSize { _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
+	: height{ _height }, width{ _width }, cellSize { _cellSize }, cells{ static_cast<size_t>(height), std::vector<Cell>{ static_cast<size_t>(width) } }
+	, flowField{ static_cast<size_t>(height), std::vector<flowFieldCell>{ static_cast<size_t>(width) } }
+	, potentialField{ static_cast<size_t>(height), std::vector<potentialFieldCell>{ static_cast<size_t>(width)} }
 {
 
 	for (int row{}; row < height; ++row)
@@ -65,27 +67,16 @@ Grid::Grid(int _height, int _width, float _cellSize)
 
 			// flow field
 			flowField[row][col].position = { row, col };
+			
+			// potential field
+			potentialField[row][col].direction = { 0, 0 };
+			potentialField[row][col].potential = 1000;
+			potentialField[row][col].position = { row, col };
 		}
 	}
 
-	//TEMP GRID MAKING
-
-#if 0
-   // Left vertical part of U
-	for (int row = 10; row < 10 + 10; ++row)
-		cells[row][10].rect.setFillColor(colors.at("Wall_Fill"));
-	
-
-	// Bottom horizontal part of U
-	for (int col = 10; col < 10 + 10; ++col) 
-		cells[19][col].rect.setFillColor(colors.at("Wall_Fill"));
-	
-
-	// Right vertical part of U
-	for (int row = 10; row < 10 + 10; ++row) 
-		cells[row][19].rect.setFillColor(colors.at("Wall_Fill"));
-#endif
-
+	generateRandomGoal();
+	//updatePotentialField();
 }
 
 // ======
@@ -214,6 +205,24 @@ void Grid::render(sf::RenderWindow& window)
 				}
 			}
 
+			if (showPotentialField)
+			{
+				float value = potentialField[row][col].potential;
+
+				float normalizedDistance = value / 50.f; // Assuming max distance of 300 for normalization
+
+				//if (utl::isEqual(normalizedDistance, 1.f))
+				//	continue;
+
+
+				sf::Uint8 alpha = static_cast<sf::Uint8>((normalizedDistance) * 255);
+
+				sf::Color color = sf::Color(0, 0, 255, alpha); // Red color with varying alpha
+				cells[row][col].rect.setFillColor(color);
+
+				window.draw(cells[row][col].rect);
+			}
+
 #if 0 // TO DISPLAY THE NUMERICAL DISTANCE
 			// Format the distance text to 2 decimal places
 			sf::Text text;
@@ -241,59 +250,121 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
+	cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
+	window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
+
 	// only draw one debug circle for one entity
 	if (debugDrawRadius)
 		for (auto const& rad : debugRadius)
-			window.draw(rad);
+			window.draw(*rad);
 
 	debugRadius.clear();
 
 }
 
-void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
+void Grid::updateVisibility(std::vector<std::pair<Vec2, Vec2>> const& entities, float fovRadius, float fovAngleDegrees, float visionCircleRadius)
 {
-	// set all cells that are explored to FOG
-	for (int row{}; row < height; ++row)
-		for (int col{}; col < width; ++col)
+	// Convert angle from degrees to radians
+	float fovAngle = fovAngleDegrees * (PI / 180.0f);
+
+	// Set all cells that are explored to FOG
+	for (int row = 0; row < height; ++row)
+	{
+		for (int col = 0; col < width; ++col)
 		{
-			// skip wall cells
+			// Skip wall cells
 			if (isWall(row, col))
 				continue;
 
 			if (cells[row][col].visibility != UNEXPLORED)
 				cells[row][col].visibility = FOG;
 		}
+	}
 
-	// for all positions in the position vector
-	for (Vec2 const& p : pos)
+	// For all entities in the vector
+	for (const auto& entity : entities)
 	{
+		Vec2 p = entity.first;
+		Vec2 direction = entity.second;
+
 		GridPos gridpos = getGridPos(p);
 
-		int startRow = std::max(0, gridpos.row - static_cast<int>(radius / cellSize));
-		int endRow = std::min(height - 1, gridpos.row + static_cast<int>(radius / cellSize));
+		int startRow = std::max(0, gridpos.row - static_cast<int>(fovRadius / cellSize));
+		int endRow = std::min(height - 1, gridpos.row + static_cast<int>(fovRadius / cellSize));
 
-		int startCol = std::max(0, gridpos.col - static_cast<int>(radius / cellSize));
-		int endCol = std::min(width - 1, gridpos.col + static_cast<int>(radius / cellSize));
+		int startCol = std::max(0, gridpos.col - static_cast<int>(fovRadius / cellSize));
+		int endCol = std::min(width - 1, gridpos.col + static_cast<int>(fovRadius / cellSize));
 
+		// Calculate the angle of the direction vector
+		float directionAngle = atan2(direction.y, direction.x);
+		float halfAngle = fovAngle / 2.0f;
 
+		// Update visibility based on FOV
 		for (int r = startRow; r <= endRow; ++r)
 		{
 			for (int c = startCol; c <= endCol; ++c)
 			{
-				//if (isWall(r, c))
-				//	continue;
+				Vec2 cellCenter = getWorldPos(r, c);
+				Vec2 directionToCell = cellCenter - p;
+				float distance = directionToCell.Distance(Vec2(0, 0));
 
-				// get distance of pos to cell (startRow, startCol)
+				if (distance <= fovRadius)
+				{
+					// Calculate the angle between the direction vector and the vector to the cell
+					float cellAngle = atan2(directionToCell.y, directionToCell.x);
+					float relativeAngle = cellAngle - directionAngle;
 
-				Vec2 rowCol = getWorldPos(r, c);
+					// Normalize the angle to the range [-PI, PI]
+					if (relativeAngle > PI) relativeAngle -= 2 * PI;
+					if (relativeAngle < -PI) relativeAngle += 2 * PI;
 
+					// Check if the cell is within the vision cone
+					if (fabs(relativeAngle) <= halfAngle)
+					{
+						if (!isClearPath(gridpos, GridPos{ r, c }))
+							continue;
 
-				float distance = p.Distance(rowCol);
+						if (cells[r][c].isExit)
+						{
+							exitFound = true;
+						}
 
-				if (distance <= radius)// && hasLineOfSight(p, getWorldPos(r, c)))
+						cells[r][c].visibility = VISIBLE;
+
+						if (!isWall(r, c))
+						{
+							cells[r][c].rect.setFillColor(colors.at("Visible").first);
+							cells[r][c].rect.setOutlineColor(colors.at("Visible").second);
+						}
+					}
+				}
+			}
+		}
+
+		// Update visibility based on vision circle
+		int visionStartRow = std::max(0, gridpos.row - static_cast<int>(visionCircleRadius / cellSize));
+		int visionEndRow = std::min(height - 1, gridpos.row + static_cast<int>(visionCircleRadius / cellSize));
+
+		int visionStartCol = std::max(0, gridpos.col - static_cast<int>(visionCircleRadius / cellSize));
+		int visionEndCol = std::min(width - 1, gridpos.col + static_cast<int>(visionCircleRadius / cellSize));
+
+		for (int r = visionStartRow; r <= visionEndRow; ++r)
+		{
+			for (int c = visionStartCol; c <= visionEndCol; ++c)
+			{
+				Vec2 cellCenter = getWorldPos(r, c);
+				Vec2 directionToCell = cellCenter - p;
+				float distance = directionToCell.Distance(Vec2(0, 0));
+
+				if (distance <= visionCircleRadius)
 				{
 					if (!isClearPath(gridpos, GridPos{ r, c }))
 						continue;
+
+					if (cells[r][c].isExit)
+					{
+						exitFound = true;
+					}
 
 					cells[r][c].visibility = VISIBLE;
 
@@ -306,23 +377,57 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 			}
 		}
 
-		// if debug draw is enabled
-		if (!debugDrawRadius)
-			continue;
+		// Debug draw if enabled
+		if (debugDrawRadius)
+		{
+			if (utl::isEqual(fovAngleDegrees, 360.0f))
+			{
+				// Draw a circle if the angle is 360 degrees
+				auto debugCircle = std::make_unique<sf::CircleShape>();
+				debugCircle->setFillColor(colors.at("Debug_Radius").first);
+				debugCircle->setOutlineColor(colors.at("Debug_Radius").second);
+				debugCircle->setOutlineThickness(5.f);
+				debugCircle->setRadius(fovRadius);
+				debugCircle->setOrigin(fovRadius, fovRadius);
+				debugCircle->setPosition(sf::Vector2f(p.x, p.y));
+				debugRadius.push_back(std::move(debugCircle));
+			}
+			else
+			{
+				// Draw a cone if the angle is less than 360 degrees
+				auto visionCone = std::make_unique<sf::ConvexShape>();
+				visionCone->setPointCount(30);  // Increased to make it look like a cone
+				visionCone->setPoint(0, sf::Vector2f(p.x, p.y));
 
-		sf::CircleShape debugradius;
-		// initialize debug pov
-		debugradius.setFillColor(colors.at("Debug_Radius").first);
-		debugradius.setOutlineColor(colors.at("Debug_Radius").second);
-		debugradius.setOutlineThickness(5.f);
+				for (int i = 0; i <= 28; ++i)
+				{
+					float currentAngle = directionAngle - halfAngle + i * (fovAngle / 28);
+					Vec2 point = Vec2(cos(currentAngle), sin(currentAngle)) * fovRadius;
+					visionCone->setPoint(i + 1, sf::Vector2f(p.x + point.x, p.y + point.y));
+				}
 
-		debugradius.setRadius(radius);
-		debugradius.setOrigin(radius, radius);
-		debugradius.setPosition(sf::Vector2(p.x, p.y));
+				visionCone->setFillColor(colors.at("Debug_Radius").first);
+				visionCone->setOutlineColor(colors.at("Debug_Radius").second);
+				visionCone->setOutlineThickness(5.f);
 
-		debugRadius.push_back(debugradius);
+				debugRadius.push_back(std::move(visionCone));
+			}
+
+			// Draw the inner vision circle
+			auto innerCircle = std::make_unique<sf::CircleShape>();
+			innerCircle->setFillColor(sf::Color::Transparent);
+			innerCircle->setOutlineColor(sf::Color::Red);
+			innerCircle->setOutlineThickness(2.f);
+			innerCircle->setRadius(visionCircleRadius);
+			innerCircle->setOrigin(visionCircleRadius, visionCircleRadius);
+			innerCircle->setPosition(sf::Vector2f(p.x, p.y));
+			debugRadius.push_back(std::move(innerCircle));
+		}
 	}
 }
+
+
+
 
 
 
@@ -365,7 +470,7 @@ void Grid::updateHeatMap(Vec2 target)
 				GridPos neighbourPos{ currCell.position.row + i, currCell.position.col + j };
 
 				// skip out of bound and wall cells
-				if (isOutOfBound(neighbourPos) || isWall(neighbourPos))
+				if (isOutOfBound(neighbourPos) || isWall(neighbourPos) && cells[neighbourPos.row][neighbourPos.col].visibility != UNEXPLORED)
 					continue;
 
 				// skip diagonal neighbors if there's an adjacent wall
@@ -373,7 +478,7 @@ void Grid::updateHeatMap(Vec2 target)
 				{
 					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
 					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
-					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) || isWall(adjacent2))
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) && cells[adjacent1.row][adjacent1.col].visibility != UNEXPLORED || isWall(adjacent2) && cells[adjacent2.row][adjacent2.col].visibility)
 						continue;
 				}
 
@@ -398,6 +503,128 @@ void Grid::updateHeatMap(Vec2 target)
 					currNeighbour.visited = true;
 					openList.push(&currNeighbour);
 				}
+			}
+		}
+	}
+}
+
+void Grid::updateHeatMap()
+{
+	// get target pos in gridPos
+	GridPos targetPos = exitCell->position;
+
+	// skip out of bound target
+	if (isOutOfBound(targetPos))
+		return;
+
+	// reset the map first
+	resetHeatMap();
+
+	// initialize target cell
+	//flowField[targetPos.row][targetPos.col].distance = 0.f;
+	//flowField[targetPos.row][targetPos.col].visited = true;
+
+	// push unexplored node into openlist
+	for (auto& row : flowField)
+	{
+		for (auto& flowFieldCell : row)
+		{
+			if (cells[flowFieldCell.position.row][flowFieldCell.position.col].visibility == UNEXPLORED)
+			{
+				flowFieldCell.distance = 0.f;
+				flowFieldCell.visited = true;
+				openList.push(&flowFieldCell);
+			}
+		}
+	}
+
+	while (!openList.empty())
+	{
+		flowFieldCell& currCell = *openList.front();
+
+		openList.pop();
+
+		// check its 8 neighour
+		for (int i{ -1 }; i <= 1; ++i)
+		{
+			for (int j{ -1 }; j <= 1; ++j)
+			{
+				// skip self cell
+				if (i == 0 && j == 0)
+					continue;
+
+				// create neighour position
+				GridPos neighbourPos{ currCell.position.row + i, currCell.position.col + j };
+
+				// skip out of bound and wall cells
+				if (isOutOfBound(neighbourPos) || isWall(neighbourPos) )
+					continue;
+
+				// skip diagonal neighbors if there's an adjacent wall
+				if (i != 0 && j != 0)
+				{
+					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
+					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) && cells[adjacent1.row][adjacent1.col].visibility != UNEXPLORED || isWall(adjacent2) && cells[adjacent2.row][adjacent2.col].visibility)
+						continue;
+				}
+
+
+				// get neighbour cells
+				flowFieldCell& currNeighbour = flowField[neighbourPos.row][neighbourPos.col];
+
+
+				// Calculate new distance
+				float newDistance = currCell.distance + distOfTwoCells(currCell.position, neighbourPos);
+
+				// If neighbor is visited and the new distance is shorter, update it
+				if (currNeighbour.visited)
+				{
+					if (newDistance < currNeighbour.distance)
+						currNeighbour.distance = newDistance;
+				}
+				else
+				{
+					// If neighbor is not visited, set the distance and mark as visited
+					currNeighbour.distance = newDistance;
+					currNeighbour.visited = true;
+					openList.push(&currNeighbour);
+				}
+			}
+		}
+	}
+
+}
+
+void Grid::addRepulsion(GridPos gridPos, float radius, float strength)
+{
+	int startRow = std::max(0, gridPos.row - static_cast<int>(radius / cellSize));
+	int endRow = std::min(height - 1, gridPos.row + static_cast<int>(radius / cellSize));
+
+	int startCol = std::max(0, gridPos.col - static_cast<int>(radius / cellSize));
+	int endCol = std::min(width - 1, gridPos.col + static_cast<int>(radius / cellSize));
+
+
+	for (int r = startRow; r <= endRow; ++r)
+	{
+		for (int c = startCol; c <= endCol; ++c)
+		{
+			//if (isWall(r, c))
+			//	continue;
+
+			// get distance of pos to cell (startRow, startCol)
+
+			Vec2 rowCol = getWorldPos(r, c);
+
+
+			float distance = getWorldPos(gridPos).Distance(rowCol);
+
+			if (distance <= radius)
+			{
+				if (!isClearPath(gridPos, GridPos{ r, c }))
+					continue;
+
+				flowField[r][c].distance += strength;
 			}
 		}
 	}
@@ -431,7 +658,7 @@ void Grid::generateFlowField()
 				continue;
 
 			// Skip walls
-			if (isWall(row, col))
+			if (isWall(row, col) && cells[row][col].visibility != UNEXPLORED)
 				continue;
 
 			
@@ -444,8 +671,6 @@ void Grid::generateFlowField()
 			bool minimumMode{ false }; // this mode is enabled if there is a wall among its neighbour
 			float minDist{ std::numeric_limits<float>::max() };	// to store the min distancce for the case of minimumMode
 			GridPos minDir{};
-
-
 
 			// check its neighbour to generate direction vector
 			for (int i{ -1 }; i <= 1; ++i)
@@ -472,7 +697,7 @@ void Grid::generateFlowField()
 					// skip diagonal neighbors if there's an adjacent wall
 					if (i != 0 && j != 0)
 					{
-						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) || isWall(row, col + j))
+						if (isOutOfBound(row + i, col) || isOutOfBound(row, col + j) || isWall(row + i, col) && cells[row + i][col].visibility != UNEXPLORED || isWall(row, col + j) && cells[row][col + j].visibility != UNEXPLORED)
 						{
 							minimumMode = true;
 							continue;
@@ -480,7 +705,7 @@ void Grid::generateFlowField()
 					}
 
 					// if there is walls amongst neighbour
-					if (isWall(neighbourRow, neighbourCol) || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
+					if (isWall(neighbourRow, neighbourCol) && cells[neighbourRow][neighbourCol].visibility != UNEXPLORED || isOutOfBound(neighbourRow, neighbourCol)) // if there is a wall amongst its neighbour
 					{
 						minimumMode = true;
 						continue;
@@ -565,12 +790,69 @@ void Grid::clearMap()
 		}
 }
 
+// potential field
+void Grid::generateRandomGoal()
+{
+	srand(time(0));
+	int exitX = rand() % width;
+	int exitY = rand() % height;
+	cells[exitY][exitX].isExit = true;
+
+	exitCell = &potentialField[exitY][exitX];
+	exitCell->potential = 0; // Exit has the lowest potential
+}
+
+void Grid::updatePotentialField()
+{
+	std::queue<potentialFieldCell> toProcess;
+	toProcess.push(*exitCell);
+
+	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
+	while (!toProcess.empty())
+	{
+		potentialFieldCell current = toProcess.front();
+		toProcess.pop();
+
+		for (auto& direction : directions) {
+			int newX = current.position.col + direction.first;
+			int newY = current.position.row + direction.second;
+
+			if (!isOutOfBound(newY, newX))
+			{
+				potentialFieldCell& neighbor = potentialField[newY][newX];
+				int newPotential = current.potential + 1;
+				if (newPotential < neighbor.potential) {
+					neighbor.potential = newPotential;
+					toProcess.push(neighbor);
+				}
+			}
+		}
+	}
+
+	// Add attractive forces towards unexplored areas
+	//for (auto& row : potentialField) {
+	//	for (auto& cell : row) {
+	//		if (cells[cell.position.row][cell.position.col].visibility == Visibility::UNEXPLORED) {
+	//			cell.potential = 100.f;
+	//		}
 void Grid::generateMap()
 {
 	// so it doesn't crash on empty map
 	if (cells.empty() || cells[0].empty())
 		return;
 
+	//		// Add repulsive forces from obstacles
+	//		if (isWall(cell.position.row, cell.position.col))
+	//		{
+	//			cell.potential = 50.f;
+	//		}
+	//		else if (cells[cell.position.row][cell.position.col].visibility != Visibility::UNEXPLORED)
+	//		{
+	//			cell.potential = 20.f;
+	//		}
+	//	}
+	//}
+}
 	// initialise map
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
@@ -692,6 +974,27 @@ void Grid::findPath(Cell &currCell)
 
 
 
+}
+
+
+typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
+{
+	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
+	potentialFieldCell nextMove = potentialField[pos.y][pos.x];
+
+	for (auto& direction : directions) {
+		int newX = pos.x + direction.first;
+		int newY = pos.y + direction.second;
+
+		if (!isOutOfBound(newY, newX)) {
+			potentialFieldCell& neighbor = potentialField[newY][newX];
+			if (!isWall(neighbor.position) && cells[newY][newX].visibility == Visibility::VISIBLE && neighbor.potential < nextMove.potential) {
+				nextMove = neighbor;
+			}
+		}
+	}
+
+	return nextMove;
 }
 
 
@@ -939,7 +1242,13 @@ const std::vector<std::vector<Cell>> &Grid::getCells() const
 
 bool Grid::isWall(unsigned int row, unsigned int col) const
 {
-	crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
+
+	if (isOutOfBound(row, col))
+	{
+		std::cout << "Out Of Bound!!!\n"; 
+		return true;
+	}
+	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));
 
 	// assuming wall colour is black
 	//return cells[row][col].rect.getFillColor() == colors.at("Wall").first;
@@ -990,6 +1299,7 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 
 			if (row == row0 && col == col0 || row == row1 && col == col1)
 				continue;
+			
 			
 
 				
