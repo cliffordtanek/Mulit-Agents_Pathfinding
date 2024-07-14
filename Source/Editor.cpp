@@ -13,7 +13,8 @@ extern sf::RenderWindow window;
 //extern sf::RenderTexture renderer;
 extern float dt;
 extern bool canZoom;
-extern bool isDrawMode;
+//extern bool isDrawMode;
+extern DrawMode mode;
 extern int tunnelSize;
 extern int wallSize;
 
@@ -296,42 +297,42 @@ void MapMaker::onUpdate()
 		grid.setPenColour(colorNames[colorIndex]);
 #endif
 
-	ImGui::Checkbox("Draw Mode", &isDrawMode);
+	static std::vector<char const *> modeNames{ "None", "Wall", "Entity" };
+
+	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
+	{
+		canZoom = false;
+
+			for (int i = 0; i < modeNames.size(); ++i)
+			{
+				const bool isSelected = static_cast<int>(mode) == i;
+					if (ImGui::Selectable(modeNames[i], isSelected))
+						mode = static_cast<DrawMode>(i);
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+			}
+
+		ImGui::EndCombo();
+	}
+
 	ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
 
-	if (isDrawMode)
+	switch (mode)
 	{
+	case DrawMode::WALL:
 		ImGui::Text("Left click to draw wall");
 		ImGui::Text("Right click to erase wall");
-	}
-	else
-	{
+		break;
+
+	case DrawMode::ENTITY:
 		ImGui::Text("Left click to spawn Enemy");
 		ImGui::Text("Right click to despawn Enemy");
+		break;
 
-		//static int typeIndex = -1;
-		//int oldTypeIndex = typeIndex;
-
-		//if (ImGui::BeginCombo("Entity", typeIndex < 0 ? "" : entityTypes[typeIndex].c_str()))
-		//{
-		//	canZoom = false;
-
-		//		for (int i = 0; i < entityTypes.size(); ++i)
-		//		{
-		//			const bool isSelected = typeIndex == i;
-		//				if (ImGui::Selectable(entityTypes[i].c_str(), isSelected))
-		//					typeIndex = i;
-
-		//				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-		//					if (isSelected)
-		//						ImGui::SetItemDefaultFocus();
-		//		}
-
-		//	ImGui::EndCombo();
-		//}
-
-		//if (oldTypeIndex != typeIndex)
-		//	factory.setEntityPen(entityTypes[typeIndex]);
+	default:
+		break;
 	}
 
 	ImGui::PopStyleColor();

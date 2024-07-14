@@ -14,9 +14,14 @@ extern sf::View minimap;
 extern sf::View view;
 extern sf::RenderWindow window;
 
+enum class DrawMode
+{
+	NONE,
+	WALL,
+	ENTITY
+};
+
 // constants
-//#define EPSILON 0.000001f
-//#define PI 3.14159f
 #define EULER 2.718282f
 #define SQRT2 1.414214f
 #define CAM_MOVE 750.f * dt

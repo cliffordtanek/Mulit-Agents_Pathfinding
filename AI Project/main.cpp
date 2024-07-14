@@ -19,9 +19,10 @@ Vec2 mapSize;
 std::string winTitle = "sfml";
 bool isFullscreen = false;
 bool canZoom = true; // disable zooming when in dropdown menus
-bool isDrawMode = false; // whether left clicking can draw/remove wall
+//bool isDrawMode = false; // whether left clicking can draw/remove wall
 //bool isDrawingWall = true; // whether to draw wall or floor
 float dt = 0.f;
+DrawMode mode = DrawMode::NONE;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
@@ -61,7 +62,7 @@ int main()
     // initialize systems
     factory.init();
     editor.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 50.f, 50.f });
+    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 30.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
@@ -147,7 +148,8 @@ int main()
                 isLMousePressed = true;
                 Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 grid.setIntensity(grid.getGridPos(target));
-                factory.cloneEnemyAt(target);
+                if (mode == DrawMode::ENTITY)
+                    factory.cloneEnemyAt(target);
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
@@ -156,22 +158,20 @@ int main()
                 Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 grid.setIntensity(grid.getGridPos(target));
 
-                for (Enemy *enemy : factory.getEntities<Enemy>())
-                    if (grid.getGridPos(target) == grid.getGridPos(enemy->pos))
-                        factory.destroyEntity<Enemy>(enemy);
-                //if (!grid.isWall(grid.getGridPos(target)) && !isDrawMode)
-                //{
-                //    //grid.updateHeatMap(target);
-                //    //grid.generateFlowField();
+                if (mode == DrawMode::ENTITY)
+                    for (Enemy *enemy : factory.getEntities<Enemy>())
+                        if (grid.getGridPos(target) == grid.getGridPos(enemy->pos))
+                            factory.destroyEntity<Enemy>(enemy);
 
-                //    //// set all enemy to the target
-                //    //for (Enemy *enemy : factory.getEntities<Enemy>())
-                //    //    enemy->setTargetPos(target, true);
+                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                {
+                    grid.updateHeatMap(target);
+                    grid.generateFlowField();
 
-                //    for (Enemy *enemy : factory.getEntities<Enemy>())
-                //        if (target.SquareDistance(enemy->pos) < 50.f)
-                //            factory.destroyEntity<Enemy>(enemy);
-                //}
+                    // set all enemy to the target
+                    for (Enemy *enemy : factory.getEntities<Enemy>())
+                        enemy->setTargetPos(target, true);
+                }
 
                 //if (isDrawMode)
             }
@@ -182,18 +182,8 @@ int main()
                 Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
                 //if (isDrawMode)
-                if (isDrawMode)
+                if (mode == DrawMode::WALL)
                     grid.setWall(grid.getGridPos(target), false);
-
-                //else if (!grid.isWall(grid.getGridPos(target)) && ALIVE(Enemy, enemy))
-                //{
-                //    grid.updateHeatMap(target);
-                //    grid.generateFlowField();
-
-                //    // set all enemy to the target
-                //    for (Enemy *enemy : factory.getEntities<Enemy>())
-                //        enemy->setTargetPos(target, true);
-                //}
 
 
             }
@@ -205,7 +195,7 @@ int main()
             
                 // set colour of grid upon click
                 //grid.SetColour(pos.row, pos.col);
-                if (isDrawMode)
+                if (mode == DrawMode::WALL)
                     grid.setWall(grid.getGridPos(target), true);
 
             }

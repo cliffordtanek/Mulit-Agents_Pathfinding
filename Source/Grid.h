@@ -118,8 +118,6 @@ public:
 	potentialFieldCell getNextMove(vec2 pos);
 	void generateMap();
 
-	void findPath(Cell &currCell);
-
 
 	// =======
 	// Getters
@@ -145,6 +143,7 @@ public:
 	Vec2 getFlowFieldDir(GridPos pos) const;
 
 	std::vector<Cell *> getOrthNeighbors(GridPos pos, int steps = 2);
+	std::vector<Cell *> getNeighborWalls(GridPos pos);
 
 
 	// =======
@@ -222,7 +221,7 @@ private:
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
 
-	std::vector<sf::CircleShape> debugRadius;
+	//std::vector<sf::CircleShape> debugRadius;
 
 	std::vector<Cell *> waypoints; // debug;
 	std::vector<std::unique_ptr<sf::Drawable>> debugRadius;

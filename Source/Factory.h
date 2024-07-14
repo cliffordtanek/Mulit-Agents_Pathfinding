@@ -94,7 +94,7 @@ public:
 	float damage;
 
 	Enemy(Vec2 _pos = Vec2(),
-		Vec2 _scale = { 50.f, 50.f },
+		Vec2 _scale = { 30.f, 50.f },
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Blue,

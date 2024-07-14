@@ -11,7 +11,8 @@
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
-extern bool isDrawMode;
+//extern bool isDrawMode;
+extern DrawMode mode;
 extern float dt;
 
 std::random_device rd;
@@ -100,7 +101,7 @@ void Grid::render(sf::RenderWindow& window)
 			// if cell is a wall but it has been explored before
 			if (isWall(row, col))
 			{
-				if (currCell.visibility != UNEXPLORED || isDrawMode)
+				if (currCell.visibility != UNEXPLORED || mode == DrawMode::WALL)
 				{
 					//std::cout << "RENDERING EXPLORED WALLS\n";
 					currCell.rect.setFillColor(colors.at("Wall").first);
@@ -813,13 +814,13 @@ void Grid::updatePotentialField()
 		potentialFieldCell current = toProcess.front();
 		toProcess.pop();
 
-		for (auto& direction : directions) {
+		for (auto &direction : directions) {
 			int newX = current.position.col + direction.first;
 			int newY = current.position.row + direction.second;
 
 			if (!isOutOfBound(newY, newX))
 			{
-				potentialFieldCell& neighbor = potentialField[newY][newX];
+				potentialFieldCell &neighbor = potentialField[newY][newX];
 				int newPotential = current.potential + 1;
 				if (newPotential < neighbor.potential) {
 					neighbor.potential = newPotential;
@@ -828,7 +829,7 @@ void Grid::updatePotentialField()
 			}
 		}
 	}
-
+}
 	// Add attractive forces towards unexplored areas
 	//for (auto& row : potentialField) {
 	//	for (auto& cell : row) {
@@ -852,7 +853,7 @@ void Grid::generateMap()
 	//		}
 	//	}
 	//}
-}
+
 	// initialise map
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
@@ -969,14 +970,6 @@ void Grid::generateMap()
 		}
 }
 
-void Grid::findPath(Cell &currCell)
-{
-
-
-
-}
-
-
 typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
 {
 	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
@@ -1083,6 +1076,17 @@ std::vector<Cell *> Grid::getOrthNeighbors(GridPos pos, int steps)
 	return ret;
 }
 
+std::vector<Cell *> Grid::getNeighborWalls(GridPos pos)
+{
+	std::vector<Cell *> ret;
+
+	for (int i = pos.row - 1; i < pos.row + 2; ++i)
+		for (int j = pos.col - 1; j < pos.col + 2; ++j)
+			if (!isOutOfBound(i, j) && cells[i][j].isWall)
+				ret.push_back(&cells[i][j]);
+
+	return ret;
+}
 
 // =======
 // SETTERS
