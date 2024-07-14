@@ -282,6 +282,11 @@ void Grid::updateVisibility(std::vector<Vec2> const& pos, float radius)
 					if (!isClearPath(gridpos, GridPos{ r, c }))
 						continue;
 
+					if (cells[r][c].isExit)
+					{
+						exitFound = true;
+					}
+
 					cells[r][c].visibility = VISIBLE;
 
 					if (!isWall(r, c))

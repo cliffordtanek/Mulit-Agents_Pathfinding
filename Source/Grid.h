@@ -174,6 +174,8 @@ public:
 
 	bool lineIntersect(const Vec2& line0P0, const Vec2& line0P1, const Vec2& line1P0, const Vec2& line1P1) const;
 
+	bool isExitFound() const { return exitFound; }
+
 	potentialFieldCell* exitCell{ nullptr };
 private:
 
@@ -198,6 +200,8 @@ private:
 	int height, width;	// width and height of the grid
 	float cellSize;		// single cell width/ height
 	std::string penColour = "";
+
+	bool exitFound{ false };
 
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container

@@ -70,15 +70,21 @@ int main()
         dt = clock.restart().asSeconds();
         sf::Event event;
 
-        // comment out tmp
-        //grid.updateHeatMap(target);
-        //grid.generateFlowField();
+        // if exit found, path to exit
+        if (grid.isExitFound())
+        {
+            grid.updateHeatMap(grid.getWorldPos(grid.exitCell->position));
+            grid.generateFlowField();
+        }
+        else
+        {
+            grid.updateHeatMap();
+            for (Enemy* enemy : factory.getEntities<Enemy>())
+                grid.addRepulsion(grid.getGridPos(enemy->pos), 200.f, 1.f);
 
-        grid.updateHeatMap();
-        for (Enemy* enemy : factory.getEntities<Enemy>())
-            grid.addRepulsion(grid.getGridPos(enemy->pos), 200.f, 1.f);
+            grid.generateFlowField();
+        }
 
-        grid.generateFlowField();
 
         while (window.pollEvent(event))
         {
