@@ -98,7 +98,7 @@ public:
 		Vec2 _dir = Vec2(),
 		Shape _shape = TRIANGLE,
 		const sf::Color &_color = sf::Color::Blue,
-		float _speed = 500.f,
+		float _speed = 300.f,
 		float _health = 100.f,
 		float _damage = 10.f)
 
