@@ -192,7 +192,7 @@ void Factory::update()
 		for (const auto& [k, v] : map)
 			entityPosition.emplace_back(v->pos);
 
-	grid.updateVisibility(entityPosition, 750.f);
+	grid.updateVisibility(entityPosition, 200.f);
 #endif
 
 	grid.render(window);

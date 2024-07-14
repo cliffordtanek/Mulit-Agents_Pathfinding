@@ -70,7 +70,11 @@ int main()
         dt = clock.restart().asSeconds();
         sf::Event event;
 
-        grid.updateHeatMap(target);
+        // comment out tmp
+        //grid.updateHeatMap(target);
+        //grid.generateFlowField();
+
+        grid.updateHeatMap();
         grid.generateFlowField();
 
         while (window.pollEvent(event))
@@ -136,7 +140,9 @@ int main()
                 case sf::Keyboard::I:
                     grid.generatePotentialField();
                     break;
+                case sf::Keyboard::H:
 
+                    break;
                 }
                 break;
             }

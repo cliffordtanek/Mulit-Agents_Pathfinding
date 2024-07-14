@@ -390,6 +390,94 @@ void Grid::updateHeatMap(Vec2 target)
 	}
 }
 
+void Grid::updateHeatMap()
+{
+	// get target pos in gridPos
+	GridPos targetPos = exitCell->position;
+
+	// skip out of bound target
+	if (isOutOfBound(targetPos))
+		return;
+
+	// reset the map first
+	resetHeatMap();
+
+
+	// initialize target cell
+	//flowField[targetPos.row][targetPos.col].distance = 0.f;
+	//flowField[targetPos.row][targetPos.col].visited = true;
+
+	// push unexplored node into openlist
+	for (auto& row : flowField)
+	{
+		for (auto& flowFieldCell : row)
+		{
+			if (cells[flowFieldCell.position.row][flowFieldCell.position.col].visibility == UNEXPLORED)
+			{
+				flowFieldCell.distance = 0.f;
+				flowFieldCell.visited = true;
+				openList.push(&flowFieldCell);
+			}
+		}
+	}
+
+	while (!openList.empty())
+	{
+		flowFieldCell& currCell = *openList.front();
+
+		openList.pop();
+
+		// check its 8 neighour
+		for (int i{ -1 }; i <= 1; ++i)
+		{
+			for (int j{ -1 }; j <= 1; ++j)
+			{
+				// skip self cell
+				if (i == 0 && j == 0)
+					continue;
+
+				// create neighour position
+				GridPos neighbourPos{ currCell.position.row + i, currCell.position.col + j };
+
+				// skip out of bound and wall cells
+				if (isOutOfBound(neighbourPos) || isWall(neighbourPos) )
+					continue;
+
+				// skip diagonal neighbors if there's an adjacent wall
+				if (i != 0 && j != 0)
+				{
+					GridPos adjacent1{ currCell.position.row + i, currCell.position.col };
+					GridPos adjacent2{ currCell.position.row, currCell.position.col + j };
+					if (isOutOfBound(adjacent1) || isOutOfBound(adjacent2) || isWall(adjacent1) && cells[adjacent1.row][adjacent1.col].visibility != UNEXPLORED || isWall(adjacent2) && cells[adjacent2.row][adjacent2.col].visibility)
+						continue;
+				}
+
+
+				// get neighbour cells
+				flowFieldCell& currNeighbour = flowField[neighbourPos.row][neighbourPos.col];
+
+
+				// Calculate new distance
+				float newDistance = currCell.distance + distOfTwoCells(targetPos, neighbourPos);
+
+				// If neighbor is visited and the new distance is shorter, update it
+				if (currNeighbour.visited)
+				{
+					if (newDistance < currNeighbour.distance)
+						currNeighbour.distance = newDistance;
+				}
+				else
+				{
+					// If neighbor is not visited, set the distance and mark as visited
+					currNeighbour.distance = newDistance;
+					currNeighbour.visited = true;
+					openList.push(&currNeighbour);
+				}
+			}
+		}
+	}
+}
+
 
 void Grid::resetHeatMap()
 {

@@ -92,6 +92,9 @@ public:
 	//! update heat map based on target position
 	void updateHeatMap(Vec2 target);
 
+	//! update heat map based on potentials
+	void updateHeatMap();
+
 	void resetHeatMap();
 
 	void generateFlowField();
