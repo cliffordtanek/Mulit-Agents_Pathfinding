@@ -176,8 +176,6 @@ int main()
 
                 if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
                     grid.setExit(grid.getGridPos(target));
-
-                //if (isDrawMode)
             }
 
             // mouse event must put outside of switch case for some reason
@@ -285,7 +283,7 @@ int main()
         minimap.setSize(mapSize);
 
         // update other systems
-        canZoom = true;
+        //canZoom = true;
         window.setView(view);
         editor.update();
         factory.update();

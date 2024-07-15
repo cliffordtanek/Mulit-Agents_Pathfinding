@@ -265,8 +265,8 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
-	cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
-	window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
+	//cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
+	//window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
 
 	// only draw one debug circle for one entity
 	if (debugDrawRadius)
