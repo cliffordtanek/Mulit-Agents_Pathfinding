@@ -147,6 +147,10 @@ void Entity::onCreate()
 void Entity::onUpdate()
 {
 	move();
+}
+
+void Entity::onRender()
+{
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
 	//Vec2 pos = pos + camera.getOffset();
 
@@ -202,6 +206,8 @@ void Entity::onDestroy()
 	wpArrows.clear();
 }
 
+
+
 void Factory::init()
 {
 	addEntityType<Enemy>();
@@ -223,6 +229,65 @@ void Factory::update()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+
+	std::vector<Enemy*> ally = factory.getEntities<Enemy>();
+
+	for (unsigned i = 0; i < ally.size(); ++i)
+	{
+		for (unsigned j = i + 1; j < ally.size(); ++j)
+		{
+			auto& m1 = ally[i];
+			auto& m2 = ally[j];
+
+			float scale = std::max(std::max(m1->scale.x, m1->scale.y), std::max(m2->scale.x, m2->scale.y));
+
+			if (m1->isColliding(m2)) // Adjusted distance check with a small buffer
+			{
+				vec2 direction = m2->pos - m1->pos;
+
+				if (direction == Vec2{0.f, 0.f})
+				{
+					direction = { 1, 1 };
+				}
+
+				direction = direction.Normalize();
+
+				if (direction.Length() != 1)
+				{
+					direction *= (1 / direction.Length());
+				}
+
+				float currentDistance = (m1->pos - m2->pos).Length();
+				float requiredDistance = scale; // Adjusted required distance with a small buffer
+				float correctionFactor = (requiredDistance - currentDistance) / 2.f;
+
+				vec2 displacement = direction * correctionFactor;
+
+				// Move both m1 and m2 away from each other
+				m1->pos -= displacement * 0.5f;
+				m2->pos += displacement * 0.5f;
+			}
+
+			if (grid.isOutOfBound(m1->pos))
+			{
+				std::cout << "out of bounds here bro\n";
+				m1->pos = m1->pos - scale * m1->dir.Normalize();
+				//m1->dir *= -1.f;
+			}
+
+			if (grid.isOutOfBound(m2->pos))
+			{
+				std::cout << "too far out dude\n";
+				m2->pos = m2->pos - scale * m2->dir.Normalize();
+				//m2->dir *= -1.f;
+			}
+		}
+	}
+
+	grid.render(window);
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			v->onRender();
 
 }
 
