@@ -82,7 +82,7 @@ Grid::Grid(int _height, int _width, float _cellSize)
 			
 			// potential field
 			potentialField[row][col].direction = { 0, 0 };
-			potentialField[row][col].potential = 1000;
+			potentialField[row][col].potential = 0;
 			potentialField[row][col].position = { row, col };
 		}
 	}
@@ -217,11 +217,11 @@ void Grid::render(sf::RenderWindow& window)
 				}
 			}
 
-			if (showPotentialField)
+			if (usePotentialField && showPotentialField)
 			{
 				float value = potentialField[row][col].potential;
 
-				float normalizedDistance = value / 50.f; // Assuming max distance of 300 for normalization
+				float normalizedDistance = value / 15.f; // Assuming max distance of 300 for normalization
 
 				//if (utl::isEqual(normalizedDistance, 1.f))
 				//	continue;
@@ -532,10 +532,6 @@ void Grid::updateHeatMap()
 	// reset the map first
 	resetHeatMap();
 
-	// initialize target cell
-	//flowField[targetPos.row][targetPos.col].distance = 0.f;
-	//flowField[targetPos.row][targetPos.col].visited = true;
-
 	// push unexplored node into openlist
 	for (auto& row : flowField)
 	{
@@ -588,6 +584,14 @@ void Grid::updateHeatMap()
 
 				// Calculate new distance
 				float newDistance = currCell.distance + distOfTwoCells(currCell.position, neighbourPos);
+
+				if (usePotentialField)
+				{
+					newDistance *= potentialField[neighbourPos.row][neighbourPos.col].potential;
+
+					//if (newDistance < 0)
+					//	newDistance = 0;
+				}
 
 				// If neighbor is visited and the new distance is shorter, update it
 				if (currNeighbour.visited)
@@ -816,54 +820,73 @@ void Grid::generateRandomGoal()
 
 void Grid::updatePotentialField()
 {
-	std::queue<potentialFieldCell> toProcess;
-	toProcess.push(*exitCell);
-
-	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
-	while (!toProcess.empty())
+	for (auto& row : potentialField)
 	{
-		potentialFieldCell current = toProcess.front();
-		toProcess.pop();
+		for (auto& potentialFieldCell : row)
+		{
+			potentialFieldCell.potential = 0.f;
+		}
+	}
 
-		for (auto &direction : directions) {
-			int newX = current.position.col + direction.first;
-			int newY = current.position.row + direction.second;
+	const float MAX_MD = 20;
+	const float MAX_POTENTIAL = 0.25;
+	const int BLOCK_SIZE = 4;
 
-			if (!isOutOfBound(newY, newX))
+	// Iterate through the grid in blocks of 4x4
+	for (int i = 0; i < cells.size(); i += BLOCK_SIZE)
+	{
+		for (int j = 0; j < cells[0].size(); j += BLOCK_SIZE)
+		{
+			// Determine if the block is unknown
+			int unknownCount = 0;
+			for (int bi = 0; bi < BLOCK_SIZE; ++bi)
 			{
-				potentialFieldCell &neighbor = potentialField[newY][newX];
-				int newPotential = current.potential + 1;
-				if (newPotential < neighbor.potential) {
-					neighbor.potential = newPotential;
-					toProcess.push(neighbor);
+				for (int bj = 0; bj < BLOCK_SIZE; ++bj)
+				{
+					int ni = i + bi;
+					int nj = j + bj;
+					if (!isOutOfBound({ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
+					{
+						++unknownCount;
+					}
+				}
+			}
+
+			if (unknownCount >= 10)
+			{
+				// Calculate the center of the block
+				GridPos blockCenter{ i + BLOCK_SIZE / 2, j + BLOCK_SIZE / 2 };
+				for (auto& row : potentialField)
+				{
+					for (auto& potentialFieldCell : row)
+					{
+						// skip if cell is not unexplored
+						//if (cells[potentialFieldCell.position.row][potentialFieldCell.position.col].visibility != UNEXPLORED)
+						//	continue;
+
+						// Calculate Manhattan Distance
+						int md = std::abs(potentialFieldCell.position.row - blockCenter.row) + std::abs(potentialFieldCell.position.col - blockCenter.col);
+						if (md <= MAX_MD)
+						{
+							// Calculate potential
+							float potential = MAX_POTENTIAL - (float(md) / (MAX_MD * 4));
+							if (potential > 0)
+							{
+								potentialFieldCell.potential += potential;
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 }
-	// Add attractive forces towards unexplored areas
-	//for (auto& row : potentialField) {
-	//	for (auto& cell : row) {
-	//		if (cells[cell.position.row][cell.position.col].visibility == Visibility::UNEXPLORED) {
-	//			cell.potential = 100.f;
-	//		}
+
 void Grid::generateMap()
 {
 	// so it doesn't crash on empty map
 	if (cells.empty() || cells[0].empty())
 		return;
-
-	//		// Add repulsive forces from obstacles
-	//		if (isWall(cell.position.row, cell.position.col))
-	//		{
-	//			cell.potential = 50.f;
-	//		}
-	//		else if (cells[cell.position.row][cell.position.col].visibility != Visibility::UNEXPLORED)
-	//		{
-	//			cell.potential = 20.f;
-	//		}
-	//	}
-	//}
 
 	// initialise map
 	for (std::vector<Cell> &row : cells)

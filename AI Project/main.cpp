@@ -71,6 +71,11 @@ int main()
         dt = clock.restart().asSeconds();
         sf::Event event;
 
+        if (grid.usePotentialField)
+        {
+            grid.updatePotentialField();
+        }
+
         // if exit found, path to exit
         if (grid.isExitFound())
         {
@@ -89,7 +94,6 @@ int main()
 
             grid.generateFlowField();
         }
-
 
         while (window.pollEvent(event))
         {
@@ -135,6 +139,15 @@ int main()
 
                 case sf::Keyboard::N:
                     enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
+                    break;
+                case sf::Keyboard::I:
+                    grid.generateRandomGoal();
+                    break;
+                case sf::Keyboard::O:
+                    grid.showPotentialField = !grid.showPotentialField;
+                    break;
+                case sf::Keyboard::R:
+					grid.usePotentialField = !grid.usePotentialField;
                     break;
 
                     break;

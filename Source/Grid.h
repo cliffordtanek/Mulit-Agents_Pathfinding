@@ -84,6 +84,8 @@ public:
 
 	bool showPotentialField{ false };
 
+	bool usePotentialField{ false };
+
 
 
 
