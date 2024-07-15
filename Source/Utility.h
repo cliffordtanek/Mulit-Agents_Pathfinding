@@ -272,7 +272,7 @@ namespace utl
 	// @return a number between the minimum and maximum
 	inline int randInt(int min, int max)
 	{
-		return rand() % (max - min + 1) + min;
+		return (max - min + 1) ? rand() % (max - min + 1) + min : min; // in case division by 0
 	}
 
 	// @brief returns a random float between the given minimum and maximum

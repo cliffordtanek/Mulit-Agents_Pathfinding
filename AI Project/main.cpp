@@ -35,7 +35,7 @@ bool canZoom = true; // disable zooming when in dropdown menus
 //bool isDrawMode = false; // whether left clicking can draw/remove wall
 //bool isDrawingWall = true; // whether to draw wall or floor
 float dt = 0.f;
-DrawMode mode = DrawMode::NONE;
+DrawMode mode = DrawMode::WALL;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
@@ -163,6 +163,17 @@ int main()
                 grid.setIntensity(grid.getGridPos(target));
                 if (mode == DrawMode::ENTITY)
                     factory.cloneEnemyAt(target);
+
+                // move enemy to cell
+                //if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                //{
+                //    grid.updateHeatMap(target);
+                //    grid.generateFlowField();
+
+                //    // set all enemy to the target
+                //    for (Enemy *enemy : factory.getEntities<Enemy>())
+                //        enemy->setTargetPos(target, true);
+                //}
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
@@ -177,14 +188,7 @@ int main()
                             factory.destroyEntity<Enemy>(enemy);
 
                 if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
-                {
-                    grid.updateHeatMap(target);
-                    grid.generateFlowField();
-
-                    // set all enemy to the target
-                    for (Enemy *enemy : factory.getEntities<Enemy>())
-                        enemy->setTargetPos(target, true);
-                }
+                    grid.setExit(grid.getGridPos(target));
 
                 //if (isDrawMode)
             }
