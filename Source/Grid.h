@@ -169,6 +169,8 @@ public:
 	std::vector<Vec2> getNeighborWalls(GridPos pos);
 	float getEx(GridPos pos);
 
+	float getMaxDist() const;
+
 
 	// =======
 	// Setters
