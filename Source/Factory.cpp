@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Factory.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the entity classes and factory class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include <SFML/Graphics.hpp>
 #include "Factory.h"
 #include "Camera.h"
@@ -79,7 +92,6 @@ void Entity::move()
 
 	for (Vec2 wallPos : grid.getNeighborWalls(grid.getGridPos(pos)))
 	{
-		//Vec2 wallPos = grid.getWorldPos(wall->pos);
 		float overlap = wallRadius + entityRadius - wallPos.Distance(pos);
 		if (overlap > 0.f)
 			pos += (pos - wallPos).Normalize() * overlap / 2.f;

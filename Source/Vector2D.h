@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Vector2D.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration of Vector2D class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #ifndef VECTOR2D_HPP
 #define VECTOR2D_HPP
 

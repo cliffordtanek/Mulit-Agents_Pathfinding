@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		main.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		main loop
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include <iostream>
 #include <array>
 #include <vector>
@@ -52,7 +65,7 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    srand(time(0));
+    srand((unsigned)time(0));
     sf::Clock clock;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");
@@ -150,6 +163,17 @@ int main()
                 grid.setIntensity(grid.getGridPos(target));
                 if (mode == DrawMode::ENTITY)
                     factory.cloneEnemyAt(target);
+
+                // move enemy to cell
+                //if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                //{
+                //    grid.updateHeatMap(target);
+                //    grid.generateFlowField();
+
+                //    // set all enemy to the target
+                //    for (Enemy *enemy : factory.getEntities<Enemy>())
+                //        enemy->setTargetPos(target, true);
+                //}
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
@@ -164,16 +188,7 @@ int main()
                             factory.destroyEntity<Enemy>(enemy);
 
                 if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
-                {
-                    grid.updateHeatMap(target);
-                    grid.generateFlowField();
-
-                    // set all enemy to the target
-                    for (Enemy *enemy : factory.getEntities<Enemy>())
-                        enemy->setTargetPos(target, true);
-                }
-
-                //if (isDrawMode)
+                    grid.setExit(grid.getGridPos(target));
             }
 
             // mouse event must put outside of switch case for some reason
@@ -281,7 +296,7 @@ int main()
         minimap.setSize(mapSize);
 
         // update other systems
-        canZoom = true;
+        //canZoom = true;
         window.setView(view);
         editor.update();
         factory.update();

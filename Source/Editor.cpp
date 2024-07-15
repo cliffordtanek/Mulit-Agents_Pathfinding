@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Editor.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the Editor class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include "Editor.h"
 #include "imgui.h"
 #include "Utility.h"
@@ -40,6 +53,7 @@ void Window::onUpdate()
 		return;
 
 	// add general code for all windows
+	canZoom = !ImGui::IsWindowHovered();
 }
 
 void Window::onExit()
@@ -157,7 +171,7 @@ void Inspector::onUpdate()
 
 				if (ImGui::BeginCombo(("[" + std::to_string(count) + "] Shape").c_str(), preview))
 				{
-					canZoom = false;
+					//canZoom = false;
 
 					for (int i = 0; i < IM_ARRAYSIZE(shapes); ++i)
 					{
@@ -219,7 +233,7 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Select Map", mapPreview))
 	{
-		canZoom = false;
+		//canZoom = false;
 
 		for (int i = 0; i < mapNames.size(); ++i)
 		{
@@ -301,7 +315,7 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))
 	{
-		canZoom = false;
+		//canZoom = false;
 
 		for (int i = 0; i < rowNames.size(); ++i)
 		{
@@ -319,7 +333,7 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Columns", std::to_string(colIndex + 1).c_str()))
 	{
-		canZoom = false;
+		//canZoom = false;
 
 		for (int i = 0; i < rowNames.size(); ++i)
 		{
@@ -344,7 +358,7 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
 	{
-		canZoom = false;
+		//canZoom = false;
 
 			for (int i = 0; i < modeNames.size(); ++i)
 			{
@@ -372,6 +386,10 @@ void MapMaker::onUpdate()
 	case DrawMode::ENTITY:
 		ImGui::Text("Left click to spawn Enemy");
 		ImGui::Text("Right click to despawn Enemy");
+		break;
+	
+	case DrawMode::NONE:
+		ImGui::Text("Right click to set goal");
 		break;
 
 	default:

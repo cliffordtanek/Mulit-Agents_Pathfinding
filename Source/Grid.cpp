@@ -265,8 +265,8 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
-	cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
-	window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
+	//cells[exitCell->position.row][exitCell->position.col].rect.setFillColor(sf::Color(0, 255, 0, 255));
+	//window.draw(cells[exitCell->position.row][exitCell->position.col].rect);
 
 	// only draw one debug circle for one entity
 	if (debugDrawRadius)
@@ -821,7 +821,7 @@ void Grid::resetMap()
 // potential field
 void Grid::generateRandomGoal()
 {
-	srand(time(0));
+	srand((unsigned)time(0));
 	int exitX = rand() % width;
 	int exitY = rand() % height;
 	cells[exitY][exitX].isExit = true;
@@ -848,8 +848,9 @@ void Grid::updatePotentialField()
 			if (!isOutOfBound(newY, newX))
 			{
 				potentialFieldCell &neighbor = potentialField[newY][newX];
-				int newPotential = current.potential + 1;
-				if (newPotential < neighbor.potential) {
+				float newPotential = current.potential + 1.f;
+				if (newPotential < neighbor.potential) 
+				{
 					neighbor.potential = newPotential;
 					toProcess.push(neighbor);
 				}
@@ -1124,10 +1125,10 @@ void Grid::generateMap()
 	//			openList.push(neighbor);
 	//}
 		
-	for (std::vector<Cell> &row : cells)
-		for (Cell &cell : row)
-			if (!cell.isVisited)
-				cell.isWall = false;
+	//for (std::vector<Cell> &row : cells)
+	//	for (Cell &cell : row)
+	//		if (!cell.isVisited)
+	//			cell.isWall = false;
 #endif
 }
 
@@ -1140,15 +1141,25 @@ bool Grid::shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst)
 		(20 - config.noise * 2) <= config.noise;
 }
 
+void Grid::setExit(GridPos pos)
+{
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.isExit = false;
+
+	if (!isOutOfBound(pos))
+		cells[pos.row][pos.col].isExit = true;
+}
+
 typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
 {
 	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
-	potentialFieldCell nextMove = potentialField[pos.y][pos.x];
+	potentialFieldCell nextMove = potentialField[(int)pos.y][(int)pos.x];
 
 	for (auto& direction : directions) 
 	{
-		int newX = pos.x + direction.first;
-		int newY = pos.y + direction.second;
+		int newX = (int) pos.x + direction.first;
+		int newY = (int) pos.y + direction.second;
 
 		if (!isOutOfBound(newY, newX)) 
 		{
