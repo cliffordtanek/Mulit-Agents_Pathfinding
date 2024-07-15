@@ -1,18 +1,29 @@
+//==============================================================================
+/*!
+\file		Factory.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the entity classes and factory class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include <SFML/Graphics.hpp>
 #include "Factory.h"
 #include "Camera.h"
 
 extern sf::RenderWindow window;
-//extern sf::RenderTexture renderer;
 extern Factory factory;
 extern Grid grid;
 extern Camera camera;
 extern float dt;
+extern bool isPaused;
 FovConfig fov;
 
-
 #define TRANSITION_DURATION 1.f // Total time to change direction 
-
 
 void Entity::move()
 {
@@ -79,7 +90,6 @@ void Entity::move()
 
 	for (Vec2 wallPos : grid.getNeighborWalls(grid.getGridPos(pos)))
 	{
-		//Vec2 wallPos = grid.getWorldPos(wall->pos);
 		float overlap = wallRadius + entityRadius - wallPos.Distance(pos);
 		if (overlap > 0.f)
 			pos += (pos - wallPos).Normalize() * overlap / 2.f;
@@ -98,21 +108,13 @@ void Entity::setTargetPos(Vec2 _targetPos, bool canClearWaypoints)
 		wpArrows.clear();
 	}
 
-	/*targetPos.x += grid.getCellSize() * 0.5f;
-	targetPos.y += grid.getCellSize() * 0.5f;*/
-
-
 	auto [row, col] = grid.getGridPos(pos);
 
 	if (grid.getFlowFieldDir(row, col) == Vec2{ 0.f, 0.f })
 		return;
 
-
-	//targetPos = _targetPos - camera.getOffset() * canUseCameraOffset;
 	targetPos = _targetPos;
 	currSpeed = speed;
-
-	
 	//dir = dir.Normalize();
 }
 
@@ -147,9 +149,9 @@ void Entity::onCreate()
 
 void Entity::onUpdate()
 {
-	move();
+	if (!isPaused)
+		move();
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
-	//Vec2 pos = pos + camera.getOffset();
 
 	// draw entity
 	switch (shape)
@@ -217,22 +219,16 @@ void Factory::update()
 		for (const auto& [k, v] : map)
 			entityPositionDirection.emplace_back(v->pos, v->dir);
 		
-	
-
-
-
 	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
-
 }
 
 void Factory::free()
 {
-	//delete grid;
 	for (const auto& [type, map] : entities)
 		for (const auto& [k, v] : map)
 		{
@@ -253,8 +249,6 @@ void Factory::setEntityPen(const std::string &type)
 
 Enemy *Factory::cloneEnemyAt(Vec2 pos)
 {
-	//if (!entities.count(entityPen))
-	//	return nullptr;
 	if (grid.isOutOfBound(grid.getGridPos(pos)))
 		return nullptr;
 	return createEntity<Enemy>(pos);

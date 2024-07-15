@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Editor.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the Editor class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include "Editor.h"
 #include "imgui.h"
 #include "Utility.h"
@@ -10,10 +23,8 @@ extern Factory factory;
 extern Grid grid;
 extern Loader loader;
 extern sf::RenderWindow window;
-//extern sf::RenderTexture renderer;
 extern float dt;
-extern bool canZoom;
-//extern bool isDrawMode;
+extern bool isPaused;
 extern DrawMode mode;
 extern MapConfig config;
 extern FovConfig fov;
@@ -22,7 +33,6 @@ extern FovConfig fov;
 std::vector<const char *> colorNames;
 std::vector<std::string> rowNums; // rows or cols
 std::vector<const char *>rowNames;
-//std::vector<std::string> entityTypes;
 
 Window::~Window()
 {
@@ -157,8 +167,6 @@ void Inspector::onUpdate()
 
 				if (ImGui::BeginCombo(("[" + std::to_string(count) + "] Shape").c_str(), preview))
 				{
-					canZoom = false;
-
 					for (int i = 0; i < IM_ARRAYSIZE(shapes); ++i)
 					{
 						const bool isSelected = shapeIndex == i;
@@ -201,6 +209,7 @@ void MapMaker::onUpdate()
 
 	ImGui::Begin(name.c_str(), &isOpen);
 
+	// tried to render sfml textures onto imgui window but failed
 	//sf::Vector2u textureSize = renderer.getSize();
 	//sf::Texture texture = renderer.getTexture();
 	//ImVec2 size = ImVec2(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y));
@@ -219,8 +228,6 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Select Map", mapPreview))
 	{
-		canZoom = false;
-
 		for (int i = 0; i < mapNames.size(); ++i)
 		{
 			const bool isSelected = mapIndex == i;
@@ -301,8 +308,6 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Rows", std::to_string(rowIndex + 1).c_str()))
 	{
-		canZoom = false;
-
 		for (int i = 0; i < rowNames.size(); ++i)
 		{
 			const bool isSelected = rowIndex == i;
@@ -319,8 +324,6 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Columns", std::to_string(colIndex + 1).c_str()))
 	{
-		canZoom = false;
-
 		for (int i = 0; i < rowNames.size(); ++i)
 		{
 			const bool isSelected = colIndex == i;
@@ -344,8 +347,6 @@ void MapMaker::onUpdate()
 
 	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
 	{
-		canZoom = false;
-
 			for (int i = 0; i < modeNames.size(); ++i)
 			{
 				const bool isSelected = static_cast<int>(mode) == i;
@@ -373,6 +374,10 @@ void MapMaker::onUpdate()
 		ImGui::Text("Left click to spawn Enemy");
 		ImGui::Text("Right click to despawn Enemy");
 		break;
+	
+	case DrawMode::NONE:
+		ImGui::Text("Right click to set goal");
+		break;
 
 	default:
 		break;
@@ -399,10 +404,18 @@ void MapMaker::onUpdate()
 	ImGui::SliderInt("Wall Width", &config.wallSize, 1, 10);
 	ImGui::SliderInt("Wall + Tunnel Width", &config.tunnelSize, 1, 10);
 	ImGui::SliderInt("Min Island Size", &config.minIslandSize, 1, 100);
+	ImGui::SliderInt("Noise", &config.noise, 0, 10);
 	ImGui::SliderInt("Min Connections", &config.minConnections, 1, 4);
 	ImGui::SliderInt("Max Connections", &config.maxConnections, 1, 4);
-	ImGui::SliderInt("Noise", &config.noise, 0, 10);
 	ImGui::Checkbox("Equal Wall Width", &config.isEqualWidth);
+
+	if (config.minConnections > config.maxConnections)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
+		ImGui::Text("Mininum connections must be smaller");
+		ImGui::Text("than maximum connections");
+		ImGui::PopStyleColor();
+	}
 
 	if (ImGui::Button("Generate Map"))
 		grid.generateMap();
@@ -492,6 +505,24 @@ void ControlPanel::onUpdate()
 	ImGui::SliderFloat("Cone Angle", &fov.coneAngle, 0.f, 360.f);
 	ImGui::SliderFloat("Circle Radius", &fov.circleRadius, 0.f, 1000.f);
 
+	editor.addSpace(5);
+	ImGui::SeparatorText("Game");
+	editor.addSpace(2);
+
+	if (ImGui::Button("Toggle Pause"))
+		isPaused = !isPaused;
+	if (isPaused)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
+		ImGui::Text("Game is paused");
+	}
+	else
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+		ImGui::Text("Game is running");
+	}
+	ImGui::PopStyleColor();
+
 	ImGui::End();
 }
 
@@ -507,6 +538,7 @@ void Editor::init()
 
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+	io.WantCaptureMouse = true;
 	io.Fonts->Clear();
 	io.Fonts->AddFontFromFileTTF("../Assets/Fonts/PoorStoryRegular.ttf", 24.f);
 	ImGui::SFML::UpdateFontTexture();
@@ -523,8 +555,6 @@ void Editor::init()
 	std::transform(rowNums.begin(), rowNums.end(), std::back_inserter(rowNames),
 		[](const auto &elem) { return elem.c_str(); });
 	auto entities = factory.getAllEntities();
-	//std::transform(entities.begin(), entities.end(), std::back_inserter(entityTypes),
-		//[](const auto &elem) { return elem.first; });
 }
 
 void Editor::update()

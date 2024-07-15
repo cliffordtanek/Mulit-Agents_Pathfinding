@@ -31,7 +31,7 @@ struct MapConfig
 	int minIslandSize = 1;
 	int noise = 0;
 	bool isEqualWidth = true;
-	int deviation = 0.f; // -10 to 10 (-1.f to 1.f)
+	int deviation = 0; // -10 to 10 (-1.f to 1.f)
 };
 
 struct FovConfig
@@ -148,7 +148,7 @@ public:
 	void generateMap();
 
 	bool shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst);
-
+	void setExit(GridPos pos);
 
 	// =======
 	// Getters
@@ -234,6 +234,7 @@ private:
 		bool visited{ false };
 	};
 
+
 	struct potentialFieldCell
 	{
 		float potential{ std::numeric_limits<float>::max() };
@@ -255,8 +256,6 @@ private:
 	std::vector<std::vector<potentialFieldCell>> potentialField; // potential field container
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
-
-	//std::vector<sf::CircleShape> debugRadius;
 
 	std::vector<Cell *> waypoints; // debug;
 	std::vector<std::unique_ptr<sf::Drawable>> debugRadius;

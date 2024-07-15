@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Loader.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the Loader class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include "Loader.h"
 #include "Grid.h"
 #include <fstream>
@@ -80,13 +93,6 @@ void Loader::saveMap(const std::string& mapName)
 
 		for (const Cell &cell : row)
 		{
-			//crashIf(!colorNames.count(std::make_pair(cell.rect.getFillColor(), cell.rect.getOutlineColor())),
-				//"Color for a cell has not been registered");
-			//const std::string colorName = colorNames.at(std::make_pair(cell.rect.getFillColor(),
-				//cell.rect.getOutlineColor()));
-			//ofs << colorName << ' ';
-			//currMap.back().push_back(colorName);
-
 			ofs << cell.isWall << ' ';
 			currMap.back().push_back(cell.isWall);
 		}

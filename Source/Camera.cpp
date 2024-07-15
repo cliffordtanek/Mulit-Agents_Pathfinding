@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Camera.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the Camera class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//=============================================================================
+
 #include "Camera.h"
 
 extern float dt;
@@ -64,37 +77,6 @@ void Camera::flushDrawQueue()
 {
 	window.setView(minimap);
 
-#if 0
-	for (sf::Drawable *&drawable : drawables)
-	{
-		sf::CircleShape *circle = dynamic_cast<sf::CircleShape *>(drawable);
-		if (circle)
-		{
-			window.draw(*circle);
-			continue;
-		}
-
-		sf::ConvexShape *triangle = dynamic_cast<sf::ConvexShape *>(drawable);
-		if (triangle)
-		{
-			window.draw(*triangle);
-			continue;
-		}
-
-		sf::RectangleShape *rectangle = dynamic_cast<sf::RectangleShape *>(drawable);
-		if (rectangle)
-		{
-			sf::Vector2f oldPos = rectangle->getPosition();
-			rectangle->setPosition(oldPos + minimapOffset);
-			window.draw(*rectangle);
-			rectangle->setPosition(oldPos);
-			continue;
-		}
-
-		//crashIf(true, "Unknown shape in draw queue");
-	}
-#endif
-
 	for (sf::RectangleShape &rectangle : cells)
 	{
 		sf::Vector2f oldPos = rectangle.getPosition();
@@ -131,7 +113,6 @@ void Camera::flushDrawQueue()
 	triangles.clear();
 	rectangles.clear();
 	cells.clear();
-	//drawables.clear();
 
 	window.setView(view);
 }

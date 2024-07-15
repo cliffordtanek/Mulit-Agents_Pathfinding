@@ -1,3 +1,21 @@
+//==============================================================================
+/*!
+\file		Camera.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration of the Camera class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
+
+#ifndef CAMERA_H
+#define CAMERA_H
+
+
 #include "Utility.h"
 #include "Vector2D.h"
 
@@ -12,7 +30,6 @@ class Camera
 	std::vector<sf::ConvexShape> triangles;
 	std::vector<sf::RectangleShape> rectangles;
 	std::vector<sf::RectangleShape> cells;
-	//std::vector<sf::Drawable *> drawables;
 
 public:
 
@@ -30,7 +47,8 @@ public:
 	void addCircle(const sf::CircleShape &circle);
 	void addTriangle(const sf::ConvexShape &triangle);
 	void addRectangle(const sf::RectangleShape &rectangle);
-	//void addToDrawQueue(sf::Drawable *drawable);
 	void addCell(const sf::RectangleShape &rectangle);
 	void flushDrawQueue();
 };
+
+#endif // !CAMERA_H
