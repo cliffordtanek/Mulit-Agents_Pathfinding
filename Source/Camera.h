@@ -30,7 +30,6 @@ class Camera
 	std::vector<sf::ConvexShape> triangles;
 	std::vector<sf::RectangleShape> rectangles;
 	std::vector<sf::RectangleShape> cells;
-	//std::vector<sf::Drawable *> drawables;
 
 public:
 
@@ -48,7 +47,6 @@ public:
 	void addCircle(const sf::CircleShape &circle);
 	void addTriangle(const sf::ConvexShape &triangle);
 	void addRectangle(const sf::RectangleShape &rectangle);
-	//void addToDrawQueue(sf::Drawable *drawable);
 	void addCell(const sf::RectangleShape &rectangle);
 	void flushDrawQueue();
 };

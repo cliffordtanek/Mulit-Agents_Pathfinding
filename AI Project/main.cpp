@@ -32,13 +32,11 @@ Vec2 mapSize;
 std::string winTitle = "sfml";
 bool isFullscreen = false;
 bool canZoom = true; // disable zooming when in dropdown menus
-//bool isDrawMode = false; // whether left clicking can draw/remove wall
-//bool isDrawingWall = true; // whether to draw wall or floor
+bool isPaused = false;
 float dt = 0.f;
 DrawMode mode = DrawMode::WALL;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
-//sf::RenderTexture renderer;
 sf::Font font;
 sf::View view(winSize / 2.f, winSize);
 sf::View minimap(mapSize / 2.f, mapSize);
@@ -55,8 +53,6 @@ bool isLMousePressed{ false }, isRMousePressed{ false };
 bool canExit = false;
 
 Vec2 target{};
-
-
 
 int main()
 {
@@ -116,7 +112,8 @@ int main()
                 break;
 
             case sf::Event::MouseWheelScrolled:
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel && canZoom)
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel && 
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
                     if (event.mouseWheelScroll.delta > 0.f)
                         view.zoom(1.f - CAM_ZOOM);
                     else
@@ -196,11 +193,9 @@ int main()
             {
                 Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-                //if (isDrawMode)
+                // erase wall
                 if (mode == DrawMode::WALL)
                     grid.setWall(grid.getGridPos(target), false);
-
-
             }
 
             if (event.type == sf::Event::MouseMoved && isLMousePressed)
@@ -208,8 +203,7 @@ int main()
                 // calculate grid coordinates from mouse position
                 Vec2 target = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             
-                // set colour of grid upon click
-                //grid.SetColour(pos.row, pos.col);
+                // insert wall
                 if (mode == DrawMode::WALL)
                     grid.setWall(grid.getGridPos(target), true);
 
@@ -223,17 +217,12 @@ int main()
             }
     #endif
 
-
             if (event.type == sf::Event::MouseButtonReleased)
             {
                 isLMousePressed = isRMousePressed = false;
             }
 
         }
-
-        //Vec2 mousePos = window.mapPixelToCoords(sf::Mouse::getPosition());
-        //if (!grid.isOutOfBound(grid.getGridPos(mousePos)))
-        //    grid.setHighlight(grid.getGridPos(mousePos));
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             view.move({ 0.f, -1.f * CAM_MOVE });
@@ -243,75 +232,42 @@ int main()
             view.move({ 0.f, 1.f * CAM_MOVE });
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             view.move({ 1.f * CAM_MOVE, 0.f });
-        //camera.calcOffset();
-
-
-#if 0
-        // Start the ImGui frame
-        ImGui::SFML::Update(window, clock.restart());
-        //renderer.clear();
-
-        // update systems
-        factory.update();
-
-        // test
-        //Vec2 scale{ 50.f, 50.f };
-        //Vec2 newPos{ 100.f, 100.f };
-        //sf::Color color = sf::Color::Red;
-        //sf::CircleShape circle;
-        //circle.setRadius(scale.x / 2.f);
-        //circle.setPosition(newPos - Vec2{ scale.x / 2.f, scale.x / 2.f });
-        //circle.setFillColor(color);
-        //renderer.draw(circle);
-
-        // update the editor
-        //renderer.display();
-        editor.update();
-        editor.createDockspace();
-
-        // Render ImGui into window
-        window.clear();
-        ImGui::SFML::Render(window);
-        window.display();
-
-        // update other systems
-        camera.update();
-#endif
 
         // Start the ImGui frame
         ImGui::SFML::Update(window, clock.restart());
         window.clear(colors.at("Background").first);
         editor.createDockspace();
 
+        // minimap variables
         int width = grid.getWidth();
         int height = grid.getHeight();
         bool isWidthLonger = width * 1.f > height * ratio; // height and width are flipped in grid object
         float gridLength = std::max(height * ratio, width * 1.f) * cellSize;
 
-        //mapSize = { isWidthLonger ? gridLength : gridLength * ratio, 
-            //isWidthLonger ? gridLength / ratio : gridLength };
+        // init minimap
         mapSize = { gridLength, gridLength / ratio };
         minimapOffset = { (mapSize.x - width * cellSize) / 2.f, (mapSize.y - height * cellSize) / 2.f };
         minimap.setCenter(mapSize / 2.f);
         minimap.setSize(mapSize);
 
         // update other systems
-        //canZoom = true;
         window.setView(view);
         editor.update();
         factory.update();
 
+        // draw minimap
         window.setView(minimap);
         sf::RectangleShape rectangle;
         float stroke = 20.f;
 
+        // draw blue background
         rectangle.setSize(mapSize);
         rectangle.setFillColor(colors.at("Background").first);
         window.draw(rectangle);
         window.setView(view);
-
         camera.flushDrawQueue();
 
+        // draw white border
         window.setView(minimap);
         rectangle.setSize({ mapSize.x - stroke * 2.f, mapSize.y - stroke * 2.f });
         rectangle.setPosition({ stroke, stroke });
@@ -320,6 +276,7 @@ int main()
         rectangle.setOutlineColor(sf::Color::White);
         window.draw(rectangle);
 
+        // draw camera highlight
         rectangle.setSize(view.getSize());
         rectangle.setPosition(view.getCenter() - winSize / 2.f + minimapOffset + 
             (winSize - view.getSize()) / 2.f);
@@ -333,7 +290,6 @@ int main()
         window.display();
 
         // update other systems
-        //camera.update();
     }
 
     // free systems

@@ -24,7 +24,6 @@ extern Factory factory;
 extern Grid grid;
 extern Loader loader;
 extern Camera camera;
-
 extern sf::RenderWindow window;
 extern bool canExit;
 

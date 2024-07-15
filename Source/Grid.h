@@ -214,6 +214,7 @@ public:
 	bool isExitFound() const { return exitFound; }
 
 	potentialFieldCell* exitCell{ nullptr };
+
 private:
 
 	struct flowFieldCell
@@ -247,8 +248,6 @@ private:
 	std::vector<std::vector<potentialFieldCell>> potentialField; // potential field container
 
 	std::queue<flowFieldCell*> openList;				// open list to generate heat map
-
-	//std::vector<sf::CircleShape> debugRadius;
 
 	std::vector<Cell *> waypoints; // debug;
 	std::vector<std::unique_ptr<sf::Drawable>> debugRadius;

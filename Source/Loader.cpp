@@ -93,13 +93,6 @@ void Loader::saveMap(const std::string& mapName)
 
 		for (const Cell &cell : row)
 		{
-			//crashIf(!colorNames.count(std::make_pair(cell.rect.getFillColor(), cell.rect.getOutlineColor())),
-				//"Color for a cell has not been registered");
-			//const std::string colorName = colorNames.at(std::make_pair(cell.rect.getFillColor(),
-				//cell.rect.getOutlineColor()));
-			//ofs << colorName << ' ';
-			//currMap.back().push_back(colorName);
-
 			ofs << cell.isWall << ' ';
 			currMap.back().push_back(cell.isWall);
 		}
