@@ -10,11 +10,16 @@ extern Camera camera;
 extern float dt;
 FovConfig fov;
 
+
+#define TRANSITION_DURATION 1.f // Total time to change direction 
+
+
 void Entity::move()
 {
 	if (!currSpeed)
 		return;
 
+	// CONDITION TO TARGET CELL
 	if ((targetPos - pos).SquareLength() < (pos - (pos + dir * currSpeed * dt)).SquareLength())
 	{
 		std::cout << "Target found\n";
@@ -34,15 +39,37 @@ void Entity::move()
 
 	auto [row, col] = grid.getGridPos(pos);
 
-	dir = grid.getFlowFieldDir(row, col);
+	// get new direction base on cell
+	vec2 newDir = grid.getFlowFieldDir(row, col);
+
+	if (newDir == Vec2{ 0.f, 0.f })
+		newDir = targetPos - pos;
+	
+	newDir = newDir.Normalize();
+
+	// initial
+	if (targetDir == Vec2{ 0.f, 0.f })
+		targetDir = newDir;
 
 
-	if (dir == Vec2{ 0.f, 0.f })
+	if (dir != targetDir) 
 	{
-		dir = targetPos - pos;
+		if (transitionTime < TRANSITION_DURATION) 
+		{
+			transitionTime += dt;
+			dir = Lerp(dir, targetDir, transitionTime, TRANSITION_DURATION).Normalize();
+		}
+		else
+		{
+			dir = targetDir;
+			transitionTime = 0.f; // Reset for the next transition
+			targetDir = newDir;
+		}
 	}
-
-	dir = dir.Normalize();
+	else
+	{
+		targetDir = newDir;
+	}
 
 	pos += dir * currSpeed * dt;
 
@@ -178,9 +205,6 @@ void Entity::onDestroy()
 
 void Factory::init()
 {
-	//! Temp
-	//grid = new Grid(50, 50, 20.f);	// temp 50 x 50 grid map
-
 	addEntityType<Enemy>();
 	addEntityType<Ally>();
 	addEntityType<Arrow>();
@@ -189,7 +213,6 @@ void Factory::init()
 void Factory::update()
 {
 	std::vector<std::pair<Vec2, Vec2>> entityPositionDirection;
-	//std::vector<Vec2> entityDirection;
 	for (const auto& [type, map] : entities)
 		for (const auto& [k, v] : map)
 			entityPositionDirection.emplace_back(v->pos, v->dir);

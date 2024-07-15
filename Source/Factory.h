@@ -33,7 +33,9 @@ public:
 	Vec2 scale;
 	sf::Color color;
 	Vec2 dir;
+	Vec2 targetDir;
 	float speed, currSpeed = 0.f;
+	float transitionTime{}; // time taken to transition to new direction
 	std::list<Vec2> waypoints;
 	std::list<Arrow *> wpArrows;
 

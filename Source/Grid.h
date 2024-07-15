@@ -1,16 +1,15 @@
-//
+//==============================================================================
 /*!
 \file		Grid.h
 \project		CS380/CS580 Group Project
 \Team		wo AI ni
-\author		Clifford Tan
 \summary		Declaration of the Grid Class
 
 Copyright (C) 2024 DigiPen Institute of Technology.
 Reproduction or disclosure of this file or its contents without the prior
 written consent of DigiPen Institute of Technology is prohibited.
 */
-//
+//==============================================================================
 
 #ifndef GRID_H
 #define GRID_H
