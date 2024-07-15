@@ -271,14 +271,14 @@ void Factory::update()
 			if (grid.isOutOfBound(m1->pos))
 			{
 				std::cout << "out of bounds here bro\n";
-				m1->pos = m1->pos - scale * m1->dir.Normalize();
+				//m1->pos = m1->pos - scale * m1->dir.Normalize();
 				//m1->dir *= -1.f;
 			}
 
 			if (grid.isOutOfBound(m2->pos))
 			{
 				std::cout << "too far out dude\n";
-				m2->pos = m2->pos - scale * m2->dir.Normalize();
+				//m2->pos = m2->pos - scale * m2->dir.Normalize();
 				//m2->dir *= -1.f;
 			}
 		}
