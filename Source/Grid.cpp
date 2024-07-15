@@ -191,7 +191,9 @@ void Grid::render(sf::RenderWindow& window)
 			{
 				float value = flowField[row][col].distance;
 
-				float normalizedDistance = std::min(1.f, value / 200.f); // Assuming max distance of 300 for normalization
+				float maxDist = getMaxDist();
+
+				float normalizedDistance = std::min(1.f, value / maxDist); // Assuming max distance of 300 for normalization
 
 				if (utl::isEqual(normalizedDistance, 1.f))
 					continue;
@@ -986,13 +988,16 @@ typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
 	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
 	potentialFieldCell nextMove = potentialField[pos.y][pos.x];
 
-	for (auto& direction : directions) {
+	for (auto& direction : directions) 
+	{
 		int newX = pos.x + direction.first;
 		int newY = pos.y + direction.second;
 
-		if (!isOutOfBound(newY, newX)) {
+		if (!isOutOfBound(newY, newX)) 
+		{
 			potentialFieldCell& neighbor = potentialField[newY][newX];
-			if (!isWall(neighbor.position) && cells[newY][newX].visibility == Visibility::VISIBLE && neighbor.potential < nextMove.potential) {
+			if (!isWall(neighbor.position) && cells[newY][newX].visibility == Visibility::VISIBLE && neighbor.potential < nextMove.potential) 
+			{
 				nextMove = neighbor;
 			}
 		}
@@ -1097,6 +1102,17 @@ std::vector<Cell *> Grid::getNeighborWalls(GridPos pos)
 				ret.push_back(&cells[i][j]);
 
 	return ret;
+}
+
+float Grid::getMaxDist() const
+{
+	float maxDist{};
+
+	for (int row{}; row < height; ++row)
+		for (int col{}; col < width; ++col)
+			maxDist = std::max(maxDist, flowField[row][col].distance);
+
+	return maxDist;
 }
 
 // =======

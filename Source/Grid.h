@@ -144,6 +144,8 @@ public:
 	std::vector<Cell *> getOrthNeighbors(GridPos pos, int steps = 2);
 	std::vector<Cell *> getNeighborWalls(GridPos pos);
 
+	float getMaxDist() const;
+
 
 	// =======
 	// Setters
