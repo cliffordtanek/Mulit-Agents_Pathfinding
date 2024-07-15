@@ -753,6 +753,11 @@ void Grid::CombineMaps()
 	{
 		for (auto& cell : row)
 		{
+			if (isWall(cell.position))
+			{
+				continue;
+			}
+
 			cell.final = cell.distance + cell.repulsion - cell.potential;		
 		}
 	}
@@ -765,6 +770,11 @@ void Grid::CombineMaps()
 	{
 		for (auto& cell : row)
 		{
+			if (isWall(cell.position))
+			{
+				continue;
+			}
+
 			if (cell.final < minFinal)
 			{
 				minFinal = cell.final;

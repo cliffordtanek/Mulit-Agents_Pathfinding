@@ -76,6 +76,9 @@ int main()
         {
             grid.updateHeatMap(grid.getWorldPos(grid.exitCell->pos));
 
+            grid.CombineMaps();
+            grid.generateFlowField();
+
             // set all enemy to the target
             for (Enemy* enemy : factory.getEntities<Enemy>())
                 enemy->setTargetPos(grid.getWorldPos(grid.exitCell->pos), true);
@@ -92,10 +95,10 @@ int main()
             {
                 grid.updatePotentialMap();
             }
-        }    
 
-        grid.CombineMaps();
-        grid.generateFlowField();
+            grid.CombineMaps();
+            grid.generateFlowField();
+        }    
 
         while (window.pollEvent(event))
         {
