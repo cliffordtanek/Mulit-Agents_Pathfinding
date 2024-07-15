@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Factory.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the entity classes and factory class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include <SFML/Graphics.hpp>
 #include "Factory.h"
 #include "Camera.h"

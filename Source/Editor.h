@@ -1,3 +1,19 @@
+//==============================================================================
+/*!
+\file		Editor.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration of the Editor class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
+#ifndef EDITOR_H
+#define EDITOR_H
+
 #include <functional>
 #include <unordered_map>
 #include <string>
@@ -130,3 +146,5 @@ public:
 		return dynamic_cast<T *>(windows.at(name));
 	}
 };
+
+#endif // !EDITOR_H

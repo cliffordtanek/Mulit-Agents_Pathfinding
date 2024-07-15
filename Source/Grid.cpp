@@ -821,7 +821,7 @@ void Grid::resetMap()
 // potential field
 void Grid::generateRandomGoal()
 {
-	srand(time(0));
+	srand((unsigned)time(0));
 	int exitX = rand() % width;
 	int exitY = rand() % height;
 	cells[exitY][exitX].isExit = true;
@@ -848,8 +848,9 @@ void Grid::updatePotentialField()
 			if (!isOutOfBound(newY, newX))
 			{
 				potentialFieldCell &neighbor = potentialField[newY][newX];
-				int newPotential = current.potential + 1;
-				if (newPotential < neighbor.potential) {
+				float newPotential = current.potential + 1.f;
+				if (newPotential < neighbor.potential) 
+				{
 					neighbor.potential = newPotential;
 					toProcess.push(neighbor);
 				}
@@ -1153,12 +1154,12 @@ void Grid::setExit(GridPos pos)
 typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
 {
 	std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1} };
-	potentialFieldCell nextMove = potentialField[pos.y][pos.x];
+	potentialFieldCell nextMove = potentialField[(int)pos.y][(int)pos.x];
 
 	for (auto& direction : directions) 
 	{
-		int newX = pos.x + direction.first;
-		int newY = pos.y + direction.second;
+		int newX = (int) pos.x + direction.first;
+		int newY = (int) pos.y + direction.second;
 
 		if (!isOutOfBound(newY, newX)) 
 		{
