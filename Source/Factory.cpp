@@ -234,14 +234,24 @@ void Factory::update()
 		for (const auto &[k, v] : map)
 			v->onUpdate();
 
-	std::vector<Enemy*> ally = factory.getEntities<Enemy>();
+	std::vector<Enemy*> enemies = factory.getEntities<Enemy>();
 
-	for (unsigned i = 0; i < ally.size(); ++i)
+	vec2 centroid{};
+
+	for (auto const& p : enemies)
 	{
-		for (unsigned j = i + 1; j < ally.size(); ++j)
+		centroid += p->pos;
+	}
+
+	centroid.x /= enemies.size();
+	centroid.y /= enemies.size();
+
+	for (unsigned i = 0; i < enemies.size(); ++i)
+	{
+		for (unsigned j = i + 1; j < enemies.size(); ++j)
 		{
-			auto& m1 = ally[i];
-			auto& m2 = ally[j];
+			auto& m1 = enemies[i];
+			auto& m2 = enemies[j];
 
 			float scale = std::max(std::max(m1->scale.x, m1->scale.y), std::max(m2->scale.x, m2->scale.y));
 
@@ -249,9 +259,9 @@ void Factory::update()
 			{
 				vec2 direction = m2->pos - m1->pos;
 
-				if (direction == Vec2{0.f, 0.f})
+				if (direction == Vec2{ 0.f, 0.f })
 				{
-					direction = { 1, 1 };
+					direction = { 1, 0 };
 				}
 
 				direction = direction.Normalize();
@@ -268,22 +278,44 @@ void Factory::update()
 				vec2 displacement = direction * correctionFactor;
 
 				// Move both m1 and m2 away from each other
-				m1->pos -= displacement * 0.5f;
-				m2->pos += displacement * 0.5f;
-			}
+				bool bigger = false;
 
-			if (grid.isOutOfBound(m1->pos))
-			{
-				std::cout << "out of bounds here bro\n";
-				//m1->pos = m1->pos - scale * m1->dir.Normalize();
-				//m1->dir *= -1.f;
-			}
+				if ((m1->pos - centroid).SquareLength() < 200)
+				{
+					bigger = true;
+				}
 
-			if (grid.isOutOfBound(m2->pos))
-			{
-				std::cout << "too far out dude\n";
-				//m2->pos = m2->pos - scale * m2->dir.Normalize();
-				//m2->dir *= -1.f;
+				vec2 newM1Pos = m1->pos - displacement * (bigger ? 5.f : 0.5f);
+				vec2 newM2Pos = m2->pos + displacement * (bigger ? 5.f : 0.5f);
+
+				bool m1CollidesWithWall = grid.isWall(grid.getGridPos(newM1Pos));
+				bool m2CollidesWithWall = grid.isWall(grid.getGridPos(newM2Pos));
+
+				// Adjust positions if they collide with a wall
+				if (m1CollidesWithWall || m2CollidesWithWall)
+				{
+
+					// If m1 collides with a wall, move m2 by the full amount
+					if (m1CollidesWithWall)
+					{
+						newM1Pos = m1->pos; // Reset to original position
+						newM2Pos = m2->pos + displacement; // Move m2 by the full amount
+					}
+
+					// If m2 collides with a wall, move m1 by the full amount
+					if (m2CollidesWithWall)
+					{
+						newM2Pos = m2->pos; // Reset to original position
+						newM1Pos = m1->pos - displacement; // Move m1 by the full amount
+					}
+
+					// Optionally, adjust positions to be just outside the wall boundary
+					// This part can be customized based on the game's logic and requirements
+				}
+
+				// Update positions only if no collision with walls
+				m1->pos = newM1Pos;
+				m2->pos = newM2Pos;
 			}
 		}
 	}
