@@ -89,7 +89,7 @@ Grid::Grid(int _height, int _width, float _cellSize)
 	}
 
 	generateRandomGoal();
-	//updatePotentialField();
+	//updatePotentialMap();
 }
 
 // ======
@@ -204,13 +204,12 @@ void Grid::render(sf::RenderWindow& window)
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
-		}
-			
+			}			
 
 			// Checking if the cell is not a wall and has a valid direction
 			if (flowFieldArrow)
 			{
-				if (!(utl::isEqual(flowField[row][col].distance, 0.f)))
+				if (!(utl::isEqual(flowField[row][col].final, 0.f)))
 				{
 					Vec2 cellCenter = getWorldPos(row, col);
 					Vec2 direction = flowField[row][col].direction;
@@ -218,11 +217,11 @@ void Grid::render(sf::RenderWindow& window)
 				}
 			}
 
-			if (usePotentialField && showPotentialField)
+			if (showPotentialField)
 			{
 				float value = flowField[row][col].potential;
 
-				float normalizedDistance = value / 15.f; // Assuming max distance of 300 for normalization
+				float normalizedDistance = value; // Assuming max distance of 300 for normalization
 
 				//if (utl::isEqual(normalizedDistance, 1.f))
 				//	continue;
@@ -234,6 +233,42 @@ void Grid::render(sf::RenderWindow& window)
 				cells[row][col].rect.setFillColor(color);
 
 				window.draw(cells[row][col].rect);
+			}
+
+			if (showRepulsionMap)
+			{
+				float value = flowField[row][col].repulsion;
+
+				float normalizedDistance = value / 2.f; // Assuming max distance of 300 for normalization
+
+				if (utl::isEqual(normalizedDistance, 1.f))
+					continue;
+
+
+				sf::Uint8 alpha = static_cast<sf::Uint8>((normalizedDistance) * 255);
+
+				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
+				currCell.rect.setFillColor(color);
+
+				window.draw(currCell.rect);
+			}
+
+			if (showFinalMap)
+			{
+				float value = flowField[row][col].final;
+
+				float normalizedDistance = std::min(1.f, value); // Assuming max distance of 300 for normalization
+
+				if (utl::isEqual(normalizedDistance, 1.f))
+					continue;
+
+
+				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
+
+				sf::Color color = sf::Color(255, 0, 180, alpha); // Red color with varying alpha
+				currCell.rect.setFillColor(color);
+
+				window.draw(currCell.rect);
 			}
 
 #if 0 // TO DISPLAY THE NUMERICAL DISTANCE
@@ -583,14 +618,6 @@ void Grid::updateHeatMap()
 
 				maxDist = std::max(maxDist, newDistance);
 
-				if (usePotentialField)
-				{
-					newDistance *= potentialField[neighbourPos.row][neighbourPos.col].potential;
-
-					//if (newDistance < 0)
-					//	newDistance = 0;
-				}
-
 				// If neighbor is visited and the new distance is shorter, update it
 				if (currNeighbour.visited)
 				{
@@ -614,14 +641,86 @@ void Grid::updateHeatMap()
 
 }
 
-void Grid::addRepulsion(GridPos gridPos, float radius, float strength)
+void Grid::updatePotentialMap()
+{
+	// clear potential
+	for (auto& row : flowField)
+	{
+		for (auto& flowField : row)
+		{
+			flowField.potential = 0.f;
+		}
+	}
+
+	const float MAX_MD = 20;
+	const float MAX_POTENTIAL = 0.25;
+	const int BLOCK_SIZE = 4;
+
+	float maxPotential{};
+
+	// Iterate through the grid in blocks of 4x4
+	for (int i = 0; i < cells.size(); i += BLOCK_SIZE)
+	{
+		for (int j = 0; j < cells[0].size(); j += BLOCK_SIZE)
+		{
+			// Determine if the block is unknown
+			int unknownCount = 0;
+			for (int bi = 0; bi < BLOCK_SIZE; ++bi)
+			{
+				for (int bj = 0; bj < BLOCK_SIZE; ++bj)
+				{
+					int ni = i + bi;
+					int nj = j + bj;
+					if (!isOutOfBound({ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
+					{
+						++unknownCount;
+					}
+				}
+			}
+
+			if (unknownCount >= 10)
+			{
+				// Calculate the center of the block
+				GridPos blockCenter{ i + BLOCK_SIZE / 2, j + BLOCK_SIZE / 2 };
+				for (auto& row : flowField)
+				{
+					for (auto& flowFieldCell : row)
+					{
+						// skip if cell is not unexplored
+						//if (cells[potentialFieldCell.position.row][potentialFieldCell.position.col].visibility != UNEXPLORED)
+						//	continue;
+
+						// Calculate Manhattan Distance
+						int md = std::abs(flowFieldCell.position.row - blockCenter.row) + std::abs(flowFieldCell.position.col - blockCenter.col);
+						if (md <= MAX_MD)
+						{
+							// Calculate potential
+							float newPotential = MAX_POTENTIAL - (float(md) / (MAX_MD * 4));
+							
+							if (newPotential > 0)
+							{
+								flowFieldCell.potential += newPotential;
+								maxPotential = std::max(maxPotential, flowFieldCell.potential);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (int row{}; row < height; ++row)
+		for (int col{}; col < width; ++col)
+			flowField[row][col].potential /= maxPotential;
+}
+
+void Grid::updateRepulsionMap(GridPos gridPos, float radius, float strength)
 {
 	int startRow = std::max(0, gridPos.row - static_cast<int>(radius / cellSize));
 	int endRow = std::min(height - 1, gridPos.row + static_cast<int>(radius / cellSize));
 
 	int startCol = std::max(0, gridPos.col - static_cast<int>(radius / cellSize));
 	int endCol = std::min(width - 1, gridPos.col + static_cast<int>(radius / cellSize));
-
 
 	for (int r = startRow; r <= endRow; ++r)
 	{
@@ -642,12 +741,57 @@ void Grid::addRepulsion(GridPos gridPos, float radius, float strength)
 				if (!isClearPath(gridPos, GridPos{ r, c }))
 					continue;
 
-				flowField[r][c].distance += strength;
+				flowField[r][c].repulsion = strength * (1.0f - (distance / radius));
 			}
 		}
 	}
 }
 
+void Grid::CombineMaps()
+{
+	for (auto& row : flowField)
+	{
+		for (auto& cell : row)
+		{
+			cell.final = cell.distance + cell.repulsion - cell.potential;		
+		}
+	}
+
+	// Step 2: Find the minimum and maximum final values
+	float minFinal = std::numeric_limits<float>::max();
+	float maxFinal = std::numeric_limits<float>::min();
+
+	for (auto& row : flowField)
+	{
+		for (auto& cell : row)
+		{
+			if (cell.final < minFinal)
+			{
+				minFinal = cell.final;
+			}
+			if (cell.final > maxFinal)
+			{
+				maxFinal = cell.final;
+			}
+		}
+	}
+
+	// Step 3: Normalize the final values to range 0-1
+	for (auto& row : flowField)
+	{
+		for (auto& cell : row)
+		{
+			if (maxFinal > minFinal) // To avoid division by zero
+			{
+				cell.final = (cell.final - minFinal) / (maxFinal - minFinal);
+			}
+			else
+			{
+				cell.final = 0.0f; // If all values are the same, set them to 0
+			}
+		}
+	}
+}
 
 void Grid::resetHeatMap()
 {
@@ -656,6 +800,9 @@ void Grid::resetHeatMap()
 		for (int col{}; col < width; ++col)
 		{
 			flowField[row][col].distance = std::numeric_limits<float>::max();
+			flowField[row][col].potential = 0.f;
+			flowField[row][col].repulsion = 0.f;
+			flowField[row][col].final = 0.f;
 			flowField[row][col].visited = false;
 			flowField[row][col].direction = { 0, 0 };
 		}
@@ -672,7 +819,7 @@ void Grid::generateFlowField()
 			// get current cells
 			flowFieldCell &currCell = flowField[row][col];
 
-			if (utl::isEqual(currCell.distance, 0.f))
+			if (utl::isEqual(currCell.final, 0.f))
 				continue;
 
 			// Skip walls
@@ -730,7 +877,7 @@ void Grid::generateFlowField()
 					}
 					
 					// if pointing directly to goal node
-					if (utl::isEqual(neighbourCell.distance, 0.f))
+					if (utl::isEqual(neighbourCell.final, 0.f))
 					{
 						currCell.direction = Vec2((float)j, (float)i);
 						goalBreak = true;
@@ -739,16 +886,16 @@ void Grid::generateFlowField()
 					}
 						
 					// for MINNIMUM MODE
-					if (neighbourCell.distance < minDist)
+					if (neighbourCell.final < minDist)
 					{
-						minDist = neighbourCell.distance;
+						minDist = neighbourCell.final;
 						minDir = { i, j };
 
 					}
 
 					// GRADIENT MODE
 					// get final directional vector
-					currCell.direction += (1.f / neighbourCell.distance) * Vec2((float)j, (float)i);
+					currCell.direction += (1.f / neighbourCell.final) * Vec2((float)j, (float)i);
 				}
 
 				if (goalBreak)
@@ -824,77 +971,18 @@ void Grid::resetMap()
 // potential field
 void Grid::generateRandomGoal()
 {
+	// remove previous exit
+	if (exitCell)
+	{
+		exitCell->isExit = false;	
+	}
+
 	srand(time(0));
 	int exitX = rand() % width;
 	int exitY = rand() % height;
 	cells[exitY][exitX].isExit = true;
 
 	exitCell = &cells[exitY][exitX];
-}
-
-void Grid::updatePotentialField()
-{
-	// clear potential
-	for (auto& row : flowField)
-	{
-		for (auto& flowField : row)
-		{
-			flowField.potential = 0.f;
-		}
-	}
-
-	const float MAX_MD = 20;
-	const float MAX_POTENTIAL = 0.25;
-	const int BLOCK_SIZE = 4;
-
-	// Iterate through the grid in blocks of 4x4
-	for (int i = 0; i < cells.size(); i += BLOCK_SIZE)
-	{
-		for (int j = 0; j < cells[0].size(); j += BLOCK_SIZE)
-		{
-			// Determine if the block is unknown
-			int unknownCount = 0;
-			for (int bi = 0; bi < BLOCK_SIZE; ++bi)
-			{
-				for (int bj = 0; bj < BLOCK_SIZE; ++bj)
-				{
-					int ni = i + bi;
-					int nj = j + bj;
-					if (!isOutOfBound({ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
-					{
-						++unknownCount;
-					}
-				}
-			}
-
-			if (unknownCount >= 10)
-			{
-				// Calculate the center of the block
-				GridPos blockCenter{ i + BLOCK_SIZE / 2, j + BLOCK_SIZE / 2 };
-				for (auto& row : flowField)
-				{
-					for (auto& flowFieldCell : row)
-					{
-						// skip if cell is not unexplored
-						//if (cells[potentialFieldCell.position.row][potentialFieldCell.position.col].visibility != UNEXPLORED)
-						//	continue;
-
-						// Calculate Manhattan Distance
-						int md = std::abs(flowFieldCell.position.row - blockCenter.row) + std::abs(flowFieldCell.position.col - blockCenter.col);
-						if (md <= MAX_MD)
-						{
-							// Calculate potential
-							float potential = MAX_POTENTIAL - (float(md) / (MAX_MD * 4));
-							if (potential > 0)
-							{
-								flowFieldCell.potential += potential;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 void Grid::generateMap()

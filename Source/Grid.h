@@ -107,6 +107,10 @@ public:
 
 	bool usePotentialField{ false };
 
+	bool showRepulsionMap{ false };
+
+	bool showFinalMap{ false };
+
 	Cell* exitCell{ nullptr };
 
 
@@ -123,7 +127,11 @@ public:
 	//! update heat map based on potentials
 	void updateHeatMap();
 
-	void addRepulsion(GridPos pos, float radius, float strength);
+	void updatePotentialMap();
+
+	void updateRepulsionMap(GridPos pos, float radius, float strength);
+
+	void CombineMaps();
 
 	void resetHeatMap();
 
@@ -135,11 +143,10 @@ public:
 
 	void resetMap();
 
-	// potential field methods
 	void generateRandomGoal();
-	void updatePotentialField();
 
 	void generateMap();
+
 	bool shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst);
 
 

@@ -71,16 +71,10 @@ int main()
         dt = clock.restart().asSeconds();
         sf::Event event;
 
-        if (grid.usePotentialField)
-        {
-            grid.updatePotentialField();
-        }
-
         // if exit found, path to exit
         if (grid.isExitFound())
         {
             grid.updateHeatMap(grid.getWorldPos(grid.exitCell->pos));
-            grid.generateFlowField();
 
             // set all enemy to the target
             for (Enemy* enemy : factory.getEntities<Enemy>())
@@ -89,11 +83,19 @@ int main()
         else
         {
             grid.updateHeatMap();
-            for (Enemy* enemy : factory.getEntities<Enemy>())
-                grid.addRepulsion(grid.getGridPos(enemy->pos), 200.f, 1.f);
 
-            grid.generateFlowField();
-        }
+            for (Enemy* enemy : factory.getEntities<Enemy>())
+                grid.updateRepulsionMap(grid.getGridPos(enemy->pos), 300.f, 1.f);
+
+
+            if (grid.usePotentialField)
+            {
+                grid.updatePotentialMap();
+            }
+        }    
+
+        grid.CombineMaps();
+        grid.generateFlowField();
 
         while (window.pollEvent(event))
         {
@@ -149,6 +151,12 @@ int main()
                 case sf::Keyboard::R:
 					grid.usePotentialField = !grid.usePotentialField;
                     break;
+                case sf::Keyboard::E:
+                    grid.showRepulsionMap = !grid.showRepulsionMap;
+                    break;
+                case sf::Keyboard::F:
+                    grid.showFinalMap = !grid.showFinalMap;
+                    break;
 
                     break;
                 }
@@ -178,8 +186,8 @@ int main()
 
                 if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
                 {
-                    grid.updateHeatMap(target);
-                    grid.generateFlowField();
+                    //grid.updateHeatMap(target);
+                    //grid.generateFlowField();
 
                     // set all enemy to the target
                     for (Enemy *enemy : factory.getEntities<Enemy>())
