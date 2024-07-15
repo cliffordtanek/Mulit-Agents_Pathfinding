@@ -250,6 +250,8 @@ private:
 
 	bool exitFound{ false };
 
+	float potentialWeight{ 10.f };
+
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container
 

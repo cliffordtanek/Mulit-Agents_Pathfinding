@@ -294,8 +294,11 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
-	exitCell->rect.setFillColor(sf::Color(0, 255, 0, 255));
-	window.draw(exitCell->rect);
+	if (exitCell)
+	{
+		exitCell->rect.setFillColor(sf::Color(0, 255, 0, 255));
+		window.draw(exitCell->rect);
+	}
 
 	// only draw one debug circle for one entity
 	if (debugDrawRadius)
@@ -647,7 +650,7 @@ void Grid::updatePotentialMap()
 		}
 	}
 
-	const float MAX_MD = 20;
+	const float MAX_MD = 30;
 	const float MAX_POTENTIAL = 0.25;
 	const int BLOCK_SIZE = 4;
 
@@ -681,6 +684,8 @@ void Grid::updatePotentialMap()
 				{
 					for (auto& flowFieldCell : row)
 					{
+						if (cells[flowFieldCell.position.row][flowFieldCell.position.col].visibility == UNEXPLORED)
+							continue;
 						// skip if cell is not unexplored
 						//if (cells[potentialFieldCell.position.row][potentialFieldCell.position.col].visibility != UNEXPLORED)
 						//	continue;
@@ -690,7 +695,7 @@ void Grid::updatePotentialMap()
 						if (md <= MAX_MD)
 						{
 							// Calculate potential
-							float newPotential = MAX_POTENTIAL - (float(md) / (MAX_MD * 4));
+							float newPotential = MAX_POTENTIAL - ((float(md) * MAX_POTENTIAL) / MAX_MD);
 							
 							if (newPotential > 0)
 							{
@@ -753,7 +758,7 @@ void Grid::CombineMaps()
 				continue;
 			}
 
-			cell.final = cell.distance + cell.repulsion - cell.potential;		
+			cell.final = cell.distance + cell.repulsion - cell.potential * potentialWeight;		
 		}
 	}
 
