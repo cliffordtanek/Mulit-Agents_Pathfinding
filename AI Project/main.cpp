@@ -186,15 +186,12 @@ int main()
                     factory.cloneEnemyAt(target);
 
                 // move enemy to cell
-                //if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
-                //{
-                //    grid.updateHeatMap(target);
-                //    grid.generateFlowField();
-
-                //    // set all enemy to the target
-                //    for (Enemy *enemy : factory.getEntities<Enemy>())
-                //        enemy->setTargetPos(target, true);
-                //}
+                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                {
+                    // set all enemy to the target
+                    for (Enemy *enemy : factory.getEntities<Enemy>())
+                        enemy->setTargetPos(target, true);
+                }
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
