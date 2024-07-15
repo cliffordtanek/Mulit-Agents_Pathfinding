@@ -1,3 +1,20 @@
+//==============================================================================
+/*!
+\file		Loader.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration of the Loader class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
+#ifndef LOADER_H
+#define LOADER_H
+
+
 #include "Utility.h"
 #include <unordered_map>
 
@@ -48,3 +65,5 @@ public:
 	void deleteMap(const std::string &mapName);
 	void renameMap(const std::string &oldName, const std::string &newName);
 };
+
+#endif // !LOADER_H

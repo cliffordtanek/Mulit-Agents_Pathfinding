@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		main.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		main loop
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include <iostream>
 #include <array>
 #include <vector>
@@ -52,7 +65,7 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    srand(time(0));
+    srand((unsigned)time(0));
     sf::Clock clock;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");

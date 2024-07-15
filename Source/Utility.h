@@ -1,4 +1,20 @@
-#pragma once
+//==============================================================================
+/*!
+\file		Utiity.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration and definition of all utility fuctionalities 
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
+
+#ifndef UTILITY_H
+#define UTILITY_H
+
 
 #include "Vector2D.h"
 #include "Debug.h"
@@ -407,3 +423,5 @@ inline ImVec2 operator--(ImVec2 vec)
 	float smaller = std::min(vec.x, vec.y);
 	return { smaller, smaller };
 }
+
+#endif // !UTILITY_H

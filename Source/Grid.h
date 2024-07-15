@@ -31,7 +31,7 @@ struct MapConfig
 	int minIslandSize = 1;
 	int noise = 0;
 	bool isEqualWidth = true;
-	int deviation = 0.f; // -10 to 10 (-1.f to 1.f)
+	int deviation = 0; // -10 to 10 (-1.f to 1.f)
 };
 
 struct FovConfig
@@ -222,6 +222,7 @@ private:
 
 		bool visited{ false };
 	};
+
 
 	struct potentialFieldCell
 	{

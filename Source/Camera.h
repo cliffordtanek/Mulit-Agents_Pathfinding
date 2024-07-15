@@ -1,3 +1,21 @@
+//==============================================================================
+/*!
+\file		Camera.h
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Declaration of the Camera class
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
+
+#ifndef CAMERA_H
+#define CAMERA_H
+
+
 #include "Utility.h"
 #include "Vector2D.h"
 
@@ -34,3 +52,5 @@ public:
 	void addCell(const sf::RectangleShape &rectangle);
 	void flushDrawQueue();
 };
+
+#endif // !CAMERA_H

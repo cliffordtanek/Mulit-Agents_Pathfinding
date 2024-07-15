@@ -1,3 +1,16 @@
+//==============================================================================
+/*!
+\file		Debug.cpp
+\project		CS380/CS580 Group Project
+\Team		wo AI ni
+\summary		Definition of the ebug functionalities
+
+Copyright (C) 2024 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the prior
+written consent of DigiPen Institute of Technology is prohibited.
+*/
+//==============================================================================
+
 #include "Editor.h"
 #include "Factory.h"
 #include "Loader.h"
