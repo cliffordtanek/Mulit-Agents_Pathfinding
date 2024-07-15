@@ -150,6 +150,17 @@ int main()
                 grid.setIntensity(grid.getGridPos(target));
                 if (mode == DrawMode::ENTITY)
                     factory.cloneEnemyAt(target);
+
+                // move enemy to cell
+                //if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                //{
+                //    grid.updateHeatMap(target);
+                //    grid.generateFlowField();
+
+                //    // set all enemy to the target
+                //    for (Enemy *enemy : factory.getEntities<Enemy>())
+                //        enemy->setTargetPos(target, true);
+                //}
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
@@ -164,14 +175,7 @@ int main()
                             factory.destroyEntity<Enemy>(enemy);
 
                 if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
-                {
-                    grid.updateHeatMap(target);
-                    grid.generateFlowField();
-
-                    // set all enemy to the target
-                    for (Enemy *enemy : factory.getEntities<Enemy>())
-                        enemy->setTargetPos(target, true);
-                }
+                    grid.setExit(grid.getGridPos(target));
 
                 //if (isDrawMode)
             }

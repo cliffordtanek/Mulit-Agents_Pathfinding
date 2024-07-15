@@ -1124,10 +1124,10 @@ void Grid::generateMap()
 	//			openList.push(neighbor);
 	//}
 		
-	for (std::vector<Cell> &row : cells)
-		for (Cell &cell : row)
-			if (!cell.isVisited)
-				cell.isWall = false;
+	//for (std::vector<Cell> &row : cells)
+	//	for (Cell &cell : row)
+	//		if (!cell.isVisited)
+	//			cell.isWall = false;
 #endif
 }
 
@@ -1138,6 +1138,16 @@ bool Grid::shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst)
 			(isOutOfBound(prevCell) ? 1 : !cells[prevCell.row][prevCell.col].isWall)) :
 			(isOutOfBound(prevCell) ? 1 : !cells[prevCell.row][prevCell.col].isWall)) *
 		(20 - config.noise * 2) <= config.noise;
+}
+
+void Grid::setExit(GridPos pos)
+{
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.isExit = false;
+
+	if (!isOutOfBound(pos))
+		cells[pos.row][pos.col].isExit = true;
 }
 
 typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)

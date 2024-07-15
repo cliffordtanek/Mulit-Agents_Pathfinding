@@ -79,7 +79,6 @@ void Entity::move()
 
 	for (Vec2 wallPos : grid.getNeighborWalls(grid.getGridPos(pos)))
 	{
-		//Vec2 wallPos = grid.getWorldPos(wall->pos);
 		float overlap = wallRadius + entityRadius - wallPos.Distance(pos);
 		if (overlap > 0.f)
 			pos += (pos - wallPos).Normalize() * overlap / 2.f;

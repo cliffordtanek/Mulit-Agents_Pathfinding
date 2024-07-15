@@ -140,7 +140,7 @@ public:
 	potentialFieldCell getNextMove(vec2 pos);
 	void generateMap();
 	bool shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst);
-
+	void setExit(GridPos pos);
 
 	// =======
 	// Getters
