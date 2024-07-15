@@ -1244,14 +1244,14 @@ std::vector<Cell *> Grid::getOrthNeighbors(GridPos pos, int steps)
 	return ret;
 }
 
-std::vector<Cell *> Grid::getNeighborWalls(GridPos pos)
+std::vector<Vec2> Grid::getNeighborWalls(GridPos pos)
 {
-	std::vector<Cell *> ret;
+	std::vector<Vec2> ret;
 
 	for (int i = pos.row - 1; i < pos.row + 2; ++i)
 		for (int j = pos.col - 1; j < pos.col + 2; ++j)
-			if (!isOutOfBound(i, j) && cells[i][j].isWall)
-				ret.push_back(&cells[i][j]);
+			if (isOutOfBound(i, j) || cells[i][j].isWall)
+				ret.push_back(getWorldPos(i, j));
 
 	return ret;
 }
