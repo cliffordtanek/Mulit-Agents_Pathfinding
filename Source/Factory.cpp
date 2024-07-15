@@ -8,6 +8,7 @@ extern Factory factory;
 extern Grid grid;
 extern Camera camera;
 extern float dt;
+FovConfig fov;
 
 
 #define TRANSITION_DURATION 1.f // Total time to change direction 
@@ -76,9 +77,9 @@ void Entity::move()
 	float wallRadius = std::sqrtf(std::powf(grid.getCellSize(), 2.f) * 2.f) / 2.f;
 	float entityRadius = std::sqrtf(std::powf(scale.x / 2.f, 2.f) + std::powf(scale.y / 2.f, 2.f));
 
-	for (Cell *wall : grid.getNeighborWalls(grid.getGridPos(pos)))
+	for (Vec2 wallPos : grid.getNeighborWalls(grid.getGridPos(pos)))
 	{
-		Vec2 wallPos = grid.getWorldPos(wall->pos);
+		//Vec2 wallPos = grid.getWorldPos(wall->pos);
 		float overlap = wallRadius + entityRadius - wallPos.Distance(pos);
 		if (overlap > 0.f)
 			pos += (pos - wallPos).Normalize() * overlap / 2.f;
@@ -217,7 +218,10 @@ void Factory::update()
 			entityPositionDirection.emplace_back(v->pos, v->dir);
 		
 	
-	grid.updateVisibility(entityPositionDirection, 500.f, 60.f, 120.f);
+
+
+
+	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)

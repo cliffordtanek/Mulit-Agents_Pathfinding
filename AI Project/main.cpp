@@ -22,7 +22,7 @@ bool canZoom = true; // disable zooming when in dropdown menus
 //bool isDrawMode = false; // whether left clicking can draw/remove wall
 //bool isDrawingWall = true; // whether to draw wall or floor
 float dt = 0.f;
-DrawMode mode = DrawMode::NONE;
+DrawMode mode = DrawMode::WALL;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 //sf::RenderTexture renderer;
@@ -52,7 +52,7 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-
+    srand(time(0));
     sf::Clock clock;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");
@@ -79,12 +79,12 @@ int main()
         // if exit found, path to exit
         if (grid.isExitFound())
         {
-            grid.updateHeatMap(grid.getWorldPos(grid.exitCell->position));
+            grid.updateHeatMap(grid.getWorldPos(grid.exitCell->pos));
             grid.generateFlowField();
 
             // set all enemy to the target
             for (Enemy* enemy : factory.getEntities<Enemy>())
-                enemy->setTargetPos(grid.getWorldPos(grid.exitCell->position), true);
+                enemy->setTargetPos(grid.getWorldPos(grid.exitCell->pos), true);
         }
         else
         {
