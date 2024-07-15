@@ -8,6 +8,7 @@ extern Factory factory;
 extern Grid grid;
 extern Camera camera;
 extern float dt;
+FovConfig fov;
 
 
 #define TRANSITION_DURATION 1.f // Total time to change direction 
@@ -217,7 +218,10 @@ void Factory::update()
 			entityPositionDirection.emplace_back(v->pos, v->dir);
 		
 	
-	grid.updateVisibility(entityPositionDirection, 500.f, 60.f, 120.f);
+
+
+
+	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)

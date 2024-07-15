@@ -29,8 +29,7 @@ extern float dt;
 std::random_device rd;
 std::mt19937 g(rd());
 
-int tunnelSize = 1;
-int wallSize = 1;
+MapConfig config;
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
@@ -112,7 +111,7 @@ void Grid::render(sf::RenderWindow& window)
 			// if cell is a wall but it has been explored before
 			if (isWall(row, col))
 			{
-				if (currCell.visibility != UNEXPLORED || mode == DrawMode::WALL)
+				if (currCell.visibility != UNEXPLORED || mode == DrawMode::WALL || mode == DrawMode::ENTITY)
 				{
 					//std::cout << "RENDERING EXPLORED WALLS\n";
 					currCell.rect.setFillColor(colors.at("Wall").first);
@@ -849,11 +848,6 @@ void Grid::updatePotentialField()
 	//		if (cells[cell.position.row][cell.position.col].visibility == Visibility::UNEXPLORED) {
 	//			cell.potential = 100.f;
 	//		}
-void Grid::generateMap()
-{
-	// so it doesn't crash on empty map
-	if (cells.empty() || cells[0].empty())
-		return;
 
 	//		// Add repulsive forces from obstacles
 	//		if (isWall(cell.position.row, cell.position.col))
@@ -867,13 +861,34 @@ void Grid::generateMap()
 	//	}
 	//}
 
+void Grid::generateMap()
+{
+	// so it doesn't crash on empty map
+	if (cells.empty() || cells[0].empty())
+		return;
+
 	// initialise map
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
 		{
 			cell.isVisited = false;
-			cell.parent = nullptr;
+			cell.connections = 0;
+			cell.parents.clear();
+			cell.parents.push_back(nullptr);
 			cell.isWall = true;
+
+			//if (config.deviation)
+			//{
+			//	float fx = utl::randInt(config.minConnections - 1, config.maxConnections - 1);
+			//	float ex = getEx(cell.pos);
+
+			//	cell.connections = utl::clamp(ex + (fx - ex) * (config.deviation / 10.f),
+			//		config.minConnections - 1.f, config.maxConnections - 1.f);
+			//	cell.visitsLeft = utl::round(cell.connections);
+			//	//PRINT(cell.connections, cell.visitsLeft);
+			//}
+			//else
+			cell.visitsLeft = utl::randInt(config.minConnections - 1, config.maxConnections - 1);
 		}
 
 	std::stack<Cell *> openList; // bfs
@@ -885,51 +900,80 @@ void Grid::generateMap()
 		openList.pop();
 
 		currCell.isVisited = true;
-		std::vector<Cell *> neighbors = getOrthNeighbors(currCell.pos, tunnelSize + 1);
+		std::vector<Cell *> neighbors = getOrthNeighbors(currCell.pos, config.tunnelSize + 1);
 		std::shuffle(neighbors.begin(), neighbors.end(), g);
 
 		for (Cell *neighbor : neighbors)
 			if (!neighbor->isVisited)
 			{
 				openList.push(neighbor);
-				neighbor->parent = &currCell;
+				neighbor->parents[0] = &currCell;
 			}
+			else if (neighbor->visitsLeft-- > 0)
+				neighbor->parents.push_back(&currCell);
 	}
 
 	// remove walls
+#if 1
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
 		{
-			if (cell.parent)
+			for (Cell *parent : cell.parents)
 			{
+				if (!parent)
+					continue;
 				//waypoints.push_back(&cell);
 #if 1			
-				if (cell.parent->pos.row == cell.pos.row) // same row
+				if (parent->pos.row == cell.pos.row) // same row
 				{
-					int maxCol = std::max(cell.parent->pos.col, cell.pos.col);
+					int maxCol = std::max(parent->pos.col, cell.pos.col);
+					int minCol = std::min(parent->pos.col, cell.pos.col);
 					
-					for (int j = 1; j < wallSize + 1; j = std::abs(j) + 1)
+					for (int j = 1; j < config.wallSize + 1; j = std::abs(j) + 1)
 					{
 						j = j % 2 ? -j : j;
-						if (!isOutOfBound(cell.pos.row + j / 2, maxCol))
-							for (int i = std::min(cell.parent->pos.col, cell.pos.col); i <= maxCol; ++i)
+
+						for (int i = minCol - config.wallSize / 2; i < minCol; ++i)
+							if (!isOutOfBound(cell.pos.row + j / 2, i) && shouldEraseWall({ cell.pos.row + j / 2, i }, { cell.pos.row + j / 2, i - 1 }, i == minCol - config.wallSize / 2))
 								cells[cell.pos.row + j / 2][i].isWall = false;
-						//if (!isOutOfBound(cell.pos.row + j / 2, maxCol + 1))
-						//	cells[cell.pos.row + j / 2][maxCol + 1].isWall = false;
+
+						if (!isOutOfBound(cell.pos.row + j / 2, maxCol))
+							for (int i = minCol; i <= maxCol; ++i)
+								//if (!(j / 2) || (utl::randInt(0, 10) - (i == minCol ? 0 : !cells[cell.pos.row + j / 2][i - 1].isWall) * 10) < 1)
+								if (!(j / 2) || shouldEraseWall({ cell.pos.row + j / 2, i }, { cell.pos.row + j / 2, i - 1 }, false))
+									cells[cell.pos.row + j / 2][i].isWall = false;
+						/*if (!isOutOfBound(cell.pos.row + j / 2, maxCol + 1))
+							cells[cell.pos.row + j / 2][maxCol + 1].isWall = false;*/
+
+							for (int i = maxCol + config.wallSize / 2; i > maxCol; --i)
+								if (!isOutOfBound(cell.pos.row + j / 2, i) && shouldEraseWall({ cell.pos.row + j / 2, i }, { cell.pos.row + j / 2, i - 1 }, i == minCol - config.wallSize / 2))
+									cells[cell.pos.row + j / 2][i].isWall = false;
 					}
 				}
 				else // same col
 				{
-					int maxRow = std::max(cell.parent->pos.row, cell.pos.row);
+					int maxRow = std::max(parent->pos.row, cell.pos.row);
+					int minRow = std::min(parent->pos.row, cell.pos.row);
 
-					for (int j = 1; j < wallSize + 1; j = std::abs(j) + 1)
+					for (int j = 1; j < config.wallSize + 1; j = std::abs(j) + 1)
 					{
 						j = j % 2 ? -j : j;
-						if (!isOutOfBound(maxRow, cell.pos.col + j / 2))
-							for (int i = std::min(cell.parent->pos.row, cell.pos.row); i <= maxRow; ++i)
+
+						for (int i = minRow - config.wallSize / 2; i < minRow; ++i)
+							if (!isOutOfBound(i, cell.pos.col + j / 2) && shouldEraseWall({ i, cell.pos.col + j / 2 }, { i - 1, cell.pos.col + j / 2 }, i == minRow - config.wallSize / 2))
 								cells[i][cell.pos.col + j / 2].isWall = false;
+
+						if (!isOutOfBound(maxRow, cell.pos.col + j / 2))
+							for (int i = minRow; i <= maxRow; ++i)
+								//if (!(j / 2) || (utl::randInt(0, 10) - (i == minRow ? 0 : !cells[i - 1][cell.pos.col + j / 2].isWall) * 10) < 1)
+								if (!(j / 2) || shouldEraseWall({ i, cell.pos.col + j / 2 }, { i - 1, cell.pos.col + j / 2 }, false))
+									cells[i][cell.pos.col + j / 2].isWall = false;
 						//if (!isOutOfBound(maxRow + 1, cell.pos.col + j / 2))
 						//	cells[maxRow + 1][cell.pos.col + j / 2].isWall = false;
+
+							for (int i = maxRow + config.wallSize / 2; i > maxRow; --i)
+								if (!isOutOfBound(i, cell.pos.col + j / 2) && shouldEraseWall({ i, cell.pos.col + j / 2 }, { i - 1, cell.pos.col + j / 2 }, i == maxRow + config.wallSize / 2))
+									cells[i][cell.pos.col + j / 2].isWall = false;
 					}
 				}
 #endif
@@ -981,6 +1025,104 @@ void Grid::generateMap()
 #endif
 			}
 		}
+#endif
+#if 1
+	// reinitialise map
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.isVisited = false;
+
+	while (openList.size())
+		openList.pop();
+
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			if (cell.isWall && !cell.isVisited/* && utl::randInt(0, 99) >= config.openness*/) 
+			{
+				openList.push(&cell);
+				std::vector<Cell *> island;
+
+				while (openList.size())
+				{
+					Cell &currCell = *openList.top();
+					openList.pop();
+					if (currCell.isVisited)
+						continue;
+
+					island.push_back(&currCell);
+					currCell.isVisited = true;
+
+					for (Cell *neighbor : getOrthNeighbors(currCell.pos, 1))
+						if (neighbor->isWall)
+							openList.push(neighbor);
+				}
+
+				if (island.size() < config.minIslandSize)
+					for (Cell *wall : island)
+						wall->isWall = false;
+			}
+
+#if 0
+	// north border
+	for (int i = 0; i < width; ++i)
+		if (cells[0][i].isWall)
+		{
+			cells[0][i].isVisited = true;
+			openList.push(&cells[0][i]);
+		}
+
+	// south border
+	for (int i = 0; i < width; ++i)
+		if (cells[height - 1][i].isWall)
+		{
+			cells[height - 1][i].isVisited = true;
+			openList.push(&cells[height - 1][i]);
+		}
+
+	// east border
+	for (int i = 0; i < height; ++i)
+		if (cells[i][width - 1].isWall)
+		{
+			cells[i][width - 1].isVisited = true;
+			openList.push(&cells[i][width - 1]);
+		}
+
+	// west border
+	for (int i = 0; i < height; ++i)
+		if (cells[i][0].isWall)
+		{
+			cells[i][0].isVisited = true;
+			openList.push(&cells[i][0]);
+		}
+#endif
+
+	//while (openList.size())
+	//{
+	//	Cell &currCell = *openList.top();
+	//	openList.pop();
+	//	//if (currCell.isVisited)
+	//	//	continue;
+
+	//	currCell.isVisited = true;
+	//	for (Cell *neighbor : getOrthNeighbors(currCell.pos, 1))
+	//		if (neighbor->isWall && !neighbor->isVisited)
+	//			openList.push(neighbor);
+	//}
+		
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			if (!cell.isVisited)
+				cell.isWall = false;
+#endif
+}
+
+bool Grid::shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst)
+{
+	return utl::randInt(1, 20) -
+		(config.isEqualWidth ? (isFirst ? 1 : 
+			(isOutOfBound(prevCell) ? 1 : !cells[prevCell.row][prevCell.col].isWall)) :
+			(isOutOfBound(prevCell) ? 1 : !cells[prevCell.row][prevCell.col].isWall)) *
+		(20 - config.noise * 2) <= config.noise;
 }
 
 typename Grid::potentialFieldCell Grid::getNextMove(Vec2 pos)
@@ -1102,6 +1244,25 @@ std::vector<Cell *> Grid::getNeighborWalls(GridPos pos)
 				ret.push_back(&cells[i][j]);
 
 	return ret;
+}
+
+float Grid::getEx(GridPos pos)
+{
+	float ex = 0.f;
+
+	// north west
+	ex += isOutOfBound(pos.row - 1, pos.col - 1) ? static_cast<float>(utl::randInt(
+		config.minConnections - 1, config.maxConnections - 1)) : cells[pos.row - 1][pos.col - 1].connections;
+
+	// north
+	ex += isOutOfBound(pos.row - 1, pos.col) ? static_cast<float>(utl::randInt(
+		config.minConnections - 1, config.maxConnections - 1)) : cells[pos.row - 1][pos.col].connections;
+
+	// west
+	ex += isOutOfBound(pos.row, pos.col - 1) ? static_cast<float>(utl::randInt(
+		config.minConnections - 1, config.maxConnections - 1)) : cells[pos.row][pos.col - 1].connections;
+
+	return ex / 3.f;
 }
 
 float Grid::getMaxDist() const
