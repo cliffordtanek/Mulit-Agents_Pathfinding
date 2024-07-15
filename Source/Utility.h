@@ -76,6 +76,11 @@ namespace utl
 {
 	/*! ------------ Math ------------ */
 
+	inline int round(float val)
+	{
+		return ((static_cast<int>(val * 10.f) % 10 < 5) ? static_cast<int>(val) : static_cast<int>(val) + 1);
+	}
+
 	// @brief checks if two floats can be considered equal
 	// @param lhs: the first float
 	// @param rhs: the second float

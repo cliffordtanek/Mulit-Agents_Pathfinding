@@ -52,7 +52,7 @@ int main()
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-
+    srand(time(0));
     sf::Clock clock;
 
     font.loadFromFile("../Assets/Fonts/PoorStoryRegular.ttf");

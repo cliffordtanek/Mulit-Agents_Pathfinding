@@ -15,8 +15,8 @@ extern float dt;
 extern bool canZoom;
 //extern bool isDrawMode;
 extern DrawMode mode;
-extern int tunnelSize;
-extern int wallSize;
+extern MapConfig config;
+extern FovConfig fov;
 
 // local globals for constant dropdown lists
 std::vector<const char *> colorNames;
@@ -212,6 +212,8 @@ void MapMaker::onUpdate()
 	std::transform(maps.begin(), maps.end(), std::back_inserter(mapNames), [](const auto &elem) 
 		{ return elem.first.c_str(); });
 
+	ImGui::SeparatorText("Loading & Saving");
+	editor.addSpace(2);
 	mapIndex = mapNames.size() ? mapIndex : INVALID;
 	const char *mapPreview = mapIndex == INVALID ? "" : mapNames[mapIndex];
 
@@ -232,8 +234,6 @@ void MapMaker::onUpdate()
 
 		ImGui::EndCombo();
 	}
-
-	editor.addSpace(5);
 
 	if (ImGui::Button("Clear Map"))
 		grid.clearMap();
@@ -269,6 +269,8 @@ void MapMaker::onUpdate()
 	}
 
 	editor.addSpace(5);
+	ImGui::SeparatorText("Drawing");
+	editor.addSpace(2);
 
 #if 0
 	static int colorIndex = INVALID;
@@ -297,46 +299,6 @@ void MapMaker::onUpdate()
 		grid.setPenColour(colorNames[colorIndex]);
 #endif
 
-	static std::vector<char const *> modeNames{ "None", "Wall", "Entity" };
-
-	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
-	{
-		canZoom = false;
-
-			for (int i = 0; i < modeNames.size(); ++i)
-			{
-				const bool isSelected = static_cast<int>(mode) == i;
-					if (ImGui::Selectable(modeNames[i], isSelected))
-						mode = static_cast<DrawMode>(i);
-
-					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-						if (isSelected)
-							ImGui::SetItemDefaultFocus();
-			}
-
-		ImGui::EndCombo();
-	}
-
-	ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
-
-	switch (mode)
-	{
-	case DrawMode::WALL:
-		ImGui::Text("Left click to draw wall");
-		ImGui::Text("Right click to erase wall");
-		break;
-
-	case DrawMode::ENTITY:
-		ImGui::Text("Left click to spawn Enemy");
-		ImGui::Text("Right click to despawn Enemy");
-		break;
-
-	default:
-		break;
-	}
-
-	ImGui::PopStyleColor();
-	editor.addSpace(5);
 	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
 
@@ -381,10 +343,65 @@ void MapMaker::onUpdate()
 	if (colIndex != oldColIndex)
 		grid.setWidth(colIndex + 1);
 
-	editor.addSpace(5);
+	static std::vector<char const *> modeNames{ "None", "Wall", "Entity" };
 
-	ImGui::SliderInt("Wall + Tunnel Width", &wallSize, 1, 10);
-	ImGui::SliderInt("Tunnel Width", &tunnelSize, 1, 10);
+	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
+	{
+		canZoom = false;
+
+			for (int i = 0; i < modeNames.size(); ++i)
+			{
+				const bool isSelected = static_cast<int>(mode) == i;
+					if (ImGui::Selectable(modeNames[i], isSelected))
+						mode = static_cast<DrawMode>(i);
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+			}
+
+		ImGui::EndCombo();
+	}
+
+	ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_GREEN);
+
+	switch (mode)
+	{
+	case DrawMode::WALL:
+		ImGui::Text("Left click to draw wall");
+		ImGui::Text("Right click to erase wall");
+		break;
+
+	case DrawMode::ENTITY:
+		ImGui::Text("Left click to spawn Enemy");
+		ImGui::Text("Right click to despawn Enemy");
+		break;
+
+	default:
+		break;
+	}
+
+	ImGui::PopStyleColor();
+	editor.addSpace(5);
+	ImGui::SeparatorText("Procedural Generation");
+	editor.addSpace(2);
+
+	if (config.wallSize > config.tunnelSize)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, LIGHT_ROSE);
+		ImGui::Text("For optimal generation, wall + tunnel width");
+		ImGui::Text("should be smaller than or equal to tunnel width");
+		ImGui::PopStyleColor();
+	}
+
+	ImGui::SliderInt("Wall Width", &config.wallSize, 1, 10);
+	ImGui::SliderInt("Wall + Tunnel Width", &config.tunnelSize, 1, 10);
+	ImGui::SliderInt("Min Island Size", &config.minIslandSize, 1, 100);
+	ImGui::SliderInt("Min Connections", &config.minConnections, 1, 4);
+	ImGui::SliderInt("Max Connections", &config.maxConnections, 1, 4);
+	ImGui::SliderInt("Noise", &config.noise, 0, 10);
+	ImGui::Checkbox("Equal Wall Width", &config.isEqualWidth);
+
 	if (ImGui::Button("Generate Map"))
 		grid.generateMap();
 
@@ -458,9 +475,20 @@ void ControlPanel::onUpdate()
 
 	ImGui::Begin(name.c_str(), &isOpen);
 
+	ImGui::SeparatorText("Flow Field");
+	editor.addSpace(2);
+
 	ImGui::Checkbox("Draw vision radius", &grid.debugDrawRadius);
 	ImGui::Checkbox("Draw heat map", &grid.showHeatMap);
 	ImGui::Checkbox("Draw flow field arrows", &grid.flowFieldArrow);
+
+	editor.addSpace(5);
+	ImGui::SeparatorText("Fog of War");
+	editor.addSpace(2);
+
+	ImGui::SliderFloat("Cone Radius", &fov.coneRadius, 0.f, 1000.f);
+	ImGui::SliderFloat("Cone Angle", &fov.coneAngle, 0.f, 360.f);
+	ImGui::SliderFloat("Circle Radius", &fov.circleRadius, 0.f, 1000.f);
 
 	ImGui::End();
 }
