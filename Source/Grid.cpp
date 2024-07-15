@@ -15,10 +15,12 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include "Utility.h"
 #include "Loader.h"
 #include "Camera.h"
+#include "Factory.h"
 #include <algorithm>
 #include <random>
 #include <stack>
 
+extern Factory factory;
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
@@ -803,6 +805,19 @@ void Grid::clearMap()
 		}
 }
 
+void Grid::resetMap()
+{
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.visibility = UNEXPLORED;
+
+	for (Enemy *enemy : factory.getEntities<Enemy>())
+		factory.destroyEntity<Enemy>(enemy);
+
+	exitFound = false;
+	resetHeatMap();
+}
+
 // potential field
 void Grid::generateRandomGoal()
 {
@@ -1234,14 +1249,14 @@ std::vector<Cell *> Grid::getOrthNeighbors(GridPos pos, int steps)
 	return ret;
 }
 
-std::vector<Cell *> Grid::getNeighborWalls(GridPos pos)
+std::vector<Vec2> Grid::getNeighborWalls(GridPos pos)
 {
-	std::vector<Cell *> ret;
+	std::vector<Vec2> ret;
 
 	for (int i = pos.row - 1; i < pos.row + 2; ++i)
 		for (int j = pos.col - 1; j < pos.col + 2; ++j)
-			if (!isOutOfBound(i, j) && cells[i][j].isWall)
-				ret.push_back(&cells[i][j]);
+			if (isOutOfBound(i, j) || cells[i][j].isWall)
+				ret.push_back(getWorldPos(i, j));
 
 	return ret;
 }

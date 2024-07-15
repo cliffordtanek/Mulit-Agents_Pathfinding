@@ -131,6 +131,8 @@ public:
 
 	void clearMap();
 
+	void resetMap();
+
 	// potential field methods
 	struct potentialFieldCell;
 	void generateRandomGoal();
@@ -164,7 +166,7 @@ public:
 	Vec2 getFlowFieldDir(GridPos pos) const;
 
 	std::vector<Cell *> getOrthNeighbors(GridPos pos, int steps = 2);
-	std::vector<Cell *> getNeighborWalls(GridPos pos);
+	std::vector<Vec2> getNeighborWalls(GridPos pos);
 	float getEx(GridPos pos);
 
 	float getMaxDist() const;
