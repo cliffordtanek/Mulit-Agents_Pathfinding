@@ -235,9 +235,6 @@ void MapMaker::onUpdate()
 		ImGui::EndCombo();
 	}
 
-	if (ImGui::Button("Clear Map"))
-		grid.clearMap();
-
 	if (ImGui::Button("Save Map As"))
 		editor.openWindow("SaveAsMapPopup");
 
@@ -382,6 +379,11 @@ void MapMaker::onUpdate()
 	}
 
 	ImGui::PopStyleColor();
+	if (ImGui::Button("Clear Map"))
+		grid.clearMap();
+	if (ImGui::Button("Reset Map"))
+		grid.resetMap();
+
 	editor.addSpace(5);
 	ImGui::SeparatorText("Procedural Generation");
 	editor.addSpace(2);

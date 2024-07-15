@@ -15,10 +15,12 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include "Utility.h"
 #include "Loader.h"
 #include "Camera.h"
+#include "Factory.h"
 #include <algorithm>
 #include <random>
 #include <stack>
 
+extern Factory factory;
 extern sf::Font font;
 extern Loader loader;
 extern Camera camera;
@@ -799,6 +801,19 @@ void Grid::clearMap()
 			cell.rect.setFillColor(colors.at("Floor").first);
 			cell.rect.setFillColor(colors.at("Floor").second);
 		}
+}
+
+void Grid::resetMap()
+{
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.visibility = UNEXPLORED;
+
+	for (Enemy *enemy : factory.getEntities<Enemy>())
+		factory.destroyEntity<Enemy>(enemy);
+
+	exitFound = false;
+	resetHeatMap();
 }
 
 // potential field

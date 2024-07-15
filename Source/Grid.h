@@ -131,6 +131,8 @@ public:
 
 	void clearMap();
 
+	void resetMap();
+
 	// potential field methods
 	struct potentialFieldCell;
 	void generateRandomGoal();
