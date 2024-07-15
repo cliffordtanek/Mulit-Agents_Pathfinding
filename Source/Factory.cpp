@@ -8,6 +8,7 @@ extern Factory factory;
 extern Grid grid;
 extern Camera camera;
 extern float dt;
+FovConfig fov;
 
 void Entity::move()
 {
@@ -197,7 +198,7 @@ void Factory::update()
 
 
 
-	grid.updateVisibility(entityPositionDirection, 500.f, 20.f, 100.f);
+	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
 	grid.render(window);
 	for (const auto &[type, map] : entities)

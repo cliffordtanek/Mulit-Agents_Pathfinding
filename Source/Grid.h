@@ -22,6 +22,25 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include <unordered_map>
 #include <queue>
 
+struct MapConfig
+{
+	int tunnelSize = 1;
+	int wallSize = 1;
+	int openness = 1;
+	int minConnections = 1;
+	int maxConnections = 1;
+	int minIslandSize = 1;
+	int noise = 0;
+	bool isEqualWidth = true;
+	int deviation = 0.f; // -10 to 10 (-1.f to 1.f)
+};
+
+struct FovConfig
+{
+	float coneRadius = 500.f;
+	float coneAngle = 20.f;
+	float circleRadius = 100.f;
+};
 
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
@@ -54,8 +73,10 @@ struct Cell
 
 	// map generation
 	bool isVisited = false;
-	Cell *parent = nullptr;
+	int visitsLeft = 0;
+	std::vector<Cell *> parents;
 	GridPos pos;
+	float connections = 0.f;
 
 	Cell() = default;
 	Cell(Vec2 pos);
@@ -117,6 +138,7 @@ public:
 	void updatePotentialField();
 	potentialFieldCell getNextMove(vec2 pos);
 	void generateMap();
+	bool shouldEraseWall(GridPos currCell, GridPos prevCell, bool isFirst);
 
 
 	// =======
@@ -144,6 +166,7 @@ public:
 
 	std::vector<Cell *> getOrthNeighbors(GridPos pos, int steps = 2);
 	std::vector<Cell *> getNeighborWalls(GridPos pos);
+	float getEx(GridPos pos);
 
 
 	// =======
