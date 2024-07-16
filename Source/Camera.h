@@ -21,6 +21,7 @@ written consent of DigiPen Institute of Technology is prohibited.
 
 extern Vec2 winSize;
 
+// draws stuff on the minimap
 class Camera
 {
 	Vec2 pos = winSize / 2.f;

@@ -31,6 +31,8 @@ std::random_device rd;
 std::mt19937 g(rd());
 
 MapConfig config;
+PotentialConfig pConfig;
+RepulsionConfig rConfig;
 
 void drawArrow(sf::RenderWindow& window, Vec2 const& start, Vec2 const& direction, float length = 20.f, float headLength = 10.f)
 {
@@ -213,7 +215,7 @@ void Grid::render(sf::RenderWindow& window)
 				}
 			}
 
-			if (showPotentialField)
+			if (pConfig.showPotentialField)
 			{
 				float value = flowField[row][col].potential;
 
@@ -231,7 +233,7 @@ void Grid::render(sf::RenderWindow& window)
 				window.draw(cells[row][col].rect);
 			}
 
-			if (showRepulsionMap)
+			if (rConfig.showRepulsionMap)
 			{
 				float value = flowField[row][col].repulsion;
 
@@ -249,7 +251,7 @@ void Grid::render(sf::RenderWindow& window)
 				window.draw(currCell.rect);
 			}
 
-			if (showFinalMap)
+			if (pConfig.showFinalMap)
 			{
 				float value = flowField[row][col].final;
 
@@ -294,7 +296,7 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
-	if (exitCell)
+	if (!isOutOfBound(exitCell->pos))
 	{
 		exitCell->rect.setFillColor(sf::Color(0, 255, 0, 255));
 		window.draw(exitCell->rect);
@@ -650,22 +652,18 @@ void Grid::updatePotentialMap()
 		}
 	}
 
-	const float MAX_MD = 30;
-	const float MAX_POTENTIAL = 0.25;
-	const int BLOCK_SIZE = 4;
-
 	float maxPotential{};
 
 	// Iterate through the grid in blocks of 4x4
-	for (int i = 0; i < cells.size(); i += BLOCK_SIZE)
+	for (int i = 0; i < cells.size(); i += pConfig.blockSize)
 	{
-		for (int j = 0; j < cells[0].size(); j += BLOCK_SIZE)
+		for (int j = 0; j < cells[0].size(); j += pConfig.blockSize)
 		{
 			// Determine if the block is unknown
 			int unknownCount = 0;
-			for (int bi = 0; bi < BLOCK_SIZE; ++bi)
+			for (int bi = 0; bi < pConfig.blockSize; ++bi)
 			{
-				for (int bj = 0; bj < BLOCK_SIZE; ++bj)
+				for (int bj = 0; bj < pConfig.blockSize; ++bj)
 				{
 					int ni = i + bi;
 					int nj = j + bj;
@@ -679,7 +677,7 @@ void Grid::updatePotentialMap()
 			if (unknownCount >= 10)
 			{
 				// Calculate the center of the block
-				GridPos blockCenter{ i + BLOCK_SIZE / 2, j + BLOCK_SIZE / 2 };
+				GridPos blockCenter{ i + pConfig.blockSize / 2, j + pConfig.blockSize / 2 };
 				for (auto& row : flowField)
 				{
 					for (auto& flowFieldCell : row)
@@ -692,10 +690,10 @@ void Grid::updatePotentialMap()
 
 						// Calculate Manhattan Distance
 						int md = std::abs(flowFieldCell.position.row - blockCenter.row) + std::abs(flowFieldCell.position.col - blockCenter.col);
-						if (md <= MAX_MD)
+						if (md <= pConfig.maxMd)
 						{
 							// Calculate potential
-							float newPotential = MAX_POTENTIAL - ((float(md) * MAX_POTENTIAL) / MAX_MD);
+							float newPotential = pConfig.maxPotential - ((float(md) * pConfig.maxPotential) / pConfig.maxMd);
 							
 							if (newPotential > 0)
 							{
@@ -758,7 +756,7 @@ void Grid::CombineMaps()
 				continue;
 			}
 
-			cell.final = cell.distance + cell.repulsion - cell.potential * potentialWeight;		
+			cell.final = cell.distance + cell.repulsion - cell.potential * pConfig.potentialWeight;		
 		}
 	}
 
@@ -967,15 +965,18 @@ void Grid::clearMap()
 
 void Grid::resetMap()
 {
-	for (std::vector<Cell> &row : cells)
-		for (Cell &cell : row)
-			cell.visibility = UNEXPLORED;
-
 	for (Enemy *enemy : factory.getEntities<Enemy>())
 		factory.destroyEntity<Enemy>(enemy);
 
 	exitFound = false;
 	resetHeatMap();
+}
+
+void Grid::resetFog()
+{
+	for (std::vector<Cell> &row : cells)
+		for (Cell &cell : row)
+			cell.visibility = UNEXPLORED;
 }
 
 // potential field
@@ -1386,7 +1387,10 @@ void Grid::setWidth(int newWidth)
 {
 	if (width == newWidth)
 		return;
+
 	bool isSmaller = newWidth < width;
+	for (Enemy *enemy : factory.getEntities<Enemy>())
+		factory.destroyEntity<Enemy>(enemy);
 
 	for (int i = 0; i < height; ++i)
 		if (isSmaller)
@@ -1418,7 +1422,10 @@ void Grid::setHeight(int newHeight)
 {
 	if (height == newHeight)
 		return;
+
 	bool isSmaller = newHeight < height;
+	for (Enemy *enemy : factory.getEntities<Enemy>())
+		factory.destroyEntity<Enemy>(enemy);
 
 	if (isSmaller)
 	{

@@ -43,12 +43,6 @@ void Camera::calcOffset(float mag)
 	pos += totalDir * mag * dt;
 }
 
-//void Camera::addToDrawQueue(sf::Drawable *drawable)
-//{
-//	window.draw(*drawable);
-//	drawables.push_back(drawable);
-//}
-
 void Camera::addCircle(const sf::CircleShape &circle)
 {
 	window.draw(circle);

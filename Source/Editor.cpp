@@ -28,6 +28,8 @@ extern bool isPaused;
 extern DrawMode mode;
 extern MapConfig config;
 extern FovConfig fov;
+extern PotentialConfig pConfig;
+extern RepulsionConfig rConfig;
 
 // local globals for constant dropdown lists
 std::vector<const char *> colorNames;
@@ -490,22 +492,6 @@ void ControlPanel::onUpdate()
 
 	ImGui::Begin(name.c_str(), &isOpen);
 
-	ImGui::SeparatorText("Flow Field");
-	editor.addSpace(2);
-
-	ImGui::Checkbox("Draw vision radius", &grid.debugDrawRadius);
-	ImGui::Checkbox("Draw heat map", &grid.showHeatMap);
-	ImGui::Checkbox("Draw flow field arrows", &grid.flowFieldArrow);
-
-	editor.addSpace(5);
-	ImGui::SeparatorText("Fog of War");
-	editor.addSpace(2);
-
-	ImGui::SliderFloat("Cone Radius", &fov.coneRadius, 0.f, 1000.f);
-	ImGui::SliderFloat("Cone Angle", &fov.coneAngle, 0.f, 360.f);
-	ImGui::SliderFloat("Circle Radius", &fov.circleRadius, 0.f, 1000.f);
-
-	editor.addSpace(5);
 	ImGui::SeparatorText("Game");
 	editor.addSpace(2);
 
@@ -522,6 +508,41 @@ void ControlPanel::onUpdate()
 		ImGui::Text("Game is running");
 	}
 	ImGui::PopStyleColor();
+
+	editor.addSpace(5);
+	ImGui::SeparatorText("Flow Field");
+	editor.addSpace(2);
+
+	ImGui::Checkbox("Draw Vision Radius", &grid.debugDrawRadius);
+	ImGui::Checkbox("Draw Heat Map", &grid.showHeatMap);
+	ImGui::Checkbox("Draw Flow Field", &grid.flowFieldArrow);
+
+	editor.addSpace(5);
+	ImGui::SeparatorText("Fog of War");
+	editor.addSpace(2);
+
+	ImGui::SliderFloat("Cone Radius", &fov.coneRadius, 0.f, 1000.f);
+	ImGui::SliderFloat("Cone Angle", &fov.coneAngle, 0.f, 360.f);
+	ImGui::SliderFloat("Circle Radius", &fov.circleRadius, 0.f, 1000.f);
+
+	editor.addSpace(5);
+	ImGui::SeparatorText("Repulsion Field");
+	editor.addSpace(2);
+
+	ImGui::SliderFloat("Repulsion Radius", &rConfig.radius, 0.f, 1000.f);
+	ImGui::Checkbox("Draw Repulsion Field", &rConfig.showRepulsionMap);
+
+	editor.addSpace(5);
+	ImGui::SeparatorText("Potential Field");
+	editor.addSpace(2);
+
+	ImGui::SliderFloat("Potential Weight", &pConfig.potentialWeight, 0.f, 50.f);
+	ImGui::SliderFloat("Max Manhattan Distance", &pConfig.maxMd, 0.f, 50.f);
+	ImGui::SliderFloat("Max Potential", &pConfig.maxPotential, 0.1f, 1.f);
+	ImGui::SliderInt("Block Size", &pConfig.blockSize, 1, 10);
+	ImGui::Checkbox("Draw Potential Field", &pConfig.showPotentialField);
+	ImGui::Checkbox("Use Potential Field", &pConfig.usePotentialField);
+	ImGui::Checkbox("Show Final Field", &pConfig.showFinalMap);
 
 	ImGui::End();
 }

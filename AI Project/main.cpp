@@ -35,6 +35,8 @@ bool canZoom = true; // disable zooming when in dropdown menus
 bool isPaused = false;
 float dt = 0.f;
 DrawMode mode = DrawMode::WALL;
+extern RepulsionConfig rConfig;
+extern PotentialConfig pConfig;
 
 sf::RenderWindow window(sf::VideoMode((unsigned int)winSize.x, (unsigned int)winSize.y), winTitle, sf::Style::Titlebar | sf::Style::Close);
 sf::Font font;
@@ -97,10 +99,10 @@ int main()
             grid.updateHeatMap();
 
             for (Enemy* enemy : factory.getEntities<Enemy>())
-                grid.updateRepulsionMap(grid.getGridPos(enemy->pos), 300.f, 1.f);
+                grid.updateRepulsionMap(grid.getGridPos(enemy->pos), rConfig.radius, 1.f);
 
 
-            if (grid.usePotentialField)
+            if (pConfig.usePotentialField)
             {
                 grid.updatePotentialMap();
             }
@@ -140,35 +142,6 @@ int main()
                     else
                         window.create(sf::VideoMode::getDesktopMode(), winTitle, sf::Style::Fullscreen);
                     isFullscreen = !isFullscreen;
-                    break;
-
-                case sf::Keyboard::M:
-                    for (Enemy *enemy : factory.getEntities<Enemy>())
-                        factory.destroyEntity<Enemy>(enemy);
-                    break;
-
-                case sf::Keyboard::P:
-                    if (ALIVE(Enemy, enemy))
-                        enemy->setWaypoints(waypoints);
-                    break;
-
-                case sf::Keyboard::N:
-                    enemy = factory.createEntity<Enemy>(Vec2{ 200.f, 200.f }, Vec2{ 50.f, 50.f });
-                    break;
-                case sf::Keyboard::I:
-                    grid.generateRandomGoal();
-                    break;
-                case sf::Keyboard::O:
-                    grid.showPotentialField = !grid.showPotentialField;
-                    break;
-                case sf::Keyboard::R:
-					grid.usePotentialField = !grid.usePotentialField;
-                    break;
-                case sf::Keyboard::E:
-                    grid.showRepulsionMap = !grid.showRepulsionMap;
-                    break;
-                case sf::Keyboard::F:
-                    grid.showFinalMap = !grid.showFinalMap;
                     break;
 
                     break;

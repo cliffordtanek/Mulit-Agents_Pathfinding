@@ -41,6 +41,23 @@ struct FovConfig
 	float circleRadius = 100.f;
 };
 
+struct PotentialConfig
+{
+	bool showPotentialField = false;
+	bool usePotentialField = false;
+	bool showFinalMap = false;
+	float potentialWeight = 10.f; // 0.f to 50.f
+	float maxMd = 30.f;
+	float maxPotential = 0.25f;
+	int blockSize = 4;
+};
+
+struct RepulsionConfig
+{
+	float radius = 300.f; // 0.f to 1000.f
+	bool showRepulsionMap = false;
+};
+
 enum Visibility { UNEXPLORED, FOG, VISIBLE };
 
 // data
@@ -103,13 +120,13 @@ public:
 	// display heat map
 	bool showHeatMap{ false };
 
-	bool showPotentialField{ false };
+	//bool showPotentialField{ false };
 
-	bool usePotentialField{ false };
+	//bool usePotentialField{ false };
 
-	bool showRepulsionMap{ false };
+	//bool showRepulsionMap{ false };
 
-	bool showFinalMap{ false };
+	//bool showFinalMap{ false };
 
 	Cell* exitCell{ nullptr };
 
@@ -142,6 +159,8 @@ public:
 	void clearMap();
 
 	void resetMap();
+
+	void resetFog();
 
 	void generateRandomGoal();
 
@@ -249,8 +268,6 @@ private:
 	std::string penColour = "";
 
 	bool exitFound{ false };
-
-	float potentialWeight{ 10.f };
 
 	std::vector<std::vector<Cell>> cells;				// grid cells
 	std::vector<std::vector<flowFieldCell>> flowField;	// heatmap and flowfield container
