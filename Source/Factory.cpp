@@ -151,6 +151,10 @@ void Entity::onUpdate()
 {
 	if (!isPaused)
 		move();
+}
+
+void Entity::onRender()
+{
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
 
 	// draw entity
@@ -205,6 +209,8 @@ void Entity::onDestroy()
 	wpArrows.clear();
 }
 
+
+
 void Factory::init()
 {
 	addEntityType<Enemy>();
@@ -225,6 +231,98 @@ void Factory::update()
 	for (const auto &[type, map] : entities)
 		for (const auto &[k, v] : map)
 			v->onUpdate();
+
+	std::vector<Enemy*> enemies = factory.getEntities<Enemy>();
+
+	vec2 centroid{};
+
+	for (auto const& p : enemies)
+	{
+		centroid += p->pos;
+	}
+
+	centroid.x /= enemies.size();
+	centroid.y /= enemies.size();
+
+	for (unsigned i = 0; i < enemies.size(); ++i)
+	{
+		for (unsigned j = i + 1; j < enemies.size(); ++j)
+		{
+			auto& m1 = enemies[i];
+			auto& m2 = enemies[j];
+
+			float scale = std::max(std::max(m1->scale.x, m1->scale.y), std::max(m2->scale.x, m2->scale.y));
+
+			if (m1->isColliding(m2)) // Adjusted distance check with a small buffer
+			{
+				vec2 direction = m2->pos - m1->pos;
+
+				if (direction == Vec2{ 0.f, 0.f })
+				{
+					direction = { 1, 0 };
+				}
+
+				direction = direction.Normalize();
+
+				if (direction.Length() != 1)
+				{
+					direction *= (1 / direction.Length());
+				}
+
+				float currentDistance = (m1->pos - m2->pos).Length();
+				float requiredDistance = scale; // Adjusted required distance with a small buffer
+				float correctionFactor = (requiredDistance - currentDistance) / 2.f;
+
+				vec2 displacement = direction * correctionFactor;
+
+				// Move both m1 and m2 away from each other
+				bool bigger = false;
+
+				if ((m1->pos - centroid).SquareLength() < 200)
+				{
+					bigger = true;
+				}
+
+				vec2 newM1Pos = m1->pos - displacement * (bigger ? 5.f : 0.5f);
+				vec2 newM2Pos = m2->pos + displacement * (bigger ? 5.f : 0.5f);
+
+				bool m1CollidesWithWall = grid.isWall(grid.getGridPos(newM1Pos));
+				bool m2CollidesWithWall = grid.isWall(grid.getGridPos(newM2Pos));
+
+				// Adjust positions if they collide with a wall
+				if (m1CollidesWithWall || m2CollidesWithWall)
+				{
+
+					// If m1 collides with a wall, move m2 by the full amount
+					if (m1CollidesWithWall)
+					{
+						newM1Pos = m1->pos; // Reset to original position
+						newM2Pos = m2->pos + displacement; // Move m2 by the full amount
+					}
+
+					// If m2 collides with a wall, move m1 by the full amount
+					if (m2CollidesWithWall)
+					{
+						newM2Pos = m2->pos; // Reset to original position
+						newM1Pos = m1->pos - displacement; // Move m1 by the full amount
+					}
+
+					// Optionally, adjust positions to be just outside the wall boundary
+					// This part can be customized based on the game's logic and requirements
+				}
+
+				// Update positions only if no collision with walls
+				m1->pos = newM1Pos;
+				m2->pos = newM2Pos;
+			}
+		}
+	}
+
+	grid.render(window);
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			v->onRender();
+
 }
 
 void Factory::free()

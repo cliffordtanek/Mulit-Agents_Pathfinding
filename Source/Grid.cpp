@@ -1486,7 +1486,7 @@ const std::vector<std::vector<Cell>> &Grid::getCells() const
 
 bool Grid::isWall(unsigned int row, unsigned int col) const
 {
-
+	
 	if (isOutOfBound(row, col))
 	{
 		std::cout << "Out Of Bound!!!\n"; 
@@ -1509,6 +1509,13 @@ bool Grid::isOutOfBound(int row, int col) const
 }
 
 bool Grid::isOutOfBound(GridPos pos) const { return isOutOfBound(pos.row, pos.col); }
+
+bool Grid::isOutOfBound(Vec2 const& pos) const
+{
+	Vec2 max{ width * cellSize, height * cellSize };
+
+	return (pos.x < 0 || pos.x >= max.x || pos.y < 0 || pos.y >= max.y);
+}
 
 
 bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
@@ -1543,10 +1550,6 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 
 			if (row == row0 && col == col0 || row == row1 && col == col1)
 				continue;
-			
-			
-
-				
 
 			if ((row == row1 && col == col1) || (row == row0 && col == col0))
 				continue;
