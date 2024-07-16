@@ -305,6 +305,13 @@ void MapMaker::onUpdate()
 		grid.setPenColour(colorNames[colorIndex]);
 #endif
 
+	if (ImGui::Button("Clear Map"))
+		grid.clearMap();
+	if (ImGui::Button("Clear Fog of War"))
+		grid.resetFog();
+	if (ImGui::Button("Clear Goal and Entities"))
+		grid.resetMap();
+
 	int rowIndex = grid.getHeight() - 1, colIndex = grid.getWidth() - 1;
 	int oldRowIndex = rowIndex, oldColIndex = colIndex;
 
@@ -345,7 +352,7 @@ void MapMaker::onUpdate()
 	if (colIndex != oldColIndex)
 		grid.setWidth(colIndex + 1);
 
-	static std::vector<char const *> modeNames{ "None", "Wall", "Entity" };
+	static std::vector<char const *> modeNames{ "None", "Wall", "Goal", "Entity" };
 
 	if (ImGui::BeginCombo("Draw Mode", modeNames[static_cast<int>(mode)]))
 	{
@@ -376,9 +383,14 @@ void MapMaker::onUpdate()
 		ImGui::Text("Left click to spawn Enemy");
 		ImGui::Text("Right click to despawn Enemy");
 		break;
+
+	case DrawMode::GOAL:
+		ImGui::Text("Left click anywhere to activate goal");
+		ImGui::Text("Right click to set goal");
+		break;
 	
 	case DrawMode::NONE:
-		ImGui::Text("Right click to set goal");
+		ImGui::Text("Walls are hidden until discovered");
 		break;
 
 	default:
@@ -386,11 +398,6 @@ void MapMaker::onUpdate()
 	}
 
 	ImGui::PopStyleColor();
-	if (ImGui::Button("Clear Map"))
-		grid.clearMap();
-	if (ImGui::Button("Reset Map"))
-		grid.resetMap();
-
 	editor.addSpace(5);
 	ImGui::SeparatorText("Procedural Generation");
 	editor.addSpace(2);
@@ -530,7 +537,8 @@ void ControlPanel::onUpdate()
 	editor.addSpace(2);
 
 	ImGui::SliderFloat("Repulsion Radius", &rConfig.radius, 0.f, 1000.f);
-	ImGui::Checkbox("Draw Repulsion Field", &rConfig.showRepulsionMap);
+	ImGui::Checkbox("Use Repulsion Field", &rConfig.useRepulsionMap);
+	ImGui::Checkbox("Draw Repulsion Field (must check above box)", &rConfig.showRepulsionMap);
 
 	editor.addSpace(5);
 	ImGui::SeparatorText("Potential Field");
@@ -539,10 +547,11 @@ void ControlPanel::onUpdate()
 	ImGui::SliderFloat("Potential Weight", &pConfig.potentialWeight, 0.f, 50.f);
 	ImGui::SliderFloat("Max Manhattan Distance", &pConfig.maxMd, 0.f, 50.f);
 	ImGui::SliderFloat("Max Potential", &pConfig.maxPotential, 0.1f, 1.f);
+	ImGui::SliderFloat("Min Unknown Percentage", &pConfig.minUnknownPercent, 0.f, 1.f);
 	ImGui::SliderInt("Block Size", &pConfig.blockSize, 1, 10);
-	ImGui::Checkbox("Draw Potential Field", &pConfig.showPotentialField);
 	ImGui::Checkbox("Use Potential Field", &pConfig.usePotentialField);
-	ImGui::Checkbox("Show Final Field", &pConfig.showFinalMap);
+	ImGui::Checkbox("Draw Potential Field (must check above box)", &pConfig.showPotentialField);
+	ImGui::Checkbox("Draw Final Field", &pConfig.showFinalMap);
 
 	ImGui::End();
 }
@@ -565,7 +574,7 @@ void Editor::init()
 	ImGui::SFML::UpdateFontTexture();
 
 	addWindow<MainMenu>(true, false);
-	addWindow<Inspector>(true, true);
+	addWindow<Inspector>(false, true);
 	addWindow<MapMaker>(true, true);
 	addWindow<SaveAsMapPopup>(false, false);
 	addWindow<ControlPanel>(true, true);

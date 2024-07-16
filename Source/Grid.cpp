@@ -112,7 +112,7 @@ void Grid::render(sf::RenderWindow& window)
 			// if cell is a wall but it has been explored before
 			if (isWall(row, col))
 			{
-				if (currCell.visibility != UNEXPLORED || mode == DrawMode::WALL || mode == DrawMode::ENTITY)
+				if (currCell.visibility != UNEXPLORED || mode != DrawMode::NONE)
 				{
 					currCell.rect.setFillColor(colors.at("Wall").first);
 					currCell.rect.setOutlineColor(colors.at("Wall").second);
@@ -296,9 +296,8 @@ void Grid::render(sf::RenderWindow& window)
 		}
 	}
 
-	if (!isOutOfBound(exitCell->pos))
+	if (exitCell)
 	{
-		
 		exitCell->rect.setFillColor(sf::Color(0, 255, 0, 255));
 		window.draw(exitCell->rect);
 	}
@@ -675,7 +674,7 @@ void Grid::updatePotentialMap()
 				}
 			}
 
-			if (unknownCount >= 10)
+			if (unknownCount >= pConfig.minUnknownPercent * std::powf(pConfig.blockSize, 2.f))
 			{
 				// Calculate the center of the block
 				GridPos blockCenter{ i + pConfig.blockSize / 2, j + pConfig.blockSize / 2 };
@@ -1011,6 +1010,7 @@ void Grid::generateMap()
 		return;
 
 	// initialise map
+	resetMap();
 	for (std::vector<Cell> &row : cells)
 		for (Cell &cell : row)
 		{

@@ -34,6 +34,7 @@ enum class DrawMode
 {
 	NONE,
 	WALL,
+	GOAL,
 	ENTITY
 };
 

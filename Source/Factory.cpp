@@ -86,7 +86,8 @@ void Entity::move()
 
 	// collision with wall
 	float wallRadius = std::sqrtf(std::powf(grid.getCellSize(), 2.f) * 2.f) / 2.f;
-	float entityRadius = std::sqrtf(std::powf(scale.x / 2.f, 2.f) + std::powf(scale.y / 2.f, 2.f));
+	//float entityRadius = std::sqrtf(std::powf(scale.x / 2.f, 2.f) + std::powf(scale.y / 2.f, 2.f));
+	float entityRadius = scale.y / 2.f;
 
 	for (Vec2 wallPos : grid.getNeighborWalls(grid.getGridPos(pos)))
 	{

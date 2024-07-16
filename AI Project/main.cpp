@@ -73,7 +73,7 @@ int main()
     // initialize systems
     factory.init();
     editor.init();
-    Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 30.f, 50.f });
+    //Enemy *enemy = factory.createEntity<Enemy>(Vec2{ 0.f, 0.f }, Vec2{ 30.f, 50.f });
     std::list<Vec2> waypoints
     { { 100.f, 125.f }, { 325.f, 250.f }, { 500.f, 575.f }, { 775.f, 375.f }, { 800.f, 600.f } };
 
@@ -98,8 +98,9 @@ int main()
         {
             grid.updateHeatMap();
 
-            for (Enemy* enemy : factory.getEntities<Enemy>())
-                grid.updateRepulsionMap(grid.getGridPos(enemy->pos), rConfig.radius, 1.f);
+            if (rConfig.useRepulsionMap)
+                for (Enemy* enemy : factory.getEntities<Enemy>())
+                    grid.updateRepulsionMap(grid.getGridPos(enemy->pos), rConfig.radius, 1.f);
 
 
             if (pConfig.usePotentialField)
@@ -159,7 +160,7 @@ int main()
                     factory.cloneEnemyAt(target);
 
                 // move enemy to cell
-                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::GOAL)
                 {
                     // set all enemy to the target
                     for (Enemy *enemy : factory.getEntities<Enemy>())
@@ -178,7 +179,7 @@ int main()
                         if (grid.getGridPos(target) == grid.getGridPos(enemy->pos))
                             factory.destroyEntity<Enemy>(enemy);
 
-                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::NONE)
+                if (!grid.isWall(grid.getGridPos(target)) && mode == DrawMode::GOAL)
                     grid.setExit(grid.getGridPos(target));
             }
 

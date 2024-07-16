@@ -36,9 +36,9 @@ struct MapConfig
 
 struct FovConfig
 {
-	float coneRadius = 500.f;
-	float coneAngle = 20.f;
-	float circleRadius = 100.f;
+	float coneRadius = 350; // was 500
+	float coneAngle = 72.f; // was 20
+	float circleRadius = 150.f; // was 100
 };
 
 struct PotentialConfig
@@ -49,12 +49,14 @@ struct PotentialConfig
 	float potentialWeight = 10.f; // 0.f to 50.f
 	float maxMd = 30.f;
 	float maxPotential = 0.25f;
+	float minUnknownPercent = 0.625f;
 	int blockSize = 4;
 };
 
 struct RepulsionConfig
 {
 	float radius = 300.f; // 0.f to 1000.f
+	bool useRepulsionMap = false;
 	bool showRepulsionMap = false;
 };
 
