@@ -150,6 +150,8 @@ public:
 
 	void updateRepulsionMap(GridPos pos, float radius, float strength);
 
+	void updateRepulsionMap(float radius, float strength);
+
 	void CombineMaps();
 
 	void resetHeatMap();

@@ -99,8 +99,15 @@ int main()
             grid.updateHeatMap();
 
             if (rConfig.useRepulsionMap)
+            {
+                // for walls
+                //grid.updateRepulsionMap(rConfig.radius, 1.f);
+
                 for (Enemy* enemy : factory.getEntities<Enemy>())
                     grid.updateRepulsionMap(grid.getGridPos(enemy->pos), rConfig.radius, 1.f);
+            }
+
+
 
 
             if (pConfig.usePotentialField)

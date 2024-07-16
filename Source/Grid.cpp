@@ -680,12 +680,6 @@ void Grid::updatePotentialMap()
 				{
 					for (auto& flowFieldCell : row)
 					{
-						if (cells[flowFieldCell.position.row][flowFieldCell.position.col].visibility == UNEXPLORED)
-							continue;
-						// skip if cell is not unexplored
-						//if (cells[potentialFieldCell.position.row][potentialFieldCell.position.col].visibility != UNEXPLORED)
-						//	continue;
-
 						// Calculate Manhattan Distance
 						int md = std::abs(flowFieldCell.position.row - blockCenter.row) + std::abs(flowFieldCell.position.col - blockCenter.col);
 						if (md <= pConfig.maxMd)
@@ -738,10 +732,50 @@ void Grid::updateRepulsionMap(GridPos gridPos, float radius, float strength)
 				if (!isClearPath(gridPos, GridPos{ r, c }))
 					continue;
 
-				flowField[r][c].repulsion = strength * (1.0f - (distance / radius));
+				flowField[r][c].repulsion += strength * (1.0f - (distance / radius));
 			}
 		}
 	}
+}
+
+void Grid::updateRepulsionMap(float radius, float strength)
+{
+	for (auto& row : flowField)
+	{
+		for (auto& flowFieldCell : row)
+		{
+			if (isWall(flowFieldCell.position.row, flowFieldCell.position.col))
+			{
+				int startRow = std::max(0, flowFieldCell.position.row - static_cast<int>(radius / cellSize));
+				int endRow = std::min(height - 1, flowFieldCell.position.row + static_cast<int>(radius / cellSize));
+
+				int startCol = std::max(0, flowFieldCell.position.col - static_cast<int>(radius / cellSize));
+				int endCol = std::min(width - 1, flowFieldCell.position.col + static_cast<int>(radius / cellSize));
+
+				for (int r = startRow; r <= endRow; ++r)
+				{
+					for (int c = startCol; c <= endCol; ++c)
+					{
+						// get distance of pos to cell (startRow, startCol)
+						Vec2 rowCol = getWorldPos(r, c);
+
+
+						float distance = getWorldPos(flowFieldCell.position).Distance(rowCol);
+
+						if (distance <= radius)
+						{
+							flowField[r][c].repulsion += strength * (1.0f - (distance / radius));
+
+							// cap repulsion so that multiple walls will not exceed a limit
+							if (flowField[r][c].repulsion > 0.3f)
+								flowField[r][c].repulsion = 0.3f;
+						}
+					}
+				}
+			}
+		}
+	}
+
 }
 
 void Grid::CombineMaps()
