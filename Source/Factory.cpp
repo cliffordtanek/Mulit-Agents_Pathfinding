@@ -251,11 +251,10 @@ void Factory::update()
 			auto& m1 = enemies[i];
 			auto& m2 = enemies[j];
 
-			GridPos exit = grid.exitCell->pos;
-			Vec2 exitPos = grid.getWorldPos(exit);
-
 			if (grid.isExitFound())
 			{
+				GridPos exit = grid.exitCell->pos;
+				Vec2 exitPos = grid.getWorldPos(exit);
 
 				if ((m1->pos - exitPos).Length() < 10 || (m2->pos - exitPos).Length() < 10)
 				{
@@ -271,7 +270,24 @@ void Factory::update()
 
 				if (direction == Vec2{ 0.f, 0.f })
 				{
-					direction = exitPos - m1->pos;
+					if (m1->pos.x < (grid.getWidth() * grid.getCellSize()) / 2.f)
+					{
+						direction.x = (grid.getWidth() * grid.getCellSize());
+					}
+					else
+					{
+						direction.x = 0.f;
+					}
+
+					if (m1->pos.y < (grid.getHeight() * grid.getCellSize()) / 2.f)
+					{
+						direction.y = (grid.getHeight() * grid.getCellSize());
+					}
+					else
+					{
+						direction.y = 0.f;
+					}
+					
 				}
 
 				direction = direction.Normalize();
