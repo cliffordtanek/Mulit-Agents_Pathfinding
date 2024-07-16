@@ -1498,7 +1498,7 @@ bool Grid::isWall(unsigned int row, unsigned int col) const
 	
 	if (isOutOfBound(row, col))
 	{
-		std::cout << "Out Of Bound!!!\n"; 
+		//std::cout << "Out Of Bound!!!\n"; 
 		return true;
 	}
 	//crashIf(isOutOfBound(row, col), "Row: " + utl::quote(std::to_string(row)) + " Col: " + utl::quote(std::to_string(col)) + " is out of bound because Height: " + utl::quote(std::to_string(height)) + " Width: " + utl::quote(std::to_string(width)));

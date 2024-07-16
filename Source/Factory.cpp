@@ -222,22 +222,21 @@ void Factory::init()
 void Factory::update()
 {
 	std::vector<std::pair<Vec2, Vec2>> entityPositionDirection;
-	for (const auto& [type, map] : entities)
-		for (const auto& [k, v] : map)
+	for (const auto &[type, map] : entities)
+		for (const auto &[k, v] : map)
 			entityPositionDirection.emplace_back(v->pos, v->dir);
 
 	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
-	grid.render(window);
-	for (const auto& [type, map] : entities)
-		for (const auto& [k, v] : map)
+	for (const auto &[type, map] : entities)
+		for (const auto &[k, v] : map)
 			v->onUpdate();
 
-	std::vector<Enemy*> enemies = factory.getEntities<Enemy>();
+	std::vector<Enemy *> enemies = factory.getEntities<Enemy>();
 
 	vec2 centroid{};
 
-	for (auto const& p : enemies)
+	for (auto const &p : enemies)
 	{
 		centroid += p->pos;
 	}
@@ -249,8 +248,8 @@ void Factory::update()
 	{
 		for (unsigned j = i + 1; j < enemies.size(); ++j)
 		{
-			auto& m1 = enemies[i];
-			auto& m2 = enemies[j];
+			auto &m1 = enemies[i];
+			auto &m2 = enemies[j];
 
 			if (grid.isExitFound())
 			{
@@ -288,7 +287,7 @@ void Factory::update()
 					{
 						direction.y = 0.f;
 					}
-					
+
 				}
 
 				direction = direction.Normalize();
@@ -348,10 +347,9 @@ void Factory::update()
 	}
 
 	grid.render(window);
-	for (const auto& [type, map] : entities)
-		for (const auto& [k, v] : map)
+	for (const auto &[type, map] : entities)
+		for (const auto &[k, v] : map)
 			v->onRender();
-
 }
 
 void Factory::free()
