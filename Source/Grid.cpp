@@ -86,9 +86,6 @@ Grid::Grid(int _height, int _width, float _cellSize)
 			potentialField[row][col].position = { row, col };
 		}
 	}
-
-	generateRandomGoal();
-	//updatePotentialMap();
 }
 
 // ======
@@ -243,7 +240,7 @@ void Grid::render(sf::RenderWindow& window)
 
 				sf::Uint8 alpha = static_cast<sf::Uint8>((normalizedDistance) * 255);
 
-				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
+				sf::Color color = sf::Color(255, 255, 0, alpha); // Red color with varying alpha
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
@@ -261,7 +258,7 @@ void Grid::render(sf::RenderWindow& window)
 
 				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
 
-				sf::Color color = sf::Color(200, 0, 255, alpha); // Red color with varying alpha
+				sf::Color color = sf::Color(140, 0, 255, alpha); // Red color with varying alpha
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
@@ -636,6 +633,7 @@ void Grid::updateHeatMap()
 
 	for (int row{}; row < height; ++row)
 		for (int col{}; col < width; ++col)
+			if(maxDist > 0)
 			flowField[row][col].distance /= maxDist;
 
 }
@@ -712,6 +710,7 @@ void Grid::updatePotentialMap()
 
 	for (int row{}; row < height; ++row)
 		for (int col{}; col < width; ++col)
+			if(maxPotential > 0)
 			flowField[row][col].potential /= maxPotential;
 }
 
@@ -837,6 +836,8 @@ void Grid::generateFlowField()
 			if (isWall(row, col) && cells[row][col].visibility != UNEXPLORED)
 				continue;
 
+			if (cells[row][col].visibility == UNEXPLORED)
+				continue;
 			
 			// if goal node is found, we double break
 			bool goalBreak{ false };
@@ -1187,6 +1188,7 @@ void Grid::setExit(GridPos pos)
 	if (exitCell)
 	{
 		exitCell->isExit = false;
+		exitCell = nullptr;
 	}
 
 	if (!isOutOfBound(pos))
