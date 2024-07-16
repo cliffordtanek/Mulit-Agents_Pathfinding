@@ -778,6 +778,30 @@ void Grid::updateRepulsionMap(float radius, float strength)
 
 }
 
+void Grid::normalizeRepulsionMap()
+{
+	float maxRepulsion{};
+
+	for (auto& row : flowField)
+	{
+		for (auto& flowFieldCell : row)
+		{
+			maxRepulsion = std::max(maxRepulsion, flowFieldCell.repulsion);
+		}
+	}
+
+	for (auto& row : flowField)
+	{
+		for (auto& flowFieldCell : row)
+		{
+			if (maxRepulsion > 0)
+				flowFieldCell.repulsion /= maxRepulsion;
+		}
+	}
+
+
+}
+
 void Grid::CombineMaps()
 {
 	for (auto& row : flowField)

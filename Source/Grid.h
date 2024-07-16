@@ -152,6 +152,8 @@ public:
 
 	void updateRepulsionMap(float radius, float strength);
 
+	void normalizeRepulsionMap();
+
 	void CombineMaps();
 
 	void resetHeatMap();
