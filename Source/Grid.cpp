@@ -971,8 +971,14 @@ void Grid::resetMap()
 	for (Enemy *enemy : factory.getEntities<Enemy>())
 		factory.destroyEntity<Enemy>(enemy);
 
-	exitCell = nullptr;
+	if (exitCell)
+	{
+		exitCell->isExit = false;
+		exitCell = nullptr;
+	}
+
 	exitFound = false;
+
 	resetHeatMap();
 }
 
