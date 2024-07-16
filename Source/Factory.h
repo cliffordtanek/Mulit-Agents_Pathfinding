@@ -72,6 +72,7 @@ public:
 
 	virtual void onCreate();
 	virtual void onUpdate();
+	virtual void onRender();
 	virtual void onDestroy();
 };
 
@@ -123,6 +124,7 @@ public:
 	void onCreate() override;
 	void onUpdate() override;
 	void onDestroy() override;
+	bool isColliding(Enemy* entity);
 };
 
 class Arrow : public Entity

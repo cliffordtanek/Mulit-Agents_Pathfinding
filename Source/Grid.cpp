@@ -88,9 +88,6 @@ Grid::Grid(int _height, int _width, float _cellSize)
 			potentialField[row][col].position = { row, col };
 		}
 	}
-
-	generateRandomGoal();
-	//updatePotentialMap();
 }
 
 // ======
@@ -245,7 +242,7 @@ void Grid::render(sf::RenderWindow& window)
 
 				sf::Uint8 alpha = static_cast<sf::Uint8>((normalizedDistance) * 255);
 
-				sf::Color color = sf::Color(255, 0, 0, alpha); // Red color with varying alpha
+				sf::Color color = sf::Color(255, 255, 0, alpha); // Red color with varying alpha
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
@@ -263,7 +260,7 @@ void Grid::render(sf::RenderWindow& window)
 
 				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
 
-				sf::Color color = sf::Color(200, 0, 255, alpha); // Red color with varying alpha
+				sf::Color color = sf::Color(140, 0, 255, alpha); // Red color with varying alpha
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
@@ -637,6 +634,7 @@ void Grid::updateHeatMap()
 
 	for (int row{}; row < height; ++row)
 		for (int col{}; col < width; ++col)
+			if(maxDist > 0)
 			flowField[row][col].distance /= maxDist;
 
 }
@@ -667,7 +665,7 @@ void Grid::updatePotentialMap()
 				{
 					int ni = i + bi;
 					int nj = j + bj;
-					if (!isOutOfBound({ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
+					if (!isOutOfBound(GridPos{ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
 					{
 						++unknownCount;
 					}
@@ -709,6 +707,7 @@ void Grid::updatePotentialMap()
 
 	for (int row{}; row < height; ++row)
 		for (int col{}; col < width; ++col)
+			if(maxPotential > 0)
 			flowField[row][col].potential /= maxPotential;
 }
 
@@ -834,6 +833,8 @@ void Grid::generateFlowField()
 			if (isWall(row, col) && cells[row][col].visibility != UNEXPLORED)
 				continue;
 
+			if (cells[row][col].visibility == UNEXPLORED)
+				continue;
 			
 			// if goal node is found, we double break
 			bool goalBreak{ false };
@@ -1188,6 +1189,7 @@ void Grid::setExit(GridPos pos)
 	if (exitCell)
 	{
 		exitCell->isExit = false;
+		exitCell = nullptr;
 	}
 
 	if (!isOutOfBound(pos))
@@ -1493,7 +1495,7 @@ const std::vector<std::vector<Cell>> &Grid::getCells() const
 
 bool Grid::isWall(unsigned int row, unsigned int col) const
 {
-
+	
 	if (isOutOfBound(row, col))
 	{
 		std::cout << "Out Of Bound!!!\n"; 
@@ -1516,6 +1518,13 @@ bool Grid::isOutOfBound(int row, int col) const
 }
 
 bool Grid::isOutOfBound(GridPos pos) const { return isOutOfBound(pos.row, pos.col); }
+
+bool Grid::isOutOfBound(Vec2 const& pos) const
+{
+	Vec2 max{ width * cellSize, height * cellSize };
+
+	return (pos.x < 0 || pos.x >= max.x || pos.y < 0 || pos.y >= max.y);
+}
 
 
 bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
@@ -1550,10 +1559,6 @@ bool Grid::isClearPath(int row0, int col0, int row1, int col1) const
 
 			if (row == row0 && col == col0 || row == row1 && col == col1)
 				continue;
-			
-			
-
-				
 
 			if ((row == row1 && col == col1) || (row == row0 && col == col0))
 				continue;

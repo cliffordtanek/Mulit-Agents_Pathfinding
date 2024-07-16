@@ -152,51 +152,55 @@ void Entity::onUpdate()
 {
 	if (!isPaused)
 		move();
+}
+
+void Entity::onRender()
+{
 	float rot = utl::radToDeg(utl::calcRot(dir)) + 90.f;
 
 	// draw entity
-	switch (shape)
-	{
-	case CIRCLE:
-	{
-		sf::CircleShape circle;
-		circle.setRadius(scale.x / 2.f);
-		circle.setPosition(pos - Vec2{ scale.x / 2.f, scale.x / 2.f });
-		circle.setFillColor(color);
-		camera.addCircle(circle);
-		break;
-	}
+switch (shape)
+{
+case CIRCLE:
+{
+	sf::CircleShape circle;
+	circle.setRadius(scale.x / 2.f);
+	circle.setPosition(pos - Vec2{ scale.x / 2.f, scale.x / 2.f });
+	circle.setFillColor(color);
+	camera.addCircle(circle);
+	break;
+}
 
-	case TRIANGLE:
-	{
-		sf::ConvexShape triangle;
-		triangle.setPointCount(3);
-		triangle.setPoint(0, sf::Vector2f(pos.x - scale.x / 2.f, pos.y + scale.y / 2.f));
-		triangle.setPoint(1, sf::Vector2f(pos.x + scale.x / 2.f, pos.y + scale.y / 2.f));
-		triangle.setPoint(2, sf::Vector2f(pos.x, pos.y - scale.y / 2.f));
-		triangle.setOrigin(pos);
-		triangle.setRotation(rot);
-		triangle.setPosition(pos);
-		triangle.setFillColor(color);
-		camera.addTriangle(triangle);
-		break;
-	}
+case TRIANGLE:
+{
+	sf::ConvexShape triangle;
+	triangle.setPointCount(3);
+	triangle.setPoint(0, sf::Vector2f(pos.x - scale.x / 2.f, pos.y + scale.y / 2.f));
+	triangle.setPoint(1, sf::Vector2f(pos.x + scale.x / 2.f, pos.y + scale.y / 2.f));
+	triangle.setPoint(2, sf::Vector2f(pos.x, pos.y - scale.y / 2.f));
+	triangle.setOrigin(pos);
+	triangle.setRotation(rot);
+	triangle.setPosition(pos);
+	triangle.setFillColor(color);
+	camera.addTriangle(triangle);
+	break;
+}
 
-	case RECTANGLE:
-	{
-		sf::RectangleShape rectangle;
-		rectangle.setSize(sf::Vector2f(scale.x, scale.y));
-		rectangle.setOrigin(scale.x / 2.f, scale.y / 2.f);
-		rectangle.setRotation(rot);
-		rectangle.setPosition(pos);
-		rectangle.setFillColor(color);
-		camera.addRectangle(rectangle);
-		break;
-	}
+case RECTANGLE:
+{
+	sf::RectangleShape rectangle;
+	rectangle.setSize(sf::Vector2f(scale.x, scale.y));
+	rectangle.setOrigin(scale.x / 2.f, scale.y / 2.f);
+	rectangle.setRotation(rot);
+	rectangle.setPosition(pos);
+	rectangle.setFillColor(color);
+	camera.addRectangle(rectangle);
+	break;
+}
 
-	default:
-		break;
-	}
+default:
+	break;
+}
 }
 
 void Entity::onDestroy()
@@ -205,6 +209,8 @@ void Entity::onDestroy()
 		factory.destroyEntity<Arrow>(arrow);
 	wpArrows.clear();
 }
+
+
 
 void Factory::init()
 {
@@ -219,13 +225,117 @@ void Factory::update()
 	for (const auto& [type, map] : entities)
 		for (const auto& [k, v] : map)
 			entityPositionDirection.emplace_back(v->pos, v->dir);
-		
+
 	grid.updateVisibility(entityPositionDirection, fov.coneRadius, fov.coneAngle, fov.circleRadius);
 
 	grid.render(window);
-	for (const auto &[type, map] : entities)
-		for (const auto &[k, v] : map)
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
 			v->onUpdate();
+
+	std::vector<Enemy*> enemies = factory.getEntities<Enemy>();
+
+	vec2 centroid{};
+
+	for (auto const& p : enemies)
+	{
+		centroid += p->pos;
+	}
+
+	centroid.x /= enemies.size();
+	centroid.y /= enemies.size();
+
+	for (unsigned i = 0; i < enemies.size(); ++i)
+	{
+		for (unsigned j = i + 1; j < enemies.size(); ++j)
+		{
+			auto& m1 = enemies[i];
+			auto& m2 = enemies[j];
+
+			GridPos exit = grid.exitCell->pos;
+			Vec2 exitPos = grid.getWorldPos(exit);
+
+			if (grid.isExitFound())
+			{
+
+				if ((m1->pos - exitPos).Length() < 10 || (m2->pos - exitPos).Length() < 10)
+				{
+					continue;
+				}
+			}
+
+			float scale = std::max(std::max(m1->scale.x, m1->scale.y), std::max(m2->scale.x, m2->scale.y));
+
+			if (m1->isColliding(m2)) // Adjusted distance check with a small buffer
+			{
+				vec2 direction = m2->pos - m1->pos;
+
+				if (direction == Vec2{ 0.f, 0.f })
+				{
+					direction = exitPos - m1->pos;
+				}
+
+				direction = direction.Normalize();
+
+				if (direction.Length() != 1)
+				{
+					direction *= (1 / direction.Length());
+				}
+
+				float currentDistance = (m1->pos - m2->pos).Length();
+				float requiredDistance = scale; // Adjusted required distance with a small buffer
+				float correctionFactor = (requiredDistance - currentDistance) / 2.f;
+
+				vec2 displacement = direction * correctionFactor;
+
+				// Move both m1 and m2 away from each other
+				bool bigger = false;
+
+				if ((m1->pos - centroid).SquareLength() < 200)
+				{
+					bigger = true;
+				}
+
+				vec2 newM1Pos = m1->pos - displacement * (bigger ? 0.25f : 0.5f);
+				vec2 newM2Pos = m2->pos + displacement * (bigger ? 0.25f : 0.5f);
+
+				bool m1CollidesWithWall = grid.isWall(grid.getGridPos(newM1Pos));
+				bool m2CollidesWithWall = grid.isWall(grid.getGridPos(newM2Pos));
+
+				// Adjust positions if they collide with a wall
+				if (m1CollidesWithWall || m2CollidesWithWall)
+				{
+
+					// If m1 collides with a wall, move m2 by the full amount
+					if (m1CollidesWithWall)
+					{
+						newM1Pos = m1->pos; // Reset to original position
+						newM2Pos = m2->pos + displacement; // Move m2 by the full amount
+					}
+
+					// If m2 collides with a wall, move m1 by the full amount
+					if (m2CollidesWithWall)
+					{
+						newM2Pos = m2->pos; // Reset to original position
+						newM1Pos = m1->pos - displacement; // Move m1 by the full amount
+					}
+
+					// Optionally, adjust positions to be just outside the wall boundary
+					// This part can be customized based on the game's logic and requirements
+				}
+
+				// Update positions only if no collision with walls
+				m1->pos = newM1Pos;
+				m2->pos = newM2Pos;
+			}
+		}
+	}
+
+	grid.render(window);
+	for (const auto& [type, map] : entities)
+		for (const auto& [k, v] : map)
+			v->onRender();
+
 }
 
 void Factory::free()
