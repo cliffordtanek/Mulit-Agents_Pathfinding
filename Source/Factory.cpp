@@ -339,7 +339,7 @@ void Factory::update()
 					// This part can be customized based on the game's logic and requirements
 				}
 
-				// Update positions only if no collision with walls
+				// Update positions only if no collision with walls	
 				m1->pos = newM1Pos;
 				m2->pos = newM2Pos;
 			}

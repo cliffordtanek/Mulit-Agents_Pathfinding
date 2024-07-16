@@ -385,7 +385,7 @@ void MapMaker::onUpdate()
 		break;
 
 	case DrawMode::GOAL:
-		ImGui::Text("Left click anywhere to activate goal");
+		ImGui::Text("Left click any non-wall cell to start exploration");
 		ImGui::Text("Right click to set goal");
 		break;
 	
