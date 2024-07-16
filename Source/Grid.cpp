@@ -670,7 +670,7 @@ void Grid::updatePotentialMap()
 				{
 					int ni = i + bi;
 					int nj = j + bj;
-					if (!isOutOfBound({ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
+					if (!isOutOfBound(GridPos{ ni, nj }) && cells[ni][nj].visibility == UNEXPLORED)
 					{
 						++unknownCount;
 					}
