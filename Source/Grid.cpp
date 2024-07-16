@@ -263,7 +263,7 @@ void Grid::render(sf::RenderWindow& window)
 
 				sf::Uint8 alpha = static_cast<sf::Uint8>((1.f - normalizedDistance) * 255);
 
-				sf::Color color = sf::Color(255, 0, 180, alpha); // Red color with varying alpha
+				sf::Color color = sf::Color(200, 0, 255, alpha); // Red color with varying alpha
 				currCell.rect.setFillColor(color);
 
 				window.draw(currCell.rect);
@@ -298,6 +298,7 @@ void Grid::render(sf::RenderWindow& window)
 
 	if (!isOutOfBound(exitCell->pos))
 	{
+		
 		exitCell->rect.setFillColor(sf::Color(0, 255, 0, 255));
 		window.draw(exitCell->rect);
 	}
@@ -919,6 +920,8 @@ void Grid::generateFlowField()
 
 void Grid::changeMap(const std::string& mapName)
 {
+	resetMap();
+
 	const std::vector<std::vector<bool>>& indexCells = loader.getMap(mapName);
 	size_t newWidth = indexCells.size() ? indexCells[0].size() : 0;
 	for (const std::vector<bool>& row : indexCells)
@@ -968,6 +971,7 @@ void Grid::resetMap()
 	for (Enemy *enemy : factory.getEntities<Enemy>())
 		factory.destroyEntity<Enemy>(enemy);
 
+	exitCell = nullptr;
 	exitFound = false;
 	resetHeatMap();
 }
@@ -1385,6 +1389,8 @@ void Grid::setIntensity(GridPos pos, float _intensity)
 
 void Grid::setWidth(int newWidth)
 {
+	resetMap();
+
 	if (width == newWidth)
 		return;
 
@@ -1397,6 +1403,7 @@ void Grid::setWidth(int newWidth)
 		{
 			cells[i].erase(cells[i].begin() + newWidth, cells[i].end());
 			flowField[i].erase(flowField[i].begin() + newWidth, flowField[i].end());
+
 		}
 		else
 			for (int j = width; j < newWidth; ++j)
@@ -1420,6 +1427,8 @@ void Grid::setWidth(int newWidth)
 
 void Grid::setHeight(int newHeight)
 {
+	resetMap();
+
 	if (height == newHeight)
 		return;
 
