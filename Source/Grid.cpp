@@ -672,7 +672,7 @@ void Grid::updatePotentialMap()
 				}
 			}
 
-			if (unknownCount >= pConfig.minUnknownPercent * std::powf(pConfig.blockSize, 2.f))
+			if (unknownCount >= (int)(pConfig.minUnknownPercent) * (int)std::powf((float)pConfig.blockSize, 2.f))
 			{
 				// Calculate the center of the block
 				GridPos blockCenter{ i + pConfig.blockSize / 2, j + pConfig.blockSize / 2 };
